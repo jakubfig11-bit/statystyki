@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Social Stats Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ig: #E1306C;
+    --ig-light: #fce4ec;
+    --ig-grad: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+    --fb: #1877F2;
+    --fb-light: #e3f0fd;
+    --bg: #0d0d12;
+    --surface: #16161e;
+    --surface2: #1e1e28;
+    --border: rgba(255,255,255,0.07);
+    --text: #f0f0f5;
+    --muted: #8888a0;
+    --green: #00d084;
+    --red: #ff4d6d;
+    --font: 'DM Sans', sans-serif;
+    --mono: 'Space Mono', monospace;
+  }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0 0 4rem;
+  }
+
+  /* HEADER */
+  header {
+    padding: 2.5rem 2rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    background: linear-gradient(180deg, rgba(24,119,242,0.06) 0%, transparent 100%);
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .logo-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: var(--ig-grad);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+  h1 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  h1 span { color: var(--muted); font-weight: 300; }
+
+  .header-actions { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    gap: 0.5rem;
+    padding: 1.5rem 2rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .tab {
+    padding: 0.6rem 1.25rem;
+    border-radius: 8px 8px 0 0;
+    border: 1px solid transparent;
+    border-bottom: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    background: transparent;
+    color: var(--muted);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .tab.active {
+    background: var(--surface);
+    border-color: var(--border);
+    color: var(--text);
+  }
+  .tab-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .tab-dot.ig { background: var(--ig); }
+  .tab-dot.fb { background: var(--fb); }
+  .tab-dot.both { background: linear-gradient(90deg, var(--ig) 50%, var(--fb) 50%); }
+
+  /* MAIN CONTENT */
+  main { padding: 2rem; max-width: 1200px; margin: 0 auto; }
+
+  /* SECTION */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* MONTH COMPARE BAR */
+  .compare-bar {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .compare-bar label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .compare-bar select {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-family: var(--font);
+    font-size: 0.875rem;
+    cursor: pointer;
+    outline: none;
+  }
+  .compare-bar select:focus { border-color: rgba(255,255,255,0.2); }
+
+  .vs-badge {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+    background: var(--surface2);
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+
+  /* METRIC GRID */
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .metric-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .metric-card:hover { border-color: rgba(255,255,255,0.15); }
+  .metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .metric-card.ig::before { background: var(--ig-grad); }
+  .metric-card.fb::before { background: var(--fb); }
+  .metric-label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.5rem;
+  }
+  .metric-value {
+    font-size: 1.75rem;
+    font-family: var(--mono);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    margin-bottom: 0.4rem;
+  }
+  .metric-delta {
+    font-size: 0.8rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  .metric-delta.up { color: var(--green); }
+  .metric-delta.down { color: var(--red); }
+  .metric-delta.neutral { color: var(--muted); }
+
+  /* CHART ROW */
+  .chart-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  @media (max-width: 768px) { .chart-row { grid-template-columns: 1fr; } }
+
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.5rem;
+  }
+  .chart-title {
+    font-size: 0.8rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 1.25rem;
+  }
+  .chart-wrap {
+    position: relative;
+    width: 100%;
+    height: 220px;
+  }
+
+  /* DATA TABLE */
+  .data-section { margin-bottom: 2rem; }
+  .data-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  .data-title {
+    font-size: 0.8rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .btn {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-family: var(--font);
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    transition: all 0.15s;
+  }
+  .btn:hover { background: var(--surface); border-color: rgba(255,255,255,0.15); }
+  .btn.primary { background: var(--ig); border-color: var(--ig); color: #fff; }
+  .btn.primary.fb { background: var(--fb); border-color: var(--fb); }
+
+  .months-table {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .months-table table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+  .months-table th {
+    background: var(--surface2);
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .months-table td {
+    padding: 0.85rem 1rem;
+    border-top: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 0.8rem;
+  }
+  .months-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .months-table td.month-name { font-family: var(--font); font-weight: 500; font-size: 0.875rem; }
+  .delta-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    font-family: var(--font);
+  }
+  .delta-pill.up { background: rgba(0,208,132,0.12); color: var(--green); }
+  .delta-pill.down { background: rgba(255,77,109,0.12); color: var(--red); }
+  .delta-pill.neutral { background: var(--surface2); color: var(--muted); }
+
+  /* MODAL */
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 18px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 480px;
+    margin: 1rem;
+  }
+  .modal h2 { font-size: 1rem; font-weight: 600; margin-bottom: 1.5rem; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+  .form-group.full { grid-column: 1 / -1; }
+  .form-group label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .form-group input, .form-group select {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.6rem 0.75rem;
+    border-radius: 8px;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-group input:focus, .form-group select:focus { border-color: rgba(255,255,255,0.25); }
+  .modal-actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem; }
+  .platform-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .platform-badge.ig { background: rgba(225,48,108,0.15); color: var(--ig); }
+  .platform-badge.fb { background: rgba(24,119,242,0.15); color: var(--fb); }
+
+  /* COMBINED SECTION */
+  .platform-toggle {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+  }
+  .ptoggle {
+    padding: 0.5rem 1.25rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    transition: all 0.2s;
+  }
+  .ptoggle.active-ig { background: rgba(225,48,108,0.15); border-color: var(--ig); color: var(--ig); }
+  .ptoggle.active-fb { background: rgba(24,119,242,0.15); border-color: var(--fb); color: var(--fb); }
+
+  /* NO DATA */
+  .no-data {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  .no-data p:first-child { font-size: 2rem; margin-bottom: 0.5rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">📊</div>
+    <div>
+      <h1>Social Stats <span>Dashboard</span></h1>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button class="btn" onclick="exportCSV()">↓ Eksport CSV</button>
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('ig', this)">
+    <span class="tab-dot ig"></span> Instagram
+  </button>
+  <button class="tab" onclick="switchTab('fb', this)">
+    <span class="tab-dot fb"></span> Facebook
+  </button>
+  <button class="tab" onclick="switchTab('both', this)">
+    <span class="tab-dot both"></span> Porównanie
+  </button>
+</div>
+
+<main>
+
+  <!-- INSTAGRAM SECTION -->
+  <div class="section active" id="section-ig">
+    <div class="compare-bar">
+      <div><label>Miesiąc A</label><br><select id="ig-month-a" onchange="renderIG()"></select></div>
+      <div class="vs-badge">VS</div>
+      <div><label>Miesiąc B</label><br><select id="ig-month-b" onchange="renderIG()"></select></div>
+      <button class="btn primary" onclick="openModal('ig')">+ Dodaj miesiąc</button>
+    </div>
+    <div class="metric-grid" id="ig-metrics"></div>
+    <div class="chart-row">
+      <div class="chart-card">
+        <div class="chart-title">Obserwujący — trend miesięczny</div>
+        <div class="chart-wrap"><canvas id="ig-line-chart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Zaangażowanie</div>
+        <div class="chart-wrap"><canvas id="ig-bar-chart"></canvas></div>
+      </div>
+    </div>
+    <div class="data-section">
+      <div class="data-header"><div class="data-title">Wszystkie miesiące — Instagram</div></div>
+      <div class="months-table" id="ig-table"></div>
+    </div>
+  </div>
+
+  <!-- FACEBOOK SECTION -->
+  <div class="section" id="section-fb">
+    <div class="compare-bar">
+      <div><label>Miesiąc A</label><br><select id="fb-month-a" onchange="renderFB()"></select></div>
+      <div class="vs-badge">VS</div>
+      <div><label>Miesiąc B</label><br><select id="fb-month-b" onchange="renderFB()"></select></div>
+      <button class="btn primary fb" onclick="openModal('fb')">+ Dodaj miesiąc</button>
+    </div>
+    <div class="metric-grid" id="fb-metrics"></div>
+    <div class="chart-row">
+      <div class="chart-card">
+        <div class="chart-title">Polubienia strony — trend miesięczny</div>
+        <div class="chart-wrap"><canvas id="fb-line-chart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Zasięg & Zaangażowanie</div>
+        <div class="chart-wrap"><canvas id="fb-bar-chart"></canvas></div>
+      </div>
+    </div>
+    <div class="data-section">
+      <div class="data-header"><div class="data-title">Wszystkie miesiące — Facebook</div></div>
+      <div class="months-table" id="fb-table"></div>
+    </div>
+  </div>
+
+  <!-- COMBINED SECTION -->
+  <div class="section" id="section-both">
+    <div class="chart-card" style="margin-bottom:1rem;">
+      <div class="chart-title">Wzrost obserwujących/polubień — IG vs FB</div>
+      <div class="chart-wrap" style="height:280px;"><canvas id="both-chart"></canvas></div>
+    </div>
+    <div class="chart-row">
+      <div class="chart-card">
+        <div class="chart-title">Zasięg porównanie</div>
+        <div class="chart-wrap"><canvas id="both-reach"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Wskaźnik zaangażowania %</div>
+        <div class="chart-wrap"><canvas id="both-eng"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- MODAL -->
+<div class="modal-backdrop" id="modal">
+  <div class="modal">
+    <h2 id="modal-title">Dodaj dane miesięczne</h2>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Miesiąc</label>
+        <select id="m-month">
+          <option>Styczeń</option><option>Luty</option><option>Marzec</option>
+          <option>Kwiecień</option><option>Maj</option><option>Czerwiec</option>
+          <option>Lipiec</option><option>Sierpień</option><option>Wrzesień</option>
+          <option>Październik</option><option>Listopad</option><option>Grudzień</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Rok</label>
+        <input type="number" id="m-year" value="2025" min="2020" max="2030">
+      </div>
+      <div class="form-group" id="field-followers">
+        <label id="label-followers">Obserwujący</label>
+        <input type="number" id="m-followers" placeholder="np. 12500">
+      </div>
+      <div class="form-group">
+        <label>Zasięg</label>
+        <input type="number" id="m-reach" placeholder="np. 45000">
+      </div>
+      <div class="form-group">
+        <label>Wyświetlenia</label>
+        <input type="number" id="m-impressions" placeholder="np. 80000">
+      </div>
+      <div class="form-group">
+        <label>Polubienia postów</label>
+        <input type="number" id="m-likes" placeholder="np. 3200">
+      </div>
+      <div class="form-group">
+        <label>Komentarze</label>
+        <input type="number" id="m-comments" placeholder="np. 420">
+      </div>
+      <div class="form-group">
+        <label>Udostępnienia</label>
+        <input type="number" id="m-shares" placeholder="np. 180">
+      </div>
+      <div class="form-group">
+        <label>Nowe konta</label>
+        <input type="number" id="m-new" placeholder="np. 320">
+      </div>
+      <div class="form-group">
+        <label id="label-extra">Wizyty profilu</label>
+        <input type="number" id="m-extra" placeholder="np. 5400">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Anuluj</button>
+      <button class="btn primary" id="modal-save-btn" onclick="saveEntry()">Zapisz</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---- DATA STORE ----
+  let data = {
+    ig: JSON.parse(localStorage.getItem('ig_data') || '[]'),
+    fb: JSON.parse(localStorage.getItem('fb_data') || '[]')
+  };
+
+  const MONTHS = ['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];
+
+  function save(platform) {
+    localStorage.setItem(platform + '_data', JSON.stringify(data[platform]));
+  }
+
+  // ---- MODAL ----
+  let currentPlatform = 'ig';
+  function openModal(p) {
+    currentPlatform = p;
+    document.getElementById('modal-title').innerHTML =
+      `Dodaj miesiąc — <span class="platform-badge ${p}">${p === 'ig' ? '📸 Instagram' : '📘 Facebook'}</span>`;
+    document.getElementById('label-followers').textContent = p === 'ig' ? 'Obserwujący' : 'Polubienia strony';
+    document.getElementById('label-extra').textContent = p === 'ig' ? 'Wizyty profilu' : 'Kliknięcia w post';
+    document.getElementById('modal-save-btn').className = 'btn primary' + (p === 'fb' ? ' fb' : '');
+    document.getElementById('modal').classList.add('open');
+  }
+  function closeModal() {
+    document.getElementById('modal').classList.remove('open');
+    ['followers','reach','impressions','likes','comments','shares','new','extra'].forEach(f => {
+      document.getElementById('m-' + f).value = '';
+    });
+  }
+  document.getElementById('modal').addEventListener('click', e => {
+    if (e.target === document.getElementById('modal')) closeModal();
+  });
+
+  function saveEntry() {
+    const month = document.getElementById('m-month').value;
+    const year = parseInt(document.getElementById('m-year').value);
+    const key = month + ' ' + year;
+    const entry = {
+      key, month, year,
+      followers: parseInt(document.getElementById('m-followers').value) || 0,
+      reach: parseInt(document.getElementById('m-reach').value) || 0,
+      impressions: parseInt(document.getElementById('m-impressions').value) || 0,
+      likes: parseInt(document.getElementById('m-likes').value) || 0,
+      comments: parseInt(document.getElementById('m-comments').value) || 0,
+      shares: parseInt(document.getElementById('m-shares').value) || 0,
+      newFollowers: parseInt(document.getElementById('m-new').value) || 0,
+      extra: parseInt(document.getElementById('m-extra').value) || 0,
+    };
+    const idx = data[currentPlatform].findIndex(d => d.key === key);
+    if (idx >= 0) data[currentPlatform][idx] = entry;
+    else data[currentPlatform].push(entry);
+    data[currentPlatform].sort((a,b) => a.year !== b.year ? a.year - b.year : MONTHS.indexOf(a.month) - MONTHS.indexOf(b.month));
+    save(currentPlatform);
+    closeModal();
+    if (currentPlatform === 'ig') renderIG();
+    else renderFB();
+    renderBoth();
+  }
+
+  // ---- HELPERS ----
+  function fmt(n) { return n >= 1000000 ? (n/1000000).toFixed(1)+'M' : n >= 1000 ? (n/1000).toFixed(1)+'K' : n.toString(); }
+  function pct(a,b) { if (!b) return null; return ((a-b)/b*100).toFixed(1); }
+  function deltaClass(d) { return d > 0 ? 'up' : d < 0 ? 'down' : 'neutral'; }
+  function deltaIcon(d) { return d > 0 ? '▲' : d < 0 ? '▼' : '—'; }
+
+  function populateSelects(platform, idA, idB) {
+    const d = data[platform];
+    const selA = document.getElementById(idA);
+    const selB = document.getElementById(idB);
+    const prevA = selA.value, prevB = selB.value;
+    selA.innerHTML = '<option value="">— wybierz —</option>';
+    selB.innerHTML = '<option value="">— wybierz —</option>';
+    d.forEach(e => {
+      selA.innerHTML += `<option value="${e.key}" ${e.key===prevA?'selected':''}>${e.key}</option>`;
+      selB.innerHTML += `<option value="${e.key}" ${e.key===prevB?'selected':''}>${e.key}</option>`;
+    });
+    if (!prevA && d.length >= 1) selA.value = d[d.length-1].key;
+    if (!prevB && d.length >= 2) selB.value = d[d.length-2].key;
+  }
+
+  // ---- CHARTS REGISTRY ----
+  const charts = {};
+  function destroyChart(id) {
+    if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+  }
+
+  // ---- INSTAGRAM ----
+  function renderIG() {
+    populateSelects('ig', 'ig-month-a', 'ig-month-b');
+    const d = data.ig;
+    const mA = d.find(e => e.key === document.getElementById('ig-month-a').value);
+    const mB = d.find(e => e.key === document.getElementById('ig-month-b').value);
+
+    // METRICS
+    const metrics = [
+      { label: 'Obserwujący', key: 'followers' },
+      { label: 'Zasięg', key: 'reach' },
+      { label: 'Wyświetlenia', key: 'impressions' },
+      { label: 'Polubienia', key: 'likes' },
+      { label: 'Komentarze', key: 'comments' },
+      { label: 'Udostępnienia', key: 'shares' },
+      { label: 'Nowi obserwujący', key: 'newFollowers' },
+      { label: 'Wizyty profilu', key: 'extra' },
+    ];
+    const grid = document.getElementById('ig-metrics');
+    if (!mA && !mB) {
+      grid.innerHTML = '<div class="no-data" style="grid-column:1/-1"><p>📭</p><p>Brak danych. Dodaj pierwszy miesiąc!</p></div>';
+    } else {
+      grid.innerHTML = metrics.map(m => {
+        const val = mA ? mA[m.key] : (mB ? mB[m.key] : 0);
+        const prev = (mA && mB) ? mB[m.key] : null;
+        const delta = prev !== null ? parseFloat(pct(val, prev)) : null;
+        return `<div class="metric-card ig">
+          <div class="metric-label">${m.label}</div>
+          <div class="metric-value">${fmt(val)}</div>
+          ${delta !== null ? `<div class="metric-delta ${deltaClass(delta)}">${deltaIcon(delta)} ${Math.abs(delta)}%</div>` : '<div class="metric-delta neutral">—</div>'}
+        </div>`;
+      }).join('');
+    }
+
+    // LINE CHART
+    destroyChart('ig-line');
+    const ctx1 = document.getElementById('ig-line-chart').getContext('2d');
+    charts['ig-line'] = new Chart(ctx1, {
+      type: 'line',
+      data: {
+        labels: d.map(e => e.month.slice(0,3) + ' ' + e.year),
+        datasets: [{
+          label: 'Obserwujący',
+          data: d.map(e => e.followers),
+          borderColor: '#E1306C',
+          backgroundColor: 'rgba(225,48,108,0.08)',
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: '#E1306C',
+          pointRadius: 4,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: '#8888a0', font: { size: 11 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+          y: { ticks: { color: '#8888a0', font: { size: 11 }, callback: v => fmt(v) }, grid: { color: 'rgba(255,255,255,0.05)' } }
+        }
+      }
+    });
+
+    // BAR CHART
+    destroyChart('ig-bar');
+    const ctx2 = document.getElementById('ig-bar-chart').getContext('2d');
+    charts['ig-bar'] = new Chart(ctx2, {
+      type: 'bar',
+      data: {
+        labels: d.map(e => e.month.slice(0,3)),
+        datasets: [
+          { label: 'Polubienia', data: d.map(e => e.likes), backgroundColor: 'rgba(225,48,108,0.7)', borderRadius: 4 },
+          { label: 'Komentarze', data: d.map(e => e.comments), backgroundColor: 'rgba(188,24,136,0.7)', borderRadius: 4 },
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: '#8888a0', font: { size: 10 } }, grid: { display: false } },
+          y: { ticks: { color: '#8888a0', font: { size: 10 }, callback: v => fmt(v) }, grid: { color: 'rgba(255,255,255,0.05)' } }
+        }
+      }
+    });
+
+    // TABLE
+    renderTable('ig', d);
+  }
+
+  // ---- FACEBOOK ----
+  function renderFB() {
+    populateSelects('fb', 'fb-month-a', 'fb-month-b');
+    const d = data.fb;
+    const mA = d.find(e => e.key === document.getElementById('fb-month-a').value);
+    const mB = d.find(e => e.key === document.getElementById('fb-month-b').value);
+
+    const metrics = [
+      { label: 'Polubienia strony', key: 'followers' },
+      { label: 'Zasięg', key: 'reach' },
+      { label: 'Wyświetlenia', key: 'impressions' },
+      { label: 'Reakcje', key: 'likes' },
+      { label: 'Komentarze', key: 'comments' },
+      { label: 'Udostępnienia', key: 'shares' },
+      { label: 'Nowe polubienia', key: 'newFollowers' },
+      { label: 'Kliknięcia w post', key: 'extra' },
+    ];
+    const grid = document.getElementById('fb-metrics');
+    if (!mA && !mB) {
+      grid.innerHTML = '<div class="no-data" style="grid-column:1/-1"><p>📭</p><p>Brak danych. Dodaj pierwszy miesiąc!</p></div>';
+    } else {
+      grid.innerHTML = metrics.map(m => {
+        const val = mA ? mA[m.key] : (mB ? mB[m.key] : 0);
+        const prev = (mA && mB) ? mB[m.key] : null;
+        const delta = prev !== null ? parseFloat(pct(val, prev)) : null;
+        return `<div class="metric-card fb">
+          <div class="metric-label">${m.label}</div>
+          <div class="metric-value">${fmt(val)}</div>
+          ${delta !== null ? `<div class="metric-delta ${deltaClass(delta)}">${deltaIcon(delta)} ${Math.abs(delta)}%</div>` : '<div class="metric-delta neutral">—</div>'}
+        </div>`;
+      }).join('');
+    }
+
+    destroyChart('fb-line');
+    const ctx1 = document.getElementById('fb-line-chart').getContext('2d');
+    charts['fb-line'] = new Chart(ctx1, {
+      type: 'line',
+      data: {
+        labels: d.map(e => e.month.slice(0,3) + ' ' + e.year),
+        datasets: [{
+          label: 'Polubienia',
+          data: d.map(e => e.followers),
+          borderColor: '#1877F2',
+          backgroundColor: 'rgba(24,119,242,0.08)',
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: '#1877F2',
+          pointRadius: 4,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: '#8888a0', font: { size: 11 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+          y: { ticks: { color: '#8888a0', font: { size: 11 }, callback: v => fmt(v) }, grid: { color: 'rgba(255,255,255,0.05)' } }
+        }
+      }
+    });
+
+    destroyChart('fb-bar');
+    const ctx2 = document.getElementById('fb-bar-chart').getContext('2d');
+    charts['fb-bar'] = new Chart(ctx2, {
+      type: 'bar',
+      data: {
+        labels: d.map(e => e.month.slice(0,3)),
+        datasets: [
+          { label: 'Zasięg', data: d.map(e => e.reach), backgroundColor: 'rgba(24,119,242,0.7)', borderRadius: 4 },
+          { label: 'Reakcje', data: d.map(e => e.likes), backgroundColor: 'rgba(66,183,255,0.7)', borderRadius: 4 },
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: '#8888a0', font: { size: 10 } }, grid: { display: false } },
+          y: { ticks: { color: '#8888a0', font: { size: 10 }, callback: v => fmt(v) }, grid: { color: 'rgba(255,255,255,0.05)' } }
+        }
+      }
+    });
+
+    renderTable('fb', d);
+  }
+
+  // ---- TABLE ----
+  function renderTable(platform, d) {
+    const el = document.getElementById(platform + '-table');
+    if (!d.length) {
+      el.innerHTML = '<div class="no-data"><p>📅</p><p>Jeszcze nie ma danych</p></div>';
+      return;
+    }
+    const followerLabel = platform === 'ig' ? 'Obserwujący' : 'Polubienia str.';
+    let html = `<table><thead><tr>
+      <th>Miesiąc</th><th>${followerLabel}</th><th>Zasięg</th>
+      <th>Wyświetlenia</th><th>Polubienia</th><th>Komentarze</th><th>Udostępnienia</th><th>Nowi</th><th>Zmiana obserwujących</th>
+    </tr></thead><tbody>`;
+    d.forEach((e, i) => {
+      const prev = d[i-1];
+      const delta = prev ? parseFloat(pct(e.followers, prev.followers)) : null;
+      const dClass = delta !== null ? deltaClass(delta) : 'neutral';
+      const pill = delta !== null
+        ? `<span class="delta-pill ${dClass}">${deltaIcon(delta)} ${Math.abs(delta)}%</span>`
+        : '<span class="delta-pill neutral">—</span>';
+      html += `<tr>
+        <td class="month-name">${e.key}</td>
+        <td>${fmt(e.followers)}</td>
+        <td>${fmt(e.reach)}</td>
+        <td>${fmt(e.impressions)}</td>
+        <td>${fmt(e.likes)}</td>
+        <td>${fmt(e.comments)}</td>
+        <td>${fmt(e.shares)}</td>
+        <td>${fmt(e.newFollowers)}</td>
+        <td>${pill}</td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    el.innerHTML = html;
+  }
+
+  // ---- COMBINED ----
+  function renderBoth() {
+    const ig = data.ig;
+    const fb = data.fb;
+
+    destroyChart('both-main');
+    const ctx = document.getElementById('both-chart').getContext('2d');
+    const allKeys = [...new Set([...ig.map(e=>e.key), ...fb.map(e=>e.key)])].sort((a,b) => {
+      const [ma, ya] = [MONTHS.indexOf(a.split(' ')[0]), parseInt(a.split(' ')[1])];
+      const [mb, yb] = [MONTHS.indexOf(b.split(' ')[0]), parseInt(b.split(' ')[1])];
+      return ya !== yb ? ya - yb : ma - mb;
+    });
+    charts['both-main'] = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: allKeys.map(k => k.split(' ')[0].slice(0,3) + ' ' + k.split(' ')[1]),
+        datasets: [
+          {
+            label: 'Instagram obserwujący',
+            data: allKeys.map(k => (ig.find(e=>e.key===k)||{}).followers || null),
+            borderColor: '#E1306C',
+            backgroundColor: 'rgba(225,48,108,0.06)',
+            fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#E1306C',
+            spanGaps: false,
+          },
+          {
+            label: 'Facebook polubienia',
+            data: allKeys.map(k => (fb.find(e=>e.key===k)||{}).followers || null),
+            borderColor: '#1877F2',
+            backgroundColor: 'rgba(24,119,242,0.06)',
+            fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#1877F2',
+            spanGaps: false,
+            borderDash: [6,3],
+          }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: '#8888a0', font: { size: 11 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+          y: { ticks: { color: '#8888a0', font: { size: 11 }, callback: v => fmt(v) }, grid: { color: 'rgba(255,255,255,0.05)' } }
+        }
+      }
+    });
+
+    // REACH COMPARISON
+    destroyChart('both-reach');
+    const ctx2 = document.getElementById('both-reach').getContext('2d');
+    charts['both-reach'] = new Chart(ctx2, {
+      type: 'bar',
+      data: {
+        labels: allKeys.map(k => k.split(' ')[0].slice(0,3)),
+        datasets: [
+          { label: 'IG Zasięg', data: allKeys.map(k => (ig.find(e=>e.key===k)||{}).reach||0), backgroundColor: 'rgba(225,48,108,0.7)', borderRadius: 4 },
+          { label: 'FB Zasięg', data: allKeys.map(k => (fb.find(e=>e.key===k)||{}).reach||0), backgroundColor: 'rgba(24,119,242,0.7)', borderRadius: 4 },
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: '#8888a0', font: { size: 10 } }, grid: { display: false } },
+          y: { ticks: { color: '#8888a0', font: { size: 10 }, callback: v => fmt(v) }, grid: { color: 'rgba(255,255,255,0.05)' } }
+        }
+      }
+    });
+
+    // ENGAGEMENT RATE
+    destroyChart('both-eng');
+    const ctx3 = document.getElementById('both-eng').getContext('2d');
+    const igEng = ig.map(e => e.followers ? +((e.likes + e.comments + e.shares) / e.followers * 100).toFixed(2) : 0);
+    const fbEng = fb.map(e => e.followers ? +((e.likes + e.comments + e.shares) / e.followers * 100).toFixed(2) : 0);
+    charts['both-eng'] = new Chart(ctx3, {
+      type: 'line',
+      data: {
+        labels: allKeys.map(k => k.split(' ')[0].slice(0,3)),
+        datasets: [
+          { label: 'IG %', data: allKeys.map(k => { const e = ig.find(x=>x.key===k); return e&&e.followers ? +((e.likes+e.comments+e.shares)/e.followers*100).toFixed(2) : null; }), borderColor: '#E1306C', tension: 0.4, pointRadius: 3, pointBackgroundColor: '#E1306C', spanGaps: false },
+          { label: 'FB %', data: allKeys.map(k => { const e = fb.find(x=>x.key===k); return e&&e.followers ? +((e.likes+e.comments+e.shares)/e.followers*100).toFixed(2) : null; }), borderColor: '#1877F2', tension: 0.4, pointRadius: 3, pointBackgroundColor: '#1877F2', borderDash: [6,3], spanGaps: false },
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: '#8888a0', font: { size: 10 } }, grid: { display: false } },
+          y: { ticks: { color: '#8888a0', font: { size: 10 }, callback: v => v + '%' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+        }
+      }
+    });
+  }
+
+  // ---- TABS ----
+  function switchTab(name, btn) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('section-' + name).classList.add('active');
+    if (name === 'ig') renderIG();
+    else if (name === 'fb') renderFB();
+    else renderBoth();
+  }
+
+  // ---- EXPORT ----
+  function exportCSV() {
+    let csv = 'Platforma,Miesiąc,Obserwujący,Zasięg,Wyświetlenia,Polubienia,Komentarze,Udostępnienia,Nowi,Extra\n';
+    data.ig.forEach(e => csv += `Instagram,${e.key},${e.followers},${e.reach},${e.impressions},${e.likes},${e.comments},${e.shares},${e.newFollowers},${e.extra}\n`);
+    data.fb.forEach(e => csv += `Facebook,${e.key},${e.followers},${e.reach},${e.impressions},${e.likes},${e.comments},${e.shares},${e.newFollowers},${e.extra}\n`);
+    const a = document.createElement('a');
+    a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+    a.download = 'social_stats_' + new Date().toISOString().slice(0,10) + '.csv';
+    a.click();
+  }
+
+  // INIT
+  renderIG();
+  renderBoth();
+</script>
+</body>
+</html>
