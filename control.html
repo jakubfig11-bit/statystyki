@@ -2,6 +2,7 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Kontrolny Meczu</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -13,6 +14,7 @@
         </header>
 
         <div class="control-grid">
+            <!-- Zarządzanie Drużynami i Wynikiem -->
             <div class="control-card">
                 <h3>📊 Wynik i Nazwy Drużyn</h3>
                 <div class="form-group-row">
@@ -39,12 +41,13 @@
                 <button class="btn btn-block btn-neon" onclick="updateTeams()">Zaktualizuj Nazwy</button>
             </div>
 
+            <!-- Kontrola Czasu -->
             <div class="control-card">
                 <h3>⏱️ Zegar Meczowy</h3>
                 <div class="timer-control-display" id="control-timer">00:00</div>
                 <div class="form-group">
                     <label>Połowa meczu</label>
-                    <select id="select-period" onchange="updatePeriod()">
+                    <select id="select-period" onchange="changePeriod()">
                         <option value="1H">1. Połowa (1H)</option>
                         <option value="2H">2. Połowa (2H)</option>
                         <option value="OT">Dogrywka (OT)</option>
@@ -64,6 +67,7 @@
                 </div>
             </div>
 
+            <!-- Wyzwalacze Animacji (Triggers) -->
             <div class="control-card shadow-neon">
                 <h3>🔥 Efekty i Animacje Transmisji</h3>
                 
@@ -92,6 +96,7 @@
                 </div>
             </div>
 
+            <!-- Zarządzanie Kadrami (Składy) -->
             <div class="control-card wide-card">
                 <h3>📋 Edycja Składów (Rozdzielaj przecinkami)</h3>
                 <div class="form-group-row">
