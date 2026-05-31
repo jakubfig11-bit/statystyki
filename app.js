@@ -16,7 +16,7 @@ let matchState = {
     awayCoach: ""
 };
 
-// Detekcja trybu uruchomienia aplikacji na podstawie parametrów URL
+// Detekcja trybu uruchomienia aplikacji na podstawie ścieżki i parametrów URL
 const urlParams = new URLSearchParams(window.location.search);
 const isOverlay = window.location.pathname.includes('overlay.html') || urlParams.get('mode') === 'overlay';
 const isControl = window.location.pathname.includes('control.html') || urlParams.get('mode') === 'control';
@@ -68,7 +68,7 @@ channel.onmessage = (event) => {
     handleIncomingData(event.data);
 };
 
-// Zapasowe nasłuchiwanie LocalStorage (Gdyby przeglądarka/OBS blokowały kanał)
+// Zapasowe nasłuchiwanie LocalStorage (Gdyby przeglądarka/OBS izolowały karty)
 window.addEventListener('storage', (event) => {
     if (event.key === 'matchState' && event.newValue) {
         handleIncomingData({ type: 'STATE_UPDATE', data: JSON.parse(event.newValue) });
@@ -83,9 +83,16 @@ function syncState() {
     localStorage.setItem('matchState', JSON.stringify(matchState));
     channel.postMessage({ type: 'STATE_UPDATE', data: matchState });
     
-    // Wymuś odświeżenie UI na karcie, na której aktualnie klikasz
+    // Wymuś natychmiastowe odświeżenie na karcie, na której aktualnie klikasz
     if (isOverlay) updateOverlayUI();
     if (isControl) updateControlUI();
+}
+
+// Formatowanie sekund na postać MM:SS
+function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const secs = (seconds % 60).toString().padStart(2, '0');
+    return `${mins}:${secs}`;
 }
 
 
@@ -96,13 +103,15 @@ function initControl() {
     // Wypełnij formularze aktualnym stanem z pamięci
     document.getElementById('input-home-name').value = matchState.homeName;
     document.getElementById('input-away-name').value = matchState.awayName;
-    document.getElementById('select-period').value = matchState.period;
     
-    // Wypełnij textaree składów jeśli już coś tam było zapisane
-    if (matchState.homePlayers.length > 0) {
+    const periodSelect = document.getElementById('select-period');
+    if (periodSelect) periodSelect.value = matchState.period;
+    
+    // Wypełnij textarea składów jeśli już coś tam było zapisane
+    if (matchState.homePlayers && matchState.homePlayers.length > 0) {
         document.getElementById('txt-home-players').value = matchState.homePlayers.join(', ');
     }
-    if (matchState.awayPlayers.length > 0) {
+    if (matchState.awayPlayers && matchState.awayPlayers.length > 0) {
         document.getElementById('txt-away-players').value = matchState.awayPlayers.join(', ');
     }
     document.getElementById('txt-home-coach').value = matchState.homeCoach || "Trener A";
@@ -120,9 +129,9 @@ function initControl() {
 }
 
 function updateControlUI() {
-    document.getElementById('control-home-score').innerText = matchState.homeScore;
-    document.getElementById('control-away-score').innerText = matchState.awayScore;
-    document.getElementById('control-timer').innerText = formatTime(matchState.timerSeconds);
+    if (document.getElementById('control-home-score')) document.getElementById('control-home-score').innerText = matchState.homeScore;
+    if (document.getElementById('control-away-score')) document.getElementById('control-away-score').innerText = matchState.awayScore;
+    if (document.getElementById('control-timer')) document.getElementById('control-timer').innerText = formatTime(matchState.timerSeconds);
     
     const btnTimer = document.getElementById('btn-trigger-timer');
     if (btnTimer) {
@@ -148,9 +157,12 @@ function updateTeams() {
     syncState();
 }
 
-function updatePeriod() {
-    matchState.period = document.getElementById('select-period').value;
-    syncState();
+function changePeriod() {
+    const periodSelect = document.getElementById('select-period');
+    if (periodSelect) {
+        matchState.period = periodSelect.value;
+        syncState();
+    }
 }
 
 function toggleTimer() {
@@ -199,12 +211,17 @@ function triggerGoalAnimation() {
 }
 
 function updateLineupsData() {
-    matchState.homePlayers = document.getElementById('txt-home-players').value.split(',').map(p => p.trim());
-    matchState.awayPlayers = document.getElementById('txt-away-players').value.split(',').map(p => p.trim());
+    const homePlayersText = document.getElementById('txt-home-players').value;
+    const awayPlayersText = document.getElementById('txt-away-players').value;
+    
+    matchState.homePlayers = homePlayersText.split(',').map(p => p.trim()).filter(p => p.length > 0);
+    matchState.awayPlayers = awayPlayersText.split(',').map(p => p.trim()).filter(p => p.length > 0);
+    
     matchState.homeCoach = document.getElementById('txt-home-coach').value;
     matchState.awayCoach = document.getElementById('txt-away-coach').value;
+    
     syncState();
-    alert("Składy zostały zaktualizowane i wysłane do OBS!");
+    alert("Składy zostały zapisane i wysłane do OBS!");
 }
 
 function toggleLineups(show) {
@@ -219,7 +236,6 @@ function toggleLineups(show) {
 // ==========================================
 function initOverlay() {
     updateOverlayUI();
-    // Płynne wejście samej belki wyniku przy starcie OBS
     if(typeof gsap !== 'undefined') {
         gsap.from("#scoreboard", { y: -100, opacity: 0, duration: 1.2, ease: "power4.out" });
     }
@@ -303,12 +319,15 @@ function buildLineupList(elementId, playersArray) {
     if(!listEl) return;
     listEl.innerHTML = "";
     
-    const players = playersArray && playersArray.length > 0 ? playersArray : Array(11).fill("Zawodnik");
+    const players = playersArray && playersArray.length > 0 ? playersArray : [
+        "1. ZAWODNIK", "2. ZAWODNIK", "3. ZAWODNIK", "4. ZAWODNIK", "5. ZAWODNIK", 
+        "6. ZAWODNIK", "7. ZAWODNIK", "8. ZAWODNIK", "9. ZAWODNIK", "10. ZAWODNIK", "11. ZAWODNIK"
+    ];
     
     players.forEach(player => {
         const li = document.createElement('li');
         li.innerText = player;
-        gsap.set(li, { opacity: 0, x: elementId.includes('home') ? -20 : 20 });
+        li.style.opacity = "0"; 
         listEl.appendChild(li);
     });
 }
