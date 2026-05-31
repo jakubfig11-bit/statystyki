@@ -2,8 +2,8 @@ const SUPABASE_URL = "https://puhnsjqbqmojjouhsjnk.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1aG5zanFicW1vampvdWhzam5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyMjg4MDgsImV4cCI6MjA5NTgwNDgwOH0.fBFk7OyEeQ8T_v-tzXAffcDb1xfvgeVZfOvq2WqDC7k";
 
 let matchState = {
-    homeName: "GOSPODARZE",
-    awayName: "GOŚCIE",
+    homeName: "ATLETICO",
+    awayName: "BODO",
     homeScore: 0,
     awayScore: 0,
     timerSeconds: 0,
@@ -11,8 +11,10 @@ let matchState = {
     period: "1H",
     homePlayers: [],
     awayPlayers: [],
-    homeCoach: "",
-    awayCoach: ""
+    homeColor: "#ff0055",
+    homeTextColor: "#ffffff",
+    awayColor: "#ffff00",
+    awayTextColor: "#000000"
 };
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -45,7 +47,7 @@ function initSystem() {
             .on('broadcast', { event: 'trigger_action' }, ({ payload }) => {
                 if (payload.id !== lastTriggerId) {
                     lastTriggerId = payload.id;
-                    if (payload.type === 'GOAL') animateGoal(payload.team, payload.scorer);
+                    if (payload.type === 'GOAL') animateGoal(payload.side, payload.team, payload.scorer);
                     if (payload.type === 'LINEUP_HOME') animateLineupSide('home', payload.show);
                     if (payload.type === 'LINEUP_AWAY') animateLineupSide('away', payload.show);
                 }
@@ -97,6 +99,10 @@ function changeScore(team, val) {
 function updateTeams() {
     matchState.homeName = document.getElementById('input-home-name').value.toUpperCase();
     matchState.awayName = document.getElementById('input-away-name').value.toUpperCase();
+    matchState.homeColor = document.getElementById('input-home-color').value;
+    matchState.homeTextColor = document.getElementById('input-home-text').value;
+    matchState.awayColor = document.getElementById('input-away-color').value;
+    matchState.awayTextColor = document.getElementById('input-away-text').value;
     sendToOBS('state_update', matchState);
 }
 
@@ -143,10 +149,10 @@ function resetTimer() {
 }
 
 function triggerGoalAnimation() {
-    const teamKey = document.getElementById('select-goal-team').value;
-    const teamName = teamKey === 'home' ? matchState.homeName : matchState.awayName;
+    const side = document.getElementById('select-goal-team').value;
+    const teamName = side === 'home' ? matchState.homeName : matchState.awayName;
     const scorer = document.getElementById('input-goal-scorer').value || "ZAWODNIK";
-    sendToOBS('trigger_action', { id: "goal_" + Date.now(), type: 'GOAL', team: teamName, scorer: scorer });
+    sendToOBS('trigger_action', { id: "goal_" + Date.now(), type: 'GOAL', side: side, team: teamName, scorer: scorer });
 }
 
 function updateLineupsData() {
@@ -168,14 +174,31 @@ function updateOverlayUI() {
     if (document.getElementById('hud-period')) document.getElementById('hud-period').innerText = matchState.period;
 }
 
-function animateGoal(team, scorer) {
+// DYNAMICZNA ANIMACJA GOLA (Czyta kolory wybranej drużyny)
+function animateGoal(side, team, scorer) {
     if (typeof gsap === 'undefined') return;
-    document.getElementById('goal-team-name').innerText = team;
-    document.getElementById('goal-scorer-name').innerText = scorer;
+
+    const mainColor = side === 'home' ? matchState.homeColor : matchState.awayColor;
+    const textColor = side === 'home' ? matchState.homeTextColor : matchState.awayTextColor;
+
+    const stripe = document.getElementById('goal-stripe');
+    stripe.style.background = `linear-gradient(90deg, transparent, ${mainColor}, ${mainColor}, transparent)`;
+
+    const mainTitle = document.getElementById('goal-text-main');
+    const teamLabel = document.getElementById('goal-team-name');
+    const scorerLabel = document.getElementById('goal-scorer-name');
+
+    mainTitle.style.color = textColor;
+    teamLabel.style.color = textColor;
+    scorerLabel.style.color = textColor;
+
+    teamLabel.innerText = team;
+    scorerLabel.innerText = scorer;
+
     const overlay = document.getElementById('goal-overlay');
-    const stripe = overlay.querySelector('.goal-bg-stripe');
     const content = overlay.querySelector('.goal-content');
     const tl = gsap.timeline();
+
     tl.set(overlay, { visibility: 'visible', opacity: 0 }).set(stripe, { scaleX: 0 }).set(content, { scale: 0.5, opacity: 0 })
       .to(overlay, { opacity: 1, duration: 0.3 }).to(stripe, { scaleX: 1, duration: 0.5, ease: "expo.out" }, "-=0.1")
       .to(content, { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.5)" }).to({}, { duration: 3.0 })
@@ -183,33 +206,44 @@ function animateGoal(team, scorer) {
       .to(overlay, { opacity: 0, duration: 0.2, onComplete: () => gsap.set(overlay, { visibility: 'hidden' }) });
 }
 
+// DYNAMICZNE KOLORY DLA SKŁADÓW
 function animateLineupSide(side, show) {
     if (typeof gsap === 'undefined') return;
     const overlay = document.getElementById('lineups-overlay');
-    const colId = side === 'home' ? '#lineup-home-col' : '#lineup-away-col';
+    const col = document.getElementById(side === 'home' ? 'lineup-home-col' : 'lineup-away-col');
     const listId = side === 'home' ? 'lineup-home-list' : 'lineup-away-list';
+    
     if (show) {
-        buildLineupList(listId, side === 'home' ? matchState.homePlayers : matchState.awayPlayers);
+        const bgColor = side === 'home' ? matchState.homeColor : matchState.awayColor;
+        const txtColor = side === 'home' ? matchState.homeTextColor : matchState.awayTextColor;
+
+        col.style.backgroundColor = 'rgba(10,10,10,0.95)';
+        col.style.borderColor = bgColor;
+        document.getElementById(side === 'home' ? 'lineup-home-title' : 'lineup-away-title').style.color = txtColor;
+
+        buildLineupList(listId, side === 'home' ? matchState.homePlayers : matchState.awayPlayers, txtColor);
         document.getElementById(side === 'home' ? 'lineup-home-title' : 'lineup-away-title').innerText = side === 'home' ? matchState.homeName : matchState.awayName;
+        
         gsap.set(overlay, { visibility: 'visible', opacity: 1 });
-        gsap.fromTo(colId, { x: side === 'home' ? -600 : 600, opacity: 0 }, { x: 0, opacity: 1, duration: 0.8 });
-        gsap.to(`${colId} .lineup-list li`, { opacity: 1, x: 0, duration: 0.4, stagger: 0.05, delay: 0.3 });
+        gsap.fromTo(col, { x: side === 'home' ? -600 : 600, opacity: 0 }, { x: 0, opacity: 1, duration: 0.8 });
+        gsap.to(`#${listId} li`, { opacity: 1, x: 0, duration: 0.4, stagger: 0.05, delay: 0.3 });
     } else {
-        gsap.to(colId, { x: side === 'home' ? -600 : 600, opacity: 0, duration: 0.6, onComplete: () => {
+        gsap.to(col, { x: side === 'home' ? -600 : 600, opacity: 0, duration: 0.6, onComplete: () => {
             const h = document.getElementById('lineup-home-col'), a = document.getElementById('lineup-away-col');
             if (window.getComputedStyle(h).opacity === "0" && window.getComputedStyle(a).opacity === "0") gsap.set(overlay, { visibility: 'hidden' });
         }});
     }
 }
 
-function buildLineupList(elementId, playersArray) {
+function buildLineupList(elementId, playersArray, fontColor) {
     const listEl = document.getElementById(elementId);
     if (!listEl) return;
     listEl.innerHTML = "";
-    const players = playersArray && playersArray.length > 0 ? playersArray : ["1. ZAWODNIK"];
+    const players = playersArray && playersArray.length > 0 ? playersArray : ["1. ZAWODNIK", "2. ZAWODNIK", "3. ZAWODNIK"];
     players.forEach(player => {
         const li = document.createElement('li');
         li.innerText = player;
+        li.style.color = fontColor;
         li.style.opacity = "0";
         li.style.transform = `translateX(${elementId.includes('home') ? '-20px' : '20px'})`;
         listEl.appendChild(li);
