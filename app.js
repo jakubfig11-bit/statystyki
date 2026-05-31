@@ -1,4 +1,4 @@
-// === KONFIGURACJA SUPABASE (Twoje poprawne dane) ===
+// === KONFIGURACJA SUPABASE ===
 const SUPABASE_URL = "https://puhnsjqbqmojjouhsjnk.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1aG5zanFicW1vampvdWhzam5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyMjg4MDgsImV4cCI6MjA5NTgwNDgwOH0.fBFk7OyEeQ8T_v-tzXAffcDb1xfvgeVZfOvq2WqDC7k";
 
@@ -17,42 +17,33 @@ let matchState = {
     awayCoach: ""
 };
 
-// Detekcja trybu uruchomienia aplikacji
 const urlParams = new URLSearchParams(window.location.search);
 const isOverlay = window.location.pathname.includes('overlay.html') || urlParams.get('mode') === 'overlay';
 const isControl = window.location.pathname.includes('control.html') || urlParams.get('mode') === 'control';
 
 let timerInterval = null;
 let lastTriggerId = "";
-
-document.addEventListener("DOMContentLoaded", async () => {
-    // Dynamiczne ładowanie biblioteki Supabase, aby nie rozsypał się HTML
-    if (typeof supabase === 'undefined') {
-        const script = document.createElement('script');
-        script.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
-        document.head.appendChild(script);
-        script.onload = () => initSystem();
-    } else {
-        initSystem();
-    }
-});
-
 let supabaseClient = null;
 
+document.addEventListener("DOMContentLoaded", () => {
+    initSystem();
+});
+
 function initSystem() {
+    if (typeof supabase === 'undefined') {
+        console.error("Błąd: Biblioteka Supabase nie została załadowana z CDN!");
+        return;
+    }
+
     supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     
-    // Konfiguracja dedykowanego kanału rozgłoszeniowego (Broadcast)
     const myChannel = supabaseClient.channel('obs_broadcast', {
-        config: {
-            broadcast: { self: true }
-        }
+        config: { broadcast: { self: true } }
     });
 
     if (isOverlay) {
         updateOverlayUI();
         
-        // Słuchanie zmian na żywo przesyłanych z Panelu do OBS
         myChannel
             .on('broadcast', { event: 'state_update' }, ({ payload }) => {
                 matchState = payload;
@@ -67,20 +58,17 @@ function initSystem() {
                 }
             })
             .subscribe((status) => {
-                console.log("Status połączenia NAKŁADKI z Supabase:", status);
+                console.log("Status połączenia NAKŁADKI:", status);
             });
             
     } else if (isControl) {
         initControl();
-        
-        // Aktywacja nasłuchu w panelu kontrolnym (wymagana do stabilnej wysyłki)
         myChannel.subscribe((status) => {
-            console.log("Status połączenia PANELU z Supabase:", status);
+            console.log("Status połączenia PANELU:", status);
         });
     }
 }
 
-// Funkcja wysyłająca dane do chmury Supabase
 function sendToOBS(eventName, data) {
     if (!supabaseClient) return;
     supabaseClient.channel('obs_broadcast').send({
@@ -97,7 +85,7 @@ function formatTime(seconds) {
 }
 
 // ==========================================
-// 🎛️ LOGIKA PANELU KONTROLNEGO (CONTROL)
+// 🎛️ LOGIKA PANELU KONTROLNEGO
 // ==========================================
 function initControl() {
     updateControlUI();
@@ -210,7 +198,7 @@ function triggerLineupVisual(side, show) {
 }
 
 // ==========================================
-// 📺 LOGIKA NAKŁADKI (OVERLAY - OBS VIEW)
+// 📺 LOGIKA NAKŁADKI (OVERLAY)
 // ==========================================
 function updateOverlayUI() {
     if (document.getElementById('hud-home-name')) document.getElementById('hud-home-name').innerText = matchState.homeName;
@@ -221,7 +209,6 @@ function updateOverlayUI() {
     if (document.getElementById('hud-period')) document.getElementById('hud-period').innerText = matchState.period;
 }
 
-// ⚽ ANIMACJA GSAP: GOOOL
 function animateGoal(team, scorer) {
     if (typeof gsap === 'undefined') return;
 
@@ -249,7 +236,6 @@ function animateGoal(team, scorer) {
       }});
 }
 
-// 🧑‍🤝‍🧑 ANIMACJA GSAP: OSOBNE SKRZYDŁA SKŁADÓW
 function animateLineupSide(side, show) {
     if (typeof gsap === 'undefined') return;
     
@@ -288,7 +274,6 @@ function animateLineupSide(side, show) {
             onComplete: () => {
                 const homeCol = document.getElementById('lineup-home-col');
                 const awayCol = document.getElementById('lineup-away-col');
-                // Jeśli oba panele są schowane, wyłącz widoczność całego tła nakładki
                 if (window.getComputedStyle(homeCol).opacity === "0" && window.getComputedStyle(awayCol).opacity === "0") {
                     gsap.set(overlay, { visibility: 'hidden' });
                 }
