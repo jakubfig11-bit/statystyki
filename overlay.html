@@ -27,31 +27,70 @@
 
     <div id="goal-badge-container" class="goal-badge-wrapper" style="visibility: hidden;">
         <div id="goal-badge-accent" class="goal-badge-club-stripe"></div>
-        
         <div class="goal-badge-main-content">
             <div class="goal-badge-top-row">
                 <span class="goal-badge-alert-text">STRZELONY GOL! ⚽</span>
-                <span id="goal-badge-time" class="goal-badge-match-time">23:14</span>
+                <span id="goal-badge-time" class="goal-badge-match-time">00:00</span>
             </div>
             <div class="goal-badge-bottom-row">
-                <span id="goal-badge-team" class="goal-badge-team-name">ATLETICO MADRYT</span>
-                <span id="goal-badge-scorer" class="goal-badge-player-info">10. KOWALSKI</span>
+                <span id="goal-badge-team" class="goal-badge-team-name">DRUŻYNA</span>
+                <span id="goal-badge-scorer" class="goal-badge-player-info">ZAWODNIK</span>
             </div>
         </div>
     </div>
 
-    <div id="lineups-overlay" class="lineups-container" style="visibility: hidden;">
-        <div id="lineup-home-col" class="lineup-column lineup-left" style="opacity: 0;">
-            <div class="lineup-header-box">
-                <h2 id="lineup-home-title" class="lineup-team-title">GOSPODARZE</h2>
+    <div id="lineups-overlay" class="lineup-tv-fullscreen" style="visibility: hidden; opacity: 0;">
+        <div class="lineup-tv-center-block">
+            
+            <div class="tactical-pitch-container">
+                <div id="pitch-border-line" class="pitch-field">
+                    <div class="pitch-penalty-box top-box"></div>
+                    <div class="pitch-center-line">
+                        <div class="pitch-center-circle"></div>
+                    </div>
+                    <div class="pitch-penalty-box bottom-box"></div>
+                    
+                    <div class="player-node pos-gk">
+                        <div class="player-shirt"><span class="p-num">-</span></div>
+                        <span class="p-name">Bramkarz</span>
+                    </div>
+                    <div class="player-node pos-df-l">
+                        <div class="player-shirt"><span class="p-num">-</span></div>
+                        <span class="p-name">Obrońca L</span>
+                    </div>
+                    <div class="player-node pos-df-r">
+                        <div class="player-shirt"><span class="p-num">-</span></div>
+                        <span class="p-name">Obrońca P</span>
+                    </div>
+                    <div class="player-node pos-fw-l">
+                        <div class="player-shirt"><span class="p-num">-</span></div>
+                        <span class="p-name">Napastnik L</span>
+                    </div>
+                    <div class="player-node pos-fw-r">
+                        <div class="player-shirt"><span class="p-num">-</span></div>
+                        <span class="p-name">Napastnik P</span>
+                    </div>
+                </div>
             </div>
-            <ul id="lineup-home-list" class="lineup-list"></ul>
-        </div>
-        <div id="lineup-away-col" class="lineup-column lineup-right" style="opacity: 0;">
-            <div class="lineup-header-box">
-                <h2 id="lineup-away-title" class="lineup-team-title">GOŚCIE</h2>
+
+            <div class="tactical-sidebar">
+                <div class="sidebar-header">
+                    <h1 id="lineup-team-title">NAZWA DRUŻYNY</h1>
+                    <p class="sidebar-sub">SKŁAD WYJŚCIOWY</p>
+                </div>
+                
+                <div class="sidebar-section">
+                    <h3>ŁAWKA REZERWOWYCH</h3>
+                    <ul id="lineup-bench-list" class="bench-list">
+                        </ul>
+                </div>
+                
+                <div class="sidebar-section coach-section">
+                    <h3>TRENER</h3>
+                    <div id="lineup-coach-display" class="coach-box">BRAK</div>
+                </div>
             </div>
-            <ul id="lineup-away-list" class="lineup-list"></ul>
+
         </div>
     </div>
 
