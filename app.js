@@ -48,8 +48,8 @@ function initSystem() {
                 if (payload.id !== lastTriggerId) {
                     lastTriggerId = payload.id;
                     if (payload.type === 'GOAL') animateGoal(payload.side, payload.team, payload.scorer, payload.time);
-                    if (payload.type === 'LINEUP_HOME') animateLineupSide('home', payload.show);
-                    if (payload.type === 'LINEUP_AWAY') animateLineupSide('away', payload.show);
+                    if (payload.type === 'LINEUP_HOME') animateLineupCentral('home', payload.show);
+                    if (payload.type === 'LINEUP_AWAY') animateLineupCentral('away', payload.show);
                 }
             })
             .subscribe();
@@ -84,9 +84,7 @@ function updateControlUI() {
     if (document.getElementById('control-timer')) document.getElementById('control-timer').innerText = formatTime(matchState.timerSeconds);
     
     const btnTimer = document.getElementById('btn-trigger-timer');
-    if (btnTimer) {
-        btnTimer.innerText = matchState.timerRunning ? "PAUZA" : "START";
-    }
+    if (btnTimer) btnTimer.innerText = matchState.timerRunning ? "PAUZA" : "START";
 }
 
 function changeScore(team, val) {
@@ -166,4 +164,150 @@ function triggerGoalAnimation() {
         type: 'GOAL', 
         side: side, 
         team: teamName, 
-        scorer: scorer
+        scorer: scorer,
+        time: currentTimeString
+    });
+}
+
+function updateLineupsData() {
+    // Łapiemy wpisane ciągi z pól tekstowych i dzielimy po przecinkach
+    matchState.homePlayers = document.getElementById('txt-home-players').value.split(',').map(p => p.trim()).filter(p => p !== "");
+    matchState.awayPlayers = document.getElementById('txt-away-players').value.split(',').map(p => p.trim()).filter(p => p !== "");
+    
+    // Pobranie Trenerów z dedykowanych pól (upewnij się, że masz takie ID w control.html lub dodaj je)
+    const homeCoachInput = document.getElementById('input-home-coach');
+    const awayCoachInput = document.getElementById('input-away-coach');
+    matchState.homeCoach = homeCoachInput ? homeCoachInput.value : "Trener A";
+    matchState.awayCoach = awayCoachInput ? awayCoachInput.value : "Trener B";
+
+    sendToOBS('state_update', matchState);
+}
+
+function triggerLineupVisual(side, show) {
+    sendToOBS('trigger_action', { id: `lineup_${side}_` + Date.now(), type: side === 'home' ? 'LINEUP_HOME' : 'LINEUP_AWAY', show: show });
+}
+
+function updateOverlayUI() {
+    if (document.getElementById('hud-home-name')) document.getElementById('hud-home-name').innerText = matchState.homeName;
+    if (document.getElementById('hud-away-name')) document.getElementById('hud-away-name').innerText = matchState.awayName;
+    if (document.getElementById('hud-home-score')) document.getElementById('hud-home-score').innerText = matchState.homeScore;
+    if (document.getElementById('hud-away-score')) document.getElementById('hud-away-score').innerText = matchState.awayScore;
+    if (document.getElementById('hud-timer')) document.getElementById('hud-timer').innerText = formatTime(matchState.timerSeconds);
+    if (document.getElementById('hud-period')) document.getElementById('hud-period').innerText = matchState.period;
+}
+
+function animateGoal(side, team, scorer, timeString) {
+    if (typeof gsap === 'undefined') return;
+    const mainColor = side === 'home' ? matchState.homeColor : matchState.awayColor;
+    const container = document.getElementById('goal-badge-container');
+    const accentStripe = document.getElementById('goal-badge-accent');
+    
+    document.getElementById('goal-badge-team').innerText = team;
+    document.getElementById('goal-badge-scorer').innerText = scorer;
+    document.getElementById('goal-badge-time').innerText = timeString;
+
+    accentStripe.style.setProperty('background-color', mainColor, 'important');
+    document.getElementById('goal-badge-team').style.setProperty('color', mainColor, 'important');
+
+    const tl = gsap.timeline();
+    tl.set(container, { visibility: 'visible', y: 250, opacity: 0 })
+      .to(container, { y: 0, opacity: 1, duration: 0.7, ease: "back.out(1.2)" })
+      .to({}, { duration: 8.0 })
+      .to(container, { y: 250, opacity: 0, duration: 0.5, ease: "power2.in", onComplete: () => {
+          gsap.set(container, { visibility: 'hidden' });
+      }});
+}
+
+// 🏟️ NOWA FUNKCJA GLOBALNA: OBSŁUGA CENTRALNEGO BOISKA TAKTYCZNEGO
+function animateLineupCentral(side, show) {
+    if (typeof gsap === 'undefined') return;
+    
+    const overlay = document.getElementById('lineups-overlay');
+    const centerBlock = overlay.querySelector('.lineup-tv-center-block');
+    
+    if (show) {
+        const teamName = side === 'home' ? matchState.homeName : matchState.awayName;
+        const mainColor = side === 'home' ? matchState.homeColor : matchState.awayColor;
+        const textColor = side === 'home' ? matchState.homeTextColor : matchState.awayTextColor;
+        const playersList = side === 'home' ? matchState.homePlayers : matchState.awayPlayers;
+        const coachName = side === 'home' ? (matchState.homeCoach || "TRENER A") : (matchState.awayCoach || "TRENER B");
+
+        // 1. Nagłówek i kontury boiska w kolorach klubu
+        document.getElementById('lineup-team-title').innerText = teamName;
+        document.getElementById('lineup-team-title').style.color = mainColor;
+        document.getElementById('pitch-border-line').style.borderColor = mainColor;
+
+        // 2. Podział zawodników: pierwsze 5 na boisko, reszta na ławkę
+        const positions = ['.pos-gk', '.pos-df-l', '.pos-df-r', '.pos-fw-l', '.pos-fw-r'];
+        
+        positions.forEach((selector, idx) => {
+            const node = overlay.querySelector(selector);
+            const shirt = node.querySelector('.player-shirt');
+            const numEl = node.querySelector('.p-num');
+            const nameEl = node.querySelector('.p-name');
+            
+            if (playersList[idx]) {
+                // Wyciąganie numeru i nazwiska (np. "9. NICK" -> numer: 9, nazwisko: NICK)
+                const parts = playersList[idx].split('.');
+                let pNum = idx + 1;
+                let pName = playersList[idx];
+                
+                if (parts.length > 1 && !isNaN(parseInt(parts[0]))) {
+                    pNum = parts[0].trim();
+                    pName = parts.slice(1).join('.').trim();
+                }
+
+                numEl.innerText = pNum;
+                nameEl.innerText = pName;
+                
+                // Stylizacja kółka barwami klubu
+                shirt.style.setProperty('background-color', mainColor, 'important');
+                shirt.style.setProperty('border-color', textColor, 'important');
+                numEl.style.setProperty('color', textColor, 'important');
+                node.style.display = 'flex';
+            } else {
+                // Ukryj kółko, jeśli nie wpisano wystarczającej liczby graczy
+                node.style.display = 'none';
+            }
+        });
+
+        // 3. Budowanie ławki rezerwowych (od 6 elementu w górę)
+        const benchUl = document.getElementById('lineup-bench-list');
+        benchUl.innerHTML = "";
+        const benchPlayers = playersList.slice(5);
+        
+        if (benchPlayers.length > 0) {
+            benchPlayers.forEach(player => {
+                const li = document.createElement('li');
+                li.innerText = player;
+                li.style.borderLeftColor = mainColor;
+                benchUl.appendChild(li);
+            });
+        } else {
+            benchUl.innerHTML = "<li style='opacity:0.5; border-left:none;'>BRAK REZERWOWYCH</li>";
+        }
+
+        // 4. Trener
+        const coachDiv = document.getElementById('lineup-coach-display');
+        coachDiv.innerText = coachName;
+        coachDiv.style.borderLeft = `4px solid ${mainColor}`;
+
+        // 5. Animacja wejścia GSAP (EFEKT CENTRALNEGO WYSUWANIA I POWIĘKSZANIA)
+        gsap.killTweensOf([overlay, centerBlock]);
+        gsap.set(overlay, { visibility: 'visible' });
+        
+        const tl = gsap.timeline();
+        tl.to(overlay, { opacity: 1, duration: 0.4 })
+          .fromTo(centerBlock, { scale: 0.7, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.6, ease: "back.out(1.1)" }, "-=0.2")
+          .fromTo(".player-node", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, stagger: 0.08, ease: "back.out(1.5)" }, "-=0.3")
+          .fromTo("#lineup-bench-list li", { x: 30, opacity: 0 }, { x: 0, opacity: 1, duration: 0.3, stagger: 0.05 }, "-=0.2");
+
+    } else {
+        // Animacja wyjścia
+        const tl = gsap.timeline();
+        tl.to(centerBlock, { scale: 0.8, opacity: 0, duration: 0.4, ease: "power2.in" })
+          .to(overlay, { opacity: 0, duration: 0.3, onComplete: () => {
+              gsap.set(overlay, { visibility: 'hidden' });
+          }}, "-=0.2");
+    }
+}
