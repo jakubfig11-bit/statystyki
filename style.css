@@ -1,11 +1,9 @@
-/* RESET I PODSTAWA */
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 
-/* RESTRYKCJE DLA NAKŁADKI (OBS) */
 .overlay-body { background: transparent !important; overflow: hidden; width: 1920px; height: 1080px; position: relative; }
 
-/* TABLICA HUD SYSTEM */
-.hud-container { position: absolute; top: 30px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; background: rgba(10, 10, 10, 0.9); border: 2px solid #222; border-radius: 6px; padding: 5px 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.7); }
+/* HUD TABLICA */
+.hud-container { position: absolute; top: 30px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; background: rgba(10, 10, 10, 0.95); border: 2px solid #252525; border-radius: 6px; padding: 5px 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.7); }
 .hud-side { display: flex; align-items: center; gap: 15px; }
 .hud-team-name { color: #fff; font-size: 20px; font-weight: 800; letter-spacing: 1px; min-width: 150px; }
 .hud-home .hud-team-name { text-align: right; }
@@ -15,23 +13,23 @@
 .hud-time { color: #fff; font-size: 22px; font-weight: 700; font-family: monospace; }
 .hud-part { color: #ff0055; font-size: 12px; font-weight: 800; margin-top: -2px; }
 
-/* FULLSCREEN ANIMACJA GOLA */
+/* ANIMACJA GOLA FULLSCREEN */
 .goal-fullscreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; z-index: 999; }
-.goal-bg-stripe { position: absolute; width: 100%; height: 160px; background: linear-gradient(90deg, transparent, #ff0055, #ff0055, transparent); transform: scaleX(0); }
-.goal-content { position: relative; text-align: center; color: white; text-shadow: 0 5px 15px rgba(0,0,0,0.5); }
-.goal-title { font-size: 70px; font-weight: 900; italic; letter-spacing: 2px; color: #fff; }
-.goal-team { font-size: 24px; font-weight: 700; color: #00ebff; }
-.goal-scorer { font-size: 20px; font-weight: 500; }
+.goal-bg-stripe { position: absolute; width: 100%; height: 160px; transform: scaleX(0); }
+.goal-content { position: relative; text-align: center; text-shadow: 0 4px 10px rgba(0,0,0,0.9); }
+.goal-title { font-size: 75px; font-weight: 900; letter-spacing: 2px; }
+.goal-team { font-size: 26px; font-weight: 800; margin-top: 5px; }
+.goal-scorer { font-size: 22px; font-weight: 600; }
 
-/* KONTENERY SKŁADÓW */
+/* SKŁADY */
 .lineups-container { position: absolute; top: 150px; left: 0; width: 100%; height: calc(100% - 150px); display: flex; justify-content: space-between; padding: 0 100px; }
-.lineup-column { width: 450px; background: rgba(10,10,10,0.95); border: 2px solid #ff0055; border-radius: 8px; padding: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.8); height: fit-content; }
-.lineup-header-box { border-bottom: 2px solid #222; padding-bottom: 10px; margin-bottom: 15px; }
-.lineup-team-title { color: white; font-size: 26px; font-weight: 900; }
+.lineup-column { width: 450px; border: 3px solid #333; border-radius: 8px; padding: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.8); height: fit-content; }
+.lineup-header-box { border-bottom: 2px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-bottom: 15px; }
+.lineup-team-title { font-size: 28px; font-weight: 900; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
 .lineup-list { list-style: none; }
-.lineup-list li { color: #ccc; font-size: 18px; font-weight: 600; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.lineup-list li { font-size: 19px; font-weight: 700; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05); text-transform: uppercase; }
 
-/* STYLE DLA PANELU STEROWANIA */
+/* PANEL KONTROLNY */
 .control-body { background: #070708; color: #e2e8f0; padding: 20px; }
 .control-panel { max-width: 1200px; margin: 0 auto; background: #111115; border: 1px solid #1f1f2e; border-radius: 12px; padding: 25px; }
 .control-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1f1f2e; padding-bottom: 15px; margin-bottom: 25px; }
