@@ -148,12 +148,19 @@ function resetTimer() {
     sendToOBS('state_update', matchState);
 }
 
-// Zmodyfikowana funkcja - automatycznie przechwytuje czas z licznika
+// POPRAWIONA FUNKCJA: Pobiera czas bezpośrednio z elementu HTML panelu sterowania
 function triggerGoalAnimation() {
     const side = document.getElementById('select-goal-team').value;
     const teamName = side === 'home' ? matchState.homeName : matchState.awayName;
     const scorer = document.getElementById('input-goal-scorer').value || "ZAWODNIK";
-    const currentTimeString = formatTime(matchState.timerSeconds); // Pobranie automatycznej minuty/sekundy
+    
+    let currentTimeString = "00:00";
+    const timerDisplay = document.getElementById('control-timer');
+    if (timerDisplay) {
+        currentTimeString = timerDisplay.innerText;
+    } else {
+        currentTimeString = formatTime(matchState.timerSeconds);
+    }
     
     sendToOBS('trigger_action', { 
         id: "goal_" + Date.now(), 
@@ -184,7 +191,7 @@ function updateOverlayUI() {
     if (document.getElementById('hud-period')) document.getElementById('hud-period').innerText = matchState.period;
 }
 
-// NOWA EMISYJNA ANIMACJA WYSUWANIA Z DOŁU (Z AUTOMATYCZNYM CZASEM I DYNAMICZNYMI BARWAMI)
+// DYNAMICZNA BELKA GOLA Z DOŁU EKRAU
 function animateGoal(side, team, scorer, timeString) {
     if (typeof gsap === 'undefined') return;
 
@@ -194,21 +201,18 @@ function animateGoal(side, team, scorer, timeString) {
     const container = document.getElementById('goal-badge-container');
     const accentStripe = document.getElementById('goal-badge-accent');
     
-    // Wstrzyknięcie tekstów
     document.getElementById('goal-badge-team').innerText = team;
     document.getElementById('goal-badge-scorer').innerText = scorer;
     document.getElementById('goal-badge-time').innerText = timeString;
 
-    // Stylizowanie paska barwą klubową
     accentStripe.style.setProperty('background-color', mainColor, 'important');
     document.getElementById('goal-badge-team').style.setProperty('color', mainColor, 'important');
 
     const tl = gsap.timeline();
 
-    // Ruch: startuje ukryty poniżej 1080px, wysuwa się gładko w górę, czeka 4 sekundy, wraca na dół
     tl.set(container, { visibility: 'visible', y: 150, opacity: 0 })
       .to(container, { y: 0, opacity: 1, duration: 0.6, ease: "back.out(1.0)" })
-      .to({}, { duration: 5.0 }) // Czas wyświetlania grafiki na ekranie
+      .to({}, { duration: 5.0 })
       .to(container, { y: 150, opacity: 0, duration: 0.5, ease: "power2.in", onComplete: () => {
           gsap.set(container, { visibility: 'hidden' });
       }});
