@@ -3,121 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Kontrolny Meczu</title>
+    <title>Scoreboard Control Panel</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="control-body">
+
     <div class="control-panel">
-        <header class="control-header">
-            <h2>🎛️ PANEL KONTROLNY (WERSJA KOLOR)</h2>
-            <div id="control-sync-status" class="status-badge" style="background:#00ebff22; color:#00ebff; border-color:#00ebff;">Supabase Live</div>
-        </header>
-
-        <div class="control-grid">
-            <div class="control-card wide-card">
-                <h3>📊 Drużyny, Wyniki i Barwy Klubowe</h3>
-                <div class="form-group-row">
-                    <div style="background: rgba(255,255,255,0.02); padding: 15px; border-radius: 6px;">
-                        <label style="color:#00ebff;">GOSPODARZE (DOM)</label>
-                        <input type="text" id="input-home-name" value="ATLETICO">
-                        
-                        <div style="display:flex; gap:10px; margin-top:10px;">
-                            <div>
-                                <label>Główny (Tło)</label>
-                                <input type="color" id="input-home-color" value="#ff0055" style="height:40px; padding:0;">
-                            </div>
-                            <div>
-                                <label>Tekst/Akcent</label>
-                                <input type="color" id="input-home-text" value="#ffffff" style="height:40px; padding:0;">
-                            </div>
-                        </div>
-
-                        <div class="score-actions">
-                            <button class="btn btn-sm" onclick="changeScore('home', -1)">-</button>
-                            <span id="control-home-score" class="score-display">0</span>
-                            <button class="btn btn-sm btn-neon" onclick="changeScore('home', 1)">+</button>
-                        </div>
-                    </div>
-
-                    <div class="vs-divider" style="align-self:center;">VS</div>
-
-                    <div style="background: rgba(255,255,255,0.02); padding: 15px; border-radius: 6px;">
-                        <label style="color:#ff0055;">GOŚCIE (WYJAZD)</label>
-                        <input type="text" id="input-away-name" value="BODO">
-                        
-                        <div style="display:flex; gap:10px; margin-top:10px;">
-                            <div>
-                                <label>Główny (Tło)</label>
-                                <input type="color" id="input-away-color" value="#ffff00" style="height:40px; padding:0;">
-                            </div>
-                            <div>
-                                <label>Tekst/Akcent</label>
-                                <input type="color" id="input-away-text" value="#000000" style="height:40px; padding:0;">
-                            </div>
-                        </div>
-
-                        <div class="score-actions">
-                            <button class="btn btn-sm" onclick="changeScore('away', -1)">-</button>
-                            <span id="control-away-score" class="score-display">0</span>
-                            <button class="btn btn-sm btn-neon" onclick="changeScore('away', 1)">+</button>
-                        </div>
-                    </div>
-                </div>
-                <button class="btn btn-block btn-neon" onclick="updateTeams()" style="margin-top:15px;">💥 Zaktualizuj Nazwy i Kolory w OBS</button>
-            </div>
-
-            <div class="control-card">
-                <h3>⏱️ Zegar Meczowy</h3>
-                <div class="timer-control-display" id="control-timer">00:00</div>
-                <div class="form-group">
-                    <label>Połowa meczu</label>
-                    <select id="select-period" onchange="changePeriod()">
-                        <option value="1H">1. Połowa (1H)</option>
-                        <option value="2H">2. Połowa (2H)</option>
-                        <option value="OT">Dogrywka (OT)</option>
-                        <option value="PK">Karne (PK)</option>
-                    </select>
-                </div>
-                <div class="btn-group">
-                    <button class="btn btn-neon" id="btn-trigger-timer" onclick="toggleTimer()">START</button>
-                    <button class="btn btn-red" onclick="resetTimer()">RESET</button>
-                </div>
-            </div>
-
-            <div class="control-card">
-                <h3>🔥 Efekty i Animacje</h3>
-                <div class="goal-trigger-box">
-                    <h4>⚽ Strzelony Gol</h4>
-                    <select id="select-goal-team">
-                        <option value="home">Gospodarze</option>
-                        <option value="away">Goście</option>
-                    </select>
-                    <input type="text" id="input-goal-scorer" placeholder="np. 10. KOWALSKI" style="margin: 8px 0;">
-                    <button class="btn btn-block btn-red" onclick="triggerGoalAnimation()">🚨 ODPAL GOOOL</button>
-                </div>
-                <hr style="border:1px solid #222; margin:10px 0;">
-                <h4>👥 Składy (Lineups)</h4>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; margin-bottom:5px;">
-                    <button class="btn btn-neon btn-sm" onclick="triggerLineupVisual('home', true)">Pokaż Dom</button>
-                    <button class="btn btn-red btn-sm" onclick="triggerLineupVisual('home', false)">Ukryj Dom</button>
-                </div>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px;">
-                    <button class="btn btn-neon btn-sm" onclick="triggerLineupVisual('away', true)">Pokaż Gość</button>
-                    <button class="btn btn-red btn-sm" onclick="triggerLineupVisual('away', false)">Ukryj Gość</button>
-                </div>
-            </div>
-
-            <div class="control-card wide-card">
-                <h3>📋 Edycja Składów (Rozdziel przecinkami)</h3>
-                <div class="form-group-row">
-                    <textarea id="txt-home-players" rows="3">1. NOWAK, 2. KOWALSKI, 3. PIETRZAK</textarea>
-                    <textarea id="txt-away-players" rows="3">12. SMITH, 2. JOHNSON, 3. WILLIAMS</textarea>
-                </div>
-                <button class="btn btn-block btn-neon" onclick="updateLineupsData()">Zapisz Składy</button>
+        <div class="control-header">
+            <h2>PANEL STEROWANIA OVERLAYEM V2 (SUPABASE)</h2>
+            <div>
+                <button class="btn btn-neon btn-sm" onclick="updateTeams()">💥 Zaktualizuj Nazwy i Kolory w OBS</button>
             </div>
         </div>
+
+        <div class="control-grid">
+            
+            <div class="control-card">
+                <h3>DRUŻYNY I BARWY</h3>
+                <div style="margin-top:15px; display:flex; flex-direction:column; gap:10px;">
+                    <div class="form-group-row">
+                        <div>
+                            <label>Gospodarz (HUD)</label>
+                            <input type="text" id="input-home-name" value="ATLETICO">
+                        </div>
+                        <div>
+                            <label>Gość (HUD)</label>
+                            <input type="text" id="input-away-name" value="BODO">
+                        </div>
+                    </div>
+                    <div class="form-group-row">
+                        <div>
+                            <label>Kolor Główny Gosp.</label>
+                            <input type="color" id="input-home-color" value="#ff0055">
+                        </div>
+                        <div>
+                            <label>Kolor Tekstu Gosp.</label>
+                            <input type="color" id="input-home-text" value="#ffffff">
+                        </div>
+                    </div>
+                    <div class="form-group-row">
+                        <div>
+                            <label>Kolor Główny Gościa</label>
+                            <input type="color" id="input-away-color" value="#ffff00">
+                        </div>
+                        <div>
+                            <label>Kolor Tekstu Gościa</label>
+                            <input type="color" id="input-away-text" value="#000000">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-card">
+                <h3>KONTROLA MECZU</h3>
+                
+                <div class="score-actions">
+                    <span>GOSPODARZE</span>
+                    <div class="btn-group">
+                        <button class="btn btn-red" onclick="changeScore('home', -1)">-1</button>
+                        <span id="control-home-score" class="score-display">0</span>
+                        <button class="btn btn-neon" onclick="changeScore('home', 1)">+1</button>
+                    </div>
+                </div>
+
+                <div class="score-actions" style="margin-top:10px;">
+                    <span>GOŚCIE</span>
+                    <div class="btn-group">
+                        <button class="btn btn-red" onclick="changeScore('away', -1)">-1</button>
+                        <span id="control-away-score" class="score-display">0</span>
+                        <button class="btn btn-neon" onclick="changeScore('away', 1)">+1</button>
+                    </div>
+                </div>
+
+                <div id="control-timer" class="timer-control-display">00:00</div>
+                
+                <div class="btn-group" style="width:100%;">
+                    <button id="btn-trigger-timer" class="btn btn-neon" style="flex:2;" onclick="toggleTimer()">START</button>
+                    <button class="btn btn-red" style="flex:1;" onclick="resetTimer()">RESET</button>
+                </div>
+
+                <div style="margin-top:15px;">
+                    <label>Połowa / Część meczu</label>
+                    <select id="select-period" onchange="changePeriod()">
+                        <option value="1H">1. POŁOWA (1H)</option>
+                        <option value="2H">2. POŁOWA (2H)</option>
+                        <option value="OT">DOGRYWKA (OT)</option>
+                        <option value="PEN">KARNE (PEN)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="control-card">
+                <h3>ANIMACJA GOLA (TV STYLE XL)</h3>
+                <div style="margin-top:15px; display:flex; flex-direction:column; gap:12px;">
+                    <div>
+                        <label>Drużyna strzelająca</label>
+                        <select id="select-goal-team">
+                            <option value="home">GOSPODARZE</option>
+                            <option value="away">GOŚCIE</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Strzelec (Numer i Nick)</label>
+                        <input type="text" id="input-goal-scorer" placeholder="np. 10. KOWALSKI">
+                    </div>
+                    <button class="btn btn-red btn-block" style="padding:15px;" onclick="triggerGoalAnimation()">🚨 ODPAL GOOOL (8 SEKUND)</button>
+                </div>
+            </div>
+
+            <div class="control-card wide-card">
+                <h3>ZARZĄDZANIE SKŁADAMI (CENTRALNE BOISKO 5-OSOBOWE)</h3>
+                <p style="font-size:12px; color:#a0aec0; margin-bottom:15px;">
+                    Wpisz zawodników po przecinku. Pierwszych 5 osób wskoczy na pozycje taktyczne (GK, DF-L, DF-R, FW-L, FW-R). Pozostali wylądują na ławce rezerwowych!
+                </p>
+                
+                <div class="form-group-row">
+                    <div>
+                        <label>Zawodnicy Gospodarzy (Format: 1. NICK, 2. NICK...)</label>
+                        <textarea id="txt-home-players" rows="3" placeholder="1. BRAMKARZ, 2. DEF_L, 3. DEF_R, 4. ATT_L, 5. ATT_R, 6. REZERWA_1, 7. REZERWA_2"></textarea>
+                    </div>
+                    <div>
+                        <label>Zawodnicy Gości (Format: 1. NICK, 2. NICK...)</label>
+                        <textarea id="txt-away-players" rows="3" placeholder="1. BRAMKARZ, 2. DEF_L, 3. DEF_R, 4. ATT_L, 5. ATT_R, 6. REZERWA_1, 7. REZERWA_2"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-group-row" style="margin-top: 15px;">
+                    <div>
+                        <label>Trener Gospodarzy</label>
+                        <input type="text" id="input-home-coach" value="Trener Gospodarzy" placeholder="np. J. KLOPP">
+                    </div>
+                    <div>
+                        <label>Trener Gości</label>
+                        <input type="text" id="input-away-coach" value="Trener Gości" placeholder="np. P. GUARDIOLA">
+                    </div>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <button class="btn btn-neon btn-block" style="padding: 12px;" onclick="updateLineupsData()">💾 1. Zapisz i Wyślij dane składu do OBS</button>
+                </div>
+
+                <div class="form-group-row" style="margin-top:15px;">
+                    <div>
+                        <button class="btn btn-neon" style="width:100%;" onclick="triggerLineupVisual('home', true)">📺 POKAŻ SKŁAD GOSPODARZY</button>
+                        <button class="btn btn-red" style="width:100%; margin-top:5px;" onclick="triggerLineupVisual('home', false)">❌ UKRYJ GOSPODARZY</button>
+                    </div>
+                    <div>
+                        <button class="btn btn-neon" style="width:100%;" onclick="triggerLineupVisual('away', true)">📺 POKAŻ SKŁAD GOŚCI</button>
+                        <button class="btn btn-red" style="width:100%; margin-top:5px;" onclick="triggerLineupVisual('away', false)">❌ UKRYJ GOŚCI</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
     </div>
+
     <script src="app.js"></script>
 </body>
 </html>
