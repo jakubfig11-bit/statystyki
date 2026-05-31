@@ -2,50 +2,57 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>OBS Overlay - Match HUD</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scoreboard Overlay</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="overlay-body">
-
-    <div id="scoreboard" class="scoreboard-hud">
-        <div class="hud-accent-bar"></div>
-        <div class="hud-team home-team">
-            <span class="team-name" id="hud-home-name">HOME</span>
-            <span class="team-score" id="hud-home-score">0</span>
+    
+    <div id="scoreboard" class="hud-container">
+        <div class="hud-side hud-home">
+            <span id="hud-home-name" class="hud-team-name">GOSPODARZE</span>
+            <span id="hud-home-score" class="hud-score">0</span>
         </div>
-        <div class="hud-time-container">
-            <div id="hud-timer">00:00</div>
-            <div id="hud-period" class="hud-period">1H</div>
+        
+        <div class="hud-center">
+            <span id="hud-timer" class="hud-time">00:00</span>
+            <span id="hud-period" class="hud-part">1H</span>
         </div>
-        <div class="hud-team away-team">
-            <span class="team-score" id="hud-away-score">0</span>
-            <span class="team-name" id="hud-away-name">AWAY</span>
+        
+        <div class="hud-side hud-away">
+            <span id="hud-away-score" class="hud-score">0</span>
+            <span id="hud-away-name" class="hud-team-name">GOŚCIE</span>
         </div>
     </div>
 
-    <div id="goal-overlay" class="goal-fullscreen-container">
+    <div id="goal-overlay" class="goal-fullscreen" style="visibility: hidden;">
         <div class="goal-bg-stripe"></div>
         <div class="goal-content">
-            <h1 class="goal-title">GOOOAL!</h1>
-            <div class="goal-details">
-                <span id="goal-team-name" class="goal-team">HOME</span>
-                <span class="goal-divider">|</span>
-                <span id="goal-scorer-name" class="goal-scorer">PLAYER 10</span>
-            </div>
+            <h1 class="goal-title">GOOOAL!!!</h1>
+            <div id="goal-team-name" class="goal-team">DRUŻYNA</div>
+            <div id="goal-scorer-name" class="goal-scorer">ZAWODNIK</div>
         </div>
     </div>
 
-    <div id="lineups-overlay" class="lineups-container">
-        <div class="lineup-column" id="lineup-home-col">
-            <div class="lineup-header">SKŁAD: <span id="lineup-home-title">HOME</span></div>
-            <ul class="lineup-list" id="lineup-home-list"></ul>
-            <div class="lineup-coach">Trener: <span id="lineup-home-coach">-</span></div>
+    <div id="lineups-overlay" class="lineups-container" style="visibility: hidden;">
+        <div id="lineup-home-col" class="lineup-column lineup-left" style="opacity: 0;">
+            <div class="lineup-header-box">
+                <h2 id="lineup-home-title" class="lineup-team-title">GOSPODARZE</h2>
+                <div class="lineup-subtitle">SKŁAD WYJŚCIOWY</div>
+            </div>
+            <ul id="lineup-home-list" class="lineup-list"></ul>
+            <div class="lineup-coach-zone">TRENER: <span id="lineup-home-coach">-</span></div>
         </div>
-        <div class="lineup-column" id="lineup-away-col">
-            <div class="lineup-header">SKŁAD: <span id="lineup-away-title">AWAY</span></div>
-            <ul class="lineup-list" id="lineup-away-list"></ul>
-            <div class="lineup-coach">Trener: <span id="lineup-away-coach">-</span></div>
+
+        <div id="lineup-away-col" class="lineup-column lineup-right" style="opacity: 0;">
+            <div class="lineup-header-box">
+                <h2 id="lineup-away-title" class="lineup-team-title">GOŚCIE</h2>
+                <div class="lineup-subtitle">SKŁAD WYJŚCIOWY</div>
+            </div>
+            <ul id="lineup-away-list" class="lineup-list"></ul>
+            <div class="lineup-coach-zone">TRENER: <span id="lineup-away-coach">-</span></div>
         </div>
     </div>
 
