@@ -10,27 +10,53 @@
 <body class="control-body">
     <div class="control-panel">
         <header class="control-header">
-            <h2>🎛️ PANEL KONTROLNY TRANSMISJI</h2>
-            <div id="control-sync-status" class="status-badge" style="background:#00ebff22; color:#00ebff; border-color:#00ebff;">Supabase Ready</div>
+            <h2>🎛️ PANEL KONTROLNY (WERSJA KOLOR)</h2>
+            <div id="control-sync-status" class="status-badge" style="background:#00ebff22; color:#00ebff; border-color:#00ebff;">Supabase Live</div>
         </header>
 
         <div class="control-grid">
-            <div class="control-card">
-                <h3>📊 Wynik i Nazwy Drużyn</h3>
+            <div class="control-card wide-card">
+                <h3>📊 Drużyny, Wyniki i Barwy Klubowe</h3>
                 <div class="form-group-row">
-                    <div>
-                        <label>Gospodarze</label>
-                        <input type="text" id="input-home-name" value="GOSPODARZE">
+                    <div style="background: rgba(255,255,255,0.02); padding: 15px; border-radius: 6px;">
+                        <label style="color:#00ebff;">GOSPODARZE (DOM)</label>
+                        <input type="text" id="input-home-name" value="ATLETICO">
+                        
+                        <div style="display:flex; gap:10px; margin-top:10px;">
+                            <div>
+                                <label>Główny (Tło)</label>
+                                <input type="color" id="input-home-color" value="#ff0055" style="height:40px; padding:0;">
+                            </div>
+                            <div>
+                                <label>Tekst/Akcent</label>
+                                <input type="color" id="input-home-text" value="#ffffff" style="height:40px; padding:0;">
+                            </div>
+                        </div>
+
                         <div class="score-actions">
                             <button class="btn btn-sm" onclick="changeScore('home', -1)">-</button>
                             <span id="control-home-score" class="score-display">0</span>
                             <button class="btn btn-sm btn-neon" onclick="changeScore('home', 1)">+</button>
                         </div>
                     </div>
-                    <div class="vs-divider">VS</div>
-                    <div>
-                        <label>Goście</label>
-                        <input type="text" id="input-away-name" value="GOŚCIE">
+
+                    <div class="vs-divider" style="align-self:center;">VS</div>
+
+                    <div style="background: rgba(255,255,255,0.02); padding: 15px; border-radius: 6px;">
+                        <label style="color:#ff0055;">GOŚCIE (WYJAZD)</label>
+                        <input type="text" id="input-away-name" value="BODO">
+                        
+                        <div style="display:flex; gap:10px; margin-top:10px;">
+                            <div>
+                                <label>Główny (Tło)</label>
+                                <input type="color" id="input-away-color" value="#ffff00" style="height:40px; padding:0;">
+                            </div>
+                            <div>
+                                <label>Tekst/Akcent</label>
+                                <input type="color" id="input-away-text" value="#000000" style="height:40px; padding:0;">
+                            </div>
+                        </div>
+
                         <div class="score-actions">
                             <button class="btn btn-sm" onclick="changeScore('away', -1)">-</button>
                             <span id="control-away-score" class="score-display">0</span>
@@ -38,7 +64,7 @@
                         </div>
                     </div>
                 </div>
-                <button class="btn btn-block btn-neon" onclick="updateTeams()">Zaktualizuj Nazwy</button>
+                <button class="btn btn-block btn-neon" onclick="updateTeams()" style="margin-top:15px;">💥 Zaktualizuj Nazwy i Kolory w OBS</button>
             </div>
 
             <div class="control-card">
@@ -59,7 +85,7 @@
                 </div>
             </div>
 
-            <div class="control-card shadow-neon">
+            <div class="control-card">
                 <h3>🔥 Efekty i Animacje</h3>
                 <div class="goal-trigger-box">
                     <h4>⚽ Strzelony Gol</h4>
@@ -83,13 +109,11 @@
             </div>
 
             <div class="control-card wide-card">
-                <h3>📋 Edycja Składów</h3>
+                <h3>📋 Edycja Składów (Rozdziel przecinkami)</h3>
                 <div class="form-group-row">
-                    <textarea id="txt-home-players" rows="2">1. NOWAK, 2. KOWALSKI, 3. PIETRZAK</textarea>
-                    <textarea id="txt-away-players" rows="2">12. SMITH, 2. JOHNSON, 3. WILLIAMS</textarea>
+                    <textarea id="txt-home-players" rows="3">1. NOWAK, 2. KOWALSKI, 3. PIETRZAK</textarea>
+                    <textarea id="txt-away-players" rows="3">12. SMITH, 2. JOHNSON, 3. WILLIAMS</textarea>
                 </div>
-                <input type="text" id="txt-home-coach" value="Trener A" style="display:none;">
-                <input type="text" id="txt-away-coach" value="Trener B" style="display:none;">
                 <button class="btn btn-block btn-neon" onclick="updateLineupsData()">Zapisz Składy</button>
             </div>
         </div>
