@@ -47,7 +47,7 @@ function initSystem() {
             .on('broadcast', { event: 'trigger_action' }, ({ payload }) => {
                 if (payload.id !== lastTriggerId) {
                     lastTriggerId = payload.id;
-                    if (payload.type === 'GOAL') animateGoal(payload.side, payload.team, payload.scorer);
+                    if (payload.type === 'GOAL') animateGoal(payload.side, payload.team, payload.scorer, payload.time);
                     if (payload.type === 'LINEUP_HOME') animateLineupSide('home', payload.show);
                     if (payload.type === 'LINEUP_AWAY') animateLineupSide('away', payload.show);
                 }
@@ -148,11 +148,21 @@ function resetTimer() {
     sendToOBS('state_update', matchState);
 }
 
+// Zmodyfikowana funkcja - automatycznie przechwytuje czas z licznika
 function triggerGoalAnimation() {
     const side = document.getElementById('select-goal-team').value;
     const teamName = side === 'home' ? matchState.homeName : matchState.awayName;
     const scorer = document.getElementById('input-goal-scorer').value || "ZAWODNIK";
-    sendToOBS('trigger_action', { id: "goal_" + Date.now(), type: 'GOAL', side: side, team: teamName, scorer: scorer });
+    const currentTimeString = formatTime(matchState.timerSeconds); // Pobranie automatycznej minuty/sekundy
+    
+    sendToOBS('trigger_action', { 
+        id: "goal_" + Date.now(), 
+        type: 'GOAL', 
+        side: side, 
+        team: teamName, 
+        scorer: scorer,
+        time: currentTimeString
+    });
 }
 
 function updateLineupsData() {
@@ -174,39 +184,36 @@ function updateOverlayUI() {
     if (document.getElementById('hud-period')) document.getElementById('hud-period').innerText = matchState.period;
 }
 
-// DYNAMICZNA ANIMACJA GOLA (Czyta kolory wybranej drużyny)
-function animateGoal(side, team, scorer) {
+// NOWA EMISYJNA ANIMACJA WYSUWANIA Z DOŁU (Z AUTOMATYCZNYM CZASEM I DYNAMICZNYMI BARWAMI)
+function animateGoal(side, team, scorer, timeString) {
     if (typeof gsap === 'undefined') return;
 
     const mainColor = side === 'home' ? matchState.homeColor : matchState.awayColor;
     const textColor = side === 'home' ? matchState.homeTextColor : matchState.awayTextColor;
 
-    const stripe = document.getElementById('goal-stripe');
-    stripe.style.background = `linear-gradient(90deg, transparent, ${mainColor}, ${mainColor}, transparent)`;
+    const container = document.getElementById('goal-badge-container');
+    const accentStripe = document.getElementById('goal-badge-accent');
+    
+    // Wstrzyknięcie tekstów
+    document.getElementById('goal-badge-team').innerText = team;
+    document.getElementById('goal-badge-scorer').innerText = scorer;
+    document.getElementById('goal-badge-time').innerText = timeString;
 
-    const mainTitle = document.getElementById('goal-text-main');
-    const teamLabel = document.getElementById('goal-team-name');
-    const scorerLabel = document.getElementById('goal-scorer-name');
+    // Stylizowanie paska barwą klubową
+    accentStripe.style.setProperty('background-color', mainColor, 'important');
+    document.getElementById('goal-badge-team').style.setProperty('color', mainColor, 'important');
 
-    mainTitle.style.color = textColor;
-    teamLabel.style.color = textColor;
-    scorerLabel.style.color = textColor;
-
-    teamLabel.innerText = team;
-    scorerLabel.innerText = scorer;
-
-    const overlay = document.getElementById('goal-overlay');
-    const content = overlay.querySelector('.goal-content');
     const tl = gsap.timeline();
 
-    tl.set(overlay, { visibility: 'visible', opacity: 0 }).set(stripe, { scaleX: 0 }).set(content, { scale: 0.5, opacity: 0 })
-      .to(overlay, { opacity: 1, duration: 0.3 }).to(stripe, { scaleX: 1, duration: 0.5, ease: "expo.out" }, "-=0.1")
-      .to(content, { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.5)" }).to({}, { duration: 3.0 })
-      .to(content, { y: 30, opacity: 0, duration: 0.4 }).to(stripe, { scaleX: 0, duration: 0.4 }, "-=0.2")
-      .to(overlay, { opacity: 0, duration: 0.2, onComplete: () => gsap.set(overlay, { visibility: 'hidden' }) });
+    // Ruch: startuje ukryty poniżej 1080px, wysuwa się gładko w górę, czeka 4 sekundy, wraca na dół
+    tl.set(container, { visibility: 'visible', y: 150, opacity: 0 })
+      .to(container, { y: 0, opacity: 1, duration: 0.6, ease: "back.out(1.0)" })
+      .to({}, { duration: 5.0 }) // Czas wyświetlania grafiki na ekranie
+      .to(container, { y: 150, opacity: 0, duration: 0.5, ease: "power2.in", onComplete: () => {
+          gsap.set(container, { visibility: 'hidden' });
+      }});
 }
 
-// DYNAMICZNE KOLORY DLA SKŁADÓW
 function animateLineupSide(side, show) {
     if (typeof gsap === 'undefined') return;
     const overlay = document.getElementById('lineups-overlay');
