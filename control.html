@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel Kontrolny Meczu</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="control-body">
+    <div class="control-panel">
+        <header class="control-header">
+            <h2>🎛️ PANEL KONTROLNY TRANSMISJI</h2>
+            <div id="control-sync-status" class="status-badge">Połączono z OBS</div>
+        </header>
+
+        <div class="control-grid">
+            <div class="control-card">
+                <h3>📊 Wynik i Nazwy Drużyn</h3>
+                <div class="form-group-row">
+                    <div>
+                        <label>Gospodarze</label>
+                        <input type="text" id="input-home-name" value="GOSPODARZE">
+                        <div class="score-actions">
+                            <button class="btn btn-sm" onclick="changeScore('home', -1)">-</button>
+                            <span id="control-home-score" class="score-display">0</span>
+                            <button class="btn btn-sm btn-neon" onclick="changeScore('home', 1)">+</button>
+                        </div>
+                    </div>
+                    <div class="vs-divider">VS</div>
+                    <div>
+                        <label>Goście</label>
+                        <input type="text" id="input-away-name" value="GOŚCIE">
+                        <div class="score-actions">
+                            <button class="btn btn-sm" onclick="changeScore('away', -1)">-</button>
+                            <span id="control-away-score" class="score-display">0</span>
+                            <button class="btn btn-sm btn-neon" onclick="changeScore('away', 1)">+</button>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-block btn-neon" onclick="updateTeams()">Zaktualizuj Nazwy</button>
+            </div>
+
+            <div class="control-card">
+                <h3>⏱️ Zegar Meczowy</h3>
+                <div class="timer-control-display" id="control-timer">00:00</div>
+                <div class="form-group">
+                    <label>Połowa meczu</label>
+                    <select id="select-period" onchange="updatePeriod()">
+                        <option value="1H">1. Połowa (1H)</option>
+                        <option value="2H">2. Połowa (2H)</option>
+                        <option value="OT">Dogrywka (OT)</option>
+                        <option value="PK">Karne (PK)</option>
+                    </select>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-neon" id="btn-trigger-timer" onclick="toggleTimer()">START</button>
+                    <button class="btn btn-red" onclick="resetTimer()">RESET</button>
+                </div>
+                <div class="form-group" style="margin-top: 15px;">
+                    <label>Ustaw dokładny czas (sekundy)</label>
+                    <div style="display:flex; gap:10px;">
+                        <input type="number" id="input-custom-time" value="0" style="width:70%">
+                        <button class="btn btn-sm" onclick="setCustomTime()" style="width:30%">Ustaw</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-card shadow-neon">
+                <h3>🔥 Efekty i Animacje Transmisji</h3>
+                
+                <div class="goal-trigger-box">
+                    <h4>⚽ Strzelony Gol</h4>
+                    <div class="form-group">
+                        <label>Drużyna</label>
+                        <select id="select-goal-team">
+                            <option value="home">Gospodarze</option>
+                            <option value="away">Goście</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Nazwisko i numer zawodnika</label>
+                        <input type="text" id="input-goal-scorer" placeholder="np. 10. KOWALSKI">
+                    </div>
+                    <button class="btn btn-block btn-red pulse" onclick="triggerGoalAnimation()">🚨 ODPAL ANIMACJĘ GOOOL</button>
+                </div>
+
+                <hr style="border: 1px solid #222; margin: 15px 0;">
+
+                <h4>👥 Prezentacja Składów (Lineups)</h4>
+                <div class="btn-group">
+                    <button class="btn btn-neon" onclick="toggleLineups(true)">Pokaż Składy</button>
+                    <button class="btn btn-red" onclick="toggleLineups(false)">Ukryj Składy</button>
+                </div>
+            </div>
+
+            <div class="control-card wide-card">
+                <h3>📋 Edycja Składów (Rozdzielaj przecinkami)</h3>
+                <div class="form-group-row">
+                    <div>
+                        <label>Skład Gospodarzy (11 zawodników)</label>
+                        <textarea id="txt-home-players" rows="4">1. NOWAK (BR), 2. KOWALSKI, 3. PIETRZAK, 4. BĄK, 5. WIŚNIEWSKI, 6. LEWANDOWSKI, 7. ZIELIŃSKI, 8. MILIK, 9. PIĄTEK, 10. ZALEWSKI, 11. SZYMAŃSKI</textarea>
+                        <label>Trener Gospodarzy</label>
+                        <input type="text" id="txt-home-coach" value="Trener A">
+                    </div>
+                    <div>
+                        <label>Skład Gości (11 zawodników)</label>
+                        <textarea id="txt-away-players" rows="4">12. SMITH (GK), 2. JOHNSON, 3. WILLIAMS, 4. BROWN, 5. JONES, 6. MILLER, 7. DAVIS, 8. GARCIA, 9. RODRIGUEZ, 10. WILSON, 11. MARTINEZ</textarea>
+                        <label>Trener Gości</label>
+                        <input type="text" id="txt-away-coach" value="Trener B">
+                    </div>
+                </div>
+                <button class="btn btn-block btn-neon" onclick="updateLineupsData()">Zapisz i Wyślij Składy do OBS</button>
+            </div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
