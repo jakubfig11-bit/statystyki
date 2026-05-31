@@ -1,38 +1,25 @@
 <!DOCTYPE html>
-<html>
+<html lang="pl">
 <head>
-<style>
-body{
-    margin:0;
-    overflow:hidden;
-    background:transparent;
-}
-
-.banner{
-    position:absolute;
-    top:50px;
-    left:-500px;
-    width:500px;
-    height:100px;
-    background:#e53935;
-    color:white;
-    font-size:40px;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    animation:slideIn 1s forwards;
-}
-
-@keyframes slideIn{
-    to{
-        left:50px;
-    }
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OBS Football Broadcast Graphics</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body>
-<div class="banner">
-GOOOOL!
-</div>
+<body class="router-body">
+    <div class="router-card">
+        <h1>⚽ OBS Match Graphics System</h1>
+        <p>Wybierz odpowiedni tryb lub skopiuj linki do OBS:</p>
+        <div class="router-links">
+            <a href="overlay.html?mode=overlay" class="btn btn-neon">📺 Otwórz Overlay (Widok OBS)</a>
+            <a href="control.html?mode=control" class="btn btn-red">🎛️ Otwórz Panel Kontrolny</a>
+        </div>
+    </div>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = urlParams.get('mode');
+        if (mode === 'overlay') window.location.href = 'overlay.html?mode=overlay';
+        if (mode === 'control') window.location.href = 'control.html?mode=control';
+    </script>
 </body>
 </html>
