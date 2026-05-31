@@ -1,4 +1,8 @@
-// Główny stan meczu
+// === KONFIGURACJA SUPABASE (Wklejone Twoje dane) ===
+const SUPABASE_URL = "https://puhnsjqbqmojjouhsjnk.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1aG5zanFicW1vampvdWhzam5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyMjg4MDgsImV4cCI6MjA5NTgwNDgwOH0.fBFk7OyEeQ8T_v-tzXAffcDb1xfvgeVZfOvq2WqDC7k";
+
+// Stan meczu
 let matchState = {
     homeName: "GOSPODARZE",
     awayName: "GOŚCIE",
@@ -13,82 +17,63 @@ let matchState = {
     awayCoach: ""
 };
 
-// Detekcja trybu uruchomienia aplikacji
+// Detekcja trybu
 const urlParams = new URLSearchParams(window.location.search);
 const isOverlay = window.location.pathname.includes('overlay.html') || urlParams.get('mode') === 'overlay';
 const isControl = window.location.pathname.includes('control.html') || urlParams.get('mode') === 'control';
 
 let timerInterval = null;
-let lastTriggerId = ""; // Zapobiega zapętlaniu animacji w trybie Polling
+let lastTriggerId = "";
 
-// --- INICJALIZACJA SYSTEMU ---
-document.addEventListener("DOMContentLoaded", () => {
-    loadStateFromStorage();
-
-    if (isOverlay) {
-        updateOverlayUI();
-        // Gwarancja płynnego wejścia tablicy przy starcie źródła w OBS
-        if (typeof gsap !== 'undefined') {
-            gsap.from("#scoreboard", { y: -100, opacity: 0, duration: 1.2, ease: "power4.out" });
-        }
-        
-        // 🚀 PANCERNE ROZWIĄZANIE DLA OBS: Sprawdzaj stan w pamięci co 250ms
-        setInterval(() => {
-            loadStateFromStorage();
-            updateOverlayUI();
-            checkDirectTriggers();
-        }, 250);
-
-    } else if (isControl) {
-        initControl();
-        // Panel kontrolny też co sekundę sprawdza zegar (jeśli działa w tle)
-        setInterval(() => {
-            if (matchState.timerRunning) {
-                loadStateFromStorage();
-                updateControlUI();
-            }
-        }, 1000);
+document.addEventListener("DOMContentLoaded", async () => {
+    // Ładowanie biblioteki Supabase dynamicznie, by nie śmiecić w HTML
+    if (typeof supabase === 'undefined') {
+        const script = document.createElement('script');
+        script.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+        document.head.appendChild(script);
+        script.onload = () => initSystem();
+    } else {
+        initSystem();
     }
 });
 
-function loadStateFromStorage() {
-    const savedState = localStorage.getItem('matchState');
-    if (savedState) {
-        try {
-            matchState = JSON.parse(savedState);
-        } catch (e) {
-            console.error(e);
-        }
+let supabaseClient = null;
+
+function initSystem() {
+    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    
+    if (isOverlay) {
+        updateOverlayUI();
+        // Słuchanie zmian na żywo z bazy danych (Kanał Realtime)
+        supabaseClient
+            .channel('obs_broadcast')
+            .on('broadcast', { event: 'state_update' }, ({ payload }) => {
+                matchState = payload;
+                updateOverlayUI();
+            })
+            .on('broadcast', { event: 'trigger_action' }, ({ payload }) => {
+                if (payload.id !== lastTriggerId) {
+                    lastTriggerId = payload.id;
+                    if (payload.type === 'GOAL') animateGoal(payload.team, payload.scorer);
+                    if (payload.type === 'LINEUP_HOME') animateLineupSide('home', payload.show);
+                    if (payload.type === 'LINEUP_AWAY') animateLineupSide('away', payload.show);
+                }
+            })
+            .subscribe();
+            
+    } else if (isControl) {
+        initControl();
     }
 }
 
-// Sprawdzanie jednorazowych akcji (gol, składy) zapisanych bezpośrednio w pamięci
-function checkDirectTriggers() {
-    const savedTrigger = localStorage.getItem('obs_active_trigger');
-    if (savedTrigger) {
-        try {
-            const trigger = JSON.parse(savedTrigger);
-            if (trigger.id !== lastTriggerId) {
-                lastTriggerId = trigger.id; // zapamiętaj, by wykonać tylko raz
-                
-                if (trigger.type === 'GOAL') {
-                    animateGoal(trigger.team, trigger.scorer);
-                }
-                if (trigger.type === 'LINEUP_HOME') {
-                    animateLineupSide('home', trigger.show);
-                }
-                if (trigger.type === 'LINEUP_AWAY') {
-                    animateLineupSide('away', trigger.show);
-                }
-            }
-        } catch (e) { console.error(e); }
-    }
-}
-
-function saveAndBroadcast() {
-    localStorage.setItem('matchState', JSON.stringify(matchState));
-    if (isControl) updateControlUI();
-    if (isOverlay) updateOverlayUI();
+// Funkcja wysyłająca stan do chmury (OBS to odbierze w ułamku sekundy)
+function sendToOBS(eventName, data) {
+    if (!supabaseClient) return;
+    supabaseClient.channel('obs_broadcast').send({
+        type: 'broadcast',
+        event: eventName,
+        payload: data
+    });
 }
 
 function formatTime(seconds) {
@@ -101,21 +86,7 @@ function formatTime(seconds) {
 // 🎛️ LOGIKA PANELU KONTROLNEGO
 // ==========================================
 function initControl() {
-    document.getElementById('input-home-name').value = matchState.homeName;
-    document.getElementById('input-away-name').value = matchState.awayName;
-    if (document.getElementById('select-period')) document.getElementById('select-period').value = matchState.period;
-    
-    if (matchState.homePlayers && matchState.homePlayers.length > 0) {
-        document.getElementById('txt-home-players').value = matchState.homePlayers.join(', ');
-    }
-    if (matchState.awayPlayers && matchState.awayPlayers.length > 0) {
-        document.getElementById('txt-away-players').value = matchState.awayPlayers.join(', ');
-    }
-    document.getElementById('txt-home-coach').value = matchState.homeCoach || "Trener A";
-    document.getElementById('txt-away-coach').value = matchState.awayCoach || "Trener B";
-    
     updateControlUI();
-    if (matchState.timerRunning) startTimerInterval();
 }
 
 function updateControlUI() {
@@ -125,33 +96,29 @@ function updateControlUI() {
     
     const btnTimer = document.getElementById('btn-trigger-timer');
     if (btnTimer) {
-        if (matchState.timerRunning) {
-            btnTimer.innerText = "PAUZA";
-            btnTimer.className = "btn btn-red";
-        } else {
-            btnTimer.innerText = "START";
-            btnTimer.className = "btn btn-neon";
-        }
+        btnTimer.innerText = matchState.timerRunning ? "PAUZA" : "START";
+        btnTimer.className = matchState.timerRunning ? "btn btn-red" : "btn btn-neon";
     }
 }
 
 function changeScore(team, val) {
     if (team === 'home') matchState.homeScore = Math.max(0, matchState.homeScore + val);
     if (team === 'away') matchState.awayScore = Math.max(0, matchState.awayScore + val);
-    saveAndBroadcast();
+    updateControlUI();
+    sendToOBS('state_update', matchState);
 }
 
 function updateTeams() {
     matchState.homeName = document.getElementById('input-home-name').value.toUpperCase();
     matchState.awayName = document.getElementById('input-away-name').value.toUpperCase();
-    saveAndBroadcast();
+    sendToOBS('state_update', matchState);
 }
 
 function changePeriod() {
     const periodSelect = document.getElementById('select-period');
     if (periodSelect) {
         matchState.period = periodSelect.value;
-        saveAndBroadcast();
+        sendToOBS('state_update', matchState);
     }
 }
 
@@ -162,16 +129,19 @@ function toggleTimer() {
     } else {
         clearInterval(timerInterval);
     }
-    saveAndBroadcast();
+    updateControlUI();
+    sendToOBS('state_update', matchState);
 }
 
 function startTimerInterval() {
     clearInterval(timerInterval);
     timerInterval = setInterval(() => {
-        loadStateFromStorage(); // pobierz aktualny stan przed inkrementacją
         if (matchState.timerRunning) {
             matchState.timerSeconds++;
-            localStorage.setItem('matchState', JSON.stringify(matchState));
+            if (document.getElementById('control-timer')) {
+                document.getElementById('control-timer').innerText = formatTime(matchState.timerSeconds);
+            }
+            sendToOBS('state_update', matchState);
         } else {
             clearInterval(timerInterval);
         }
@@ -182,14 +152,16 @@ function resetTimer() {
     matchState.timerRunning = false;
     clearInterval(timerInterval);
     matchState.timerSeconds = 0;
-    saveAndBroadcast();
+    updateControlUI();
+    sendToOBS('state_update', matchState);
 }
 
 function setCustomTime() {
     const val = parseInt(document.getElementById('input-custom-time').value, 10);
     if (!isNaN(val) && val >= 0) {
         matchState.timerSeconds = val;
-        saveAndBroadcast();
+        updateControlUI();
+        sendToOBS('state_update', matchState);
     }
 }
 
@@ -198,12 +170,12 @@ function triggerGoalAnimation() {
     const teamName = teamKey === 'home' ? matchState.homeName : matchState.awayName;
     const scorer = document.getElementById('input-goal-scorer').value || "ZAWODNIK";
     
-    localStorage.setItem('obs_active_trigger', JSON.stringify({
+    sendToOBS('trigger_action', {
         id: "goal_" + Date.now(),
         type: 'GOAL',
         team: teamName,
         scorer: scorer
-    }));
+    });
 }
 
 function updateLineupsData() {
@@ -211,16 +183,16 @@ function updateLineupsData() {
     matchState.awayPlayers = document.getElementById('txt-away-players').value.split(',').map(p => p.trim()).filter(p => p.length > 0);
     matchState.homeCoach = document.getElementById('txt-home-coach').value;
     matchState.awayCoach = document.getElementById('txt-away-coach').value;
-    saveAndBroadcast();
-    alert("Składy zostały zsynchronizowane w bazie OBS!");
+    sendToOBS('state_update', matchState);
+    alert("Składy zostały zaktualizowane globalnie!");
 }
 
 function triggerLineupVisual(side, show) {
-    localStorage.setItem('obs_active_trigger', JSON.stringify({
+    sendToOBS('trigger_action', {
         id: `lineup_${side}_` + Date.now(),
         type: side === 'home' ? 'LINEUP_HOME' : 'LINEUP_AWAY',
         show: show
-    }));
+    });
 }
 
 // ==========================================
@@ -270,7 +242,6 @@ function animateLineupSide(side, show) {
     const listId = side === 'home' ? 'lineup-home-list' : 'lineup-away-list';
     
     if (show) {
-        // Zbuduj tylko wybraną listę
         if (side === 'home') {
             buildLineupList(listId, matchState.homePlayers);
             document.getElementById('lineup-home-title').innerText = matchState.homeName;
@@ -293,14 +264,12 @@ function animateLineupSide(side, show) {
             delay: 0.3
         });
     } else {
-        // Schowaj wybraną stronę
         gsap.to(colId, { 
             x: side === 'home' ? -600 : 600, 
             opacity: 0, 
             duration: 0.6, 
             ease: "power4.in",
             onComplete: () => {
-                // Jeśli drugi panel też jest niewidoczny, ukryj cały kontener glówny
                 const homeCol = document.getElementById('lineup-home-col');
                 const awayCol = document.getElementById('lineup-away-col');
                 if (window.getComputedStyle(homeCol).opacity === "0" && window.getComputedStyle(awayCol).opacity === "0") {
