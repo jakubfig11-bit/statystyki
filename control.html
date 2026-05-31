@@ -11,7 +11,7 @@
     <div class="control-panel">
         <header class="control-header">
             <h2>🎛️ PANEL KONTROLNY TRANSMISJI</h2>
-            <div id="control-sync-status" class="status-badge" style="background:#00ebff22; color:#00ebff; border-color:#00ebff;">Supabase Connected</div>
+            <div id="control-sync-status" class="status-badge" style="background:#00ebff22; color:#00ebff; border-color:#00ebff;">Supabase Ready</div>
         </header>
 
         <div class="control-grid">
@@ -57,64 +57,40 @@
                     <button class="btn btn-neon" id="btn-trigger-timer" onclick="toggleTimer()">START</button>
                     <button class="btn btn-red" onclick="resetTimer()">RESET</button>
                 </div>
-                <div class="form-group" style="margin-top: 15px;">
-                    <label>Ustaw dokładny czas (sekundy)</label>
-                    <div style="display:flex; gap:10px;">
-                        <input type="number" id="input-custom-time" value="0" style="width:70%">
-                        <button class="btn btn-sm" onclick="setCustomTime()" style="width:30%">Ustaw</button>
-                    </div>
-                </div>
             </div>
 
             <div class="control-card shadow-neon">
-                <h3>🔥 Efekty i Animacje Transmisji</h3>
-                
+                <h3>🔥 Efekty i Animacje</h3>
                 <div class="goal-trigger-box">
                     <h4>⚽ Strzelony Gol</h4>
-                    <div class="form-group">
-                        <label>Drużyna</label>
-                        <select id="select-goal-team">
-                            <option value="home">Gospodarze</option>
-                            <option value="away">Goście</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Nazwisko i numer zawodnika</label>
-                        <input type="text" id="input-goal-scorer" placeholder="np. 10. KOWALSKI">
-                    </div>
-                    <button class="btn btn-block btn-red pulse" onclick="triggerGoalAnimation()">🚨 ODPAL ANIMACJĘ GOOOL</button>
+                    <select id="select-goal-team">
+                        <option value="home">Gospodarze</option>
+                        <option value="away">Goście</option>
+                    </select>
+                    <input type="text" id="input-goal-scorer" placeholder="np. 10. KOWALSKI" style="margin: 8px 0;">
+                    <button class="btn btn-block btn-red" onclick="triggerGoalAnimation()">🚨 ODPAL GOOOL</button>
                 </div>
-
-                <hr style="border: 1px solid #222; margin: 15px 0;">
-
-                <h4>👥 Prezentacja Składów (Lineups)</h4>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                <hr style="border:1px solid #222; margin:10px 0;">
+                <h4>👥 Składy (Lineups)</h4>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; margin-bottom:5px;">
                     <button class="btn btn-neon btn-sm" onclick="triggerLineupVisual('home', true)">Pokaż Dom</button>
                     <button class="btn btn-red btn-sm" onclick="triggerLineupVisual('home', false)">Ukryj Dom</button>
                 </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <button class="btn btn-neon btn-sm" onclick="triggerLineupVisual('away', true)">Pokaż Gości</button>
-                    <button class="btn btn-red btn-sm" onclick="triggerLineupVisual('away', false)">Ukryj Gości</button>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px;">
+                    <button class="btn btn-neon btn-sm" onclick="triggerLineupVisual('away', true)">Pokaż Gość</button>
+                    <button class="btn btn-red btn-sm" onclick="triggerLineupVisual('away', false)">Ukryj Gość</button>
                 </div>
             </div>
 
             <div class="control-card wide-card">
-                <h3>📋 Edycja Składów (Rozdzielaj przecinkami)</h3>
+                <h3>📋 Edycja Składów</h3>
                 <div class="form-group-row">
-                    <div>
-                        <label>Skład Gospodarzy (11 zawodników)</label>
-                        <textarea id="txt-home-players" rows="4">1. NOWAK (BR), 2. KOWALSKI, 3. PIETRZAK, 4. BĄK, 5. WIŚNIEWSKI, 6. LEWANDOWSKI, 7. ZIELIŃSKI, 8. MILIK, 9. PIĄTEK, 10. ZALEWSKI, 11. SZYMAŃSKI</textarea>
-                        <label>Trener Gospodarzy</label>
-                        <input type="text" id="txt-home-coach" value="Trener A">
-                    </div>
-                    <div>
-                        <label>Skład Gości (11 zawodników)</label>
-                        <textarea id="txt-away-players" rows="4">12. SMITH (GK), 2. JOHNSON, 3. WILLIAMS, 4. BROWN, 5. JONES, 6. MILLER, 7. DAVIS, 8. GARCIA, 9. RODRIGUEZ, 10. WILSON, 11. MARTINEZ</textarea>
-                        <label>Trener Gości</label>
-                        <input type="text" id="txt-away-coach" value="Trener B">
-                    </div>
+                    <textarea id="txt-home-players" rows="2">1. NOWAK, 2. KOWALSKI, 3. PIETRZAK</textarea>
+                    <textarea id="txt-away-players" rows="2">12. SMITH, 2. JOHNSON, 3. WILLIAMS</textarea>
                 </div>
-                <button class="btn btn-block btn-neon" onclick="updateLineupsData()">Zapisz i Wyślij Składy do OBS</button>
+                <input type="text" id="txt-home-coach" value="Trener A" style="display:none;">
+                <input type="text" id="txt-away-coach" value="Trener B" style="display:none;">
+                <button class="btn btn-block btn-neon" onclick="updateLineupsData()">Zapisz Składy</button>
             </div>
         </div>
     </div>
