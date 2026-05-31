@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>OBS Overlay - Match HUD</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+</head>
+<body class="overlay-body">
+
+    <div id="scoreboard" class="scoreboard-hud">
+        <div class="hud-accent-bar"></div>
+        <div class="hud-team home-team">
+            <span class="team-name" id="hud-home-name">HOME</span>
+            <span class="team-score" id="hud-home-score">0</span>
+        </div>
+        <div class="hud-time-container">
+            <div id="hud-timer">00:00</div>
+            <div id="hud-period" class="hud-period">1H</div>
+        </div>
+        <div class="hud-team away-team">
+            <span class="team-score" id="hud-away-score">0</span>
+            <span class="team-name" id="hud-away-name">AWAY</span>
+        </div>
+    </div>
+
+    <div id="goal-overlay" class="goal-fullscreen-container">
+        <div class="goal-bg-stripe"></div>
+        <div class="goal-content">
+            <h1 class="goal-title">GOOOAL!</h1>
+            <div class="goal-details">
+                <span id="goal-team-name" class="goal-team">HOME</span>
+                <span class="goal-divider">|</span>
+                <span id="goal-scorer-name" class="goal-scorer">PLAYER 10</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="lineups-overlay" class="lineups-container">
+        <div class="lineup-column" id="lineup-home-col">
+            <div class="lineup-header">SKŁAD: <span id="lineup-home-title">HOME</span></div>
+            <ul class="lineup-list" id="lineup-home-list"></ul>
+            <div class="lineup-coach">Trener: <span id="lineup-home-coach">-</span></div>
+        </div>
+        <div class="lineup-column" id="lineup-away-col">
+            <div class="lineup-header">SKŁAD: <span id="lineup-away-title">AWAY</span></div>
+            <ul class="lineup-list" id="lineup-away-list"></ul>
+            <div class="lineup-coach">Trener: <span id="lineup-away-coach">-</span></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
