@@ -10,11 +10,10 @@
     <div class="control-panel">
         <header class="control-header">
             <h2>🎛️ PANEL KONTROLNY TRANSMISJI</h2>
-            <div id="control-sync-status" class="status-badge">Połączono z OBS</div>
+            <div id="control-sync-status" class="status-badge" style="background:#00ebff22; color:#00ebff; border-color:#00ebff;">Tryb OBS Polling Aktywny</div>
         </header>
 
         <div class="control-grid">
-            <!-- Zarządzanie Drużynami i Wynikiem -->
             <div class="control-card">
                 <h3>📊 Wynik i Nazwy Drużyn</h3>
                 <div class="form-group-row">
@@ -41,7 +40,6 @@
                 <button class="btn btn-block btn-neon" onclick="updateTeams()">Zaktualizuj Nazwy</button>
             </div>
 
-            <!-- Kontrola Czasu -->
             <div class="control-card">
                 <h3>⏱️ Zegar Meczowy</h3>
                 <div class="timer-control-display" id="control-timer">00:00</div>
@@ -67,7 +65,6 @@
                 </div>
             </div>
 
-            <!-- Wyzwalacze Animacji (Triggers) -->
             <div class="control-card shadow-neon">
                 <h3>🔥 Efekty i Animacje Transmisji</h3>
                 
@@ -90,13 +87,16 @@
                 <hr style="border: 1px solid #222; margin: 15px 0;">
 
                 <h4>👥 Prezentacja Składów (Lineups)</h4>
-                <div class="btn-group">
-                    <button class="btn btn-neon" onclick="toggleLineups(true)">Pokaż Składy</button>
-                    <button class="btn btn-red" onclick="toggleLineups(false)">Ukryj Składy</button>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                    <button class="btn btn-neon btn-sm" onclick="triggerLineupVisual('home', true)">Pokaż Dom</button>
+                    <button class="btn btn-red btn-sm" onclick="triggerLineupVisual('home', false)">Ukryj Dom</button>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <button class="btn btn-neon btn-sm" onclick="triggerLineupVisual('away', true)">Pokaż Gości</button>
+                    <button class="btn btn-red btn-sm" onclick="triggerLineupVisual('away', false)">Ukryj Gości</button>
                 </div>
             </div>
 
-            <!-- Zarządzanie Kadrami (Składy) -->
             <div class="control-card wide-card">
                 <h3>📋 Edycja Składów (Rozdzielaj przecinkami)</h3>
                 <div class="form-group-row">
