@@ -3,15 +3,279 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Overlay Meczowy</title>
-    <link rel="stylesheet" href="style-v3.css">
+    <title>Overlay Meczowy - Fixed</title>
+    <style>
+        /* ==========================================
+           1. RESET I USTAWIENIA DIZSAJNU (STABILNE)
+           ========================================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            overflow: hidden;
+            background-color: transparent; /* Przezroczyste dla OBS */
+        }
+
+        /* ==========================================
+           2. POPRAWIONY SCOREBOARD (STARY STABILNY UKŁAD)
+           ========================================== */
+        .hud-container {
+            position: absolute;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #121224;
+            border: 2px solid #252547;
+            border-radius: 8px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+            z-index: 10;
+            overflow: hidden;
+        }
+
+        .hud-home {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            width: 250px;
+            height: 100%;
+            padding-right: 20px;
+        }
+
+        .hud-away {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            width: 250px;
+            height: 100%;
+            padding-left: 20px;
+        }
+
+        .hud-center {
+            background-color: #090915;
+            border-left: 2px solid #252547;
+            border-right: 2px solid #252547;
+            height: 100%;
+            width: 160px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .hud-team-name {
+            font-size: 18px;
+            font-weight: 800;
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .hud-team-logo {
+            width: 34px;
+            height: 34px;
+            object-fit: contain;
+            margin: 0 12px;
+            flex-shrink: 0;
+        }
+
+        .hud-score {
+            font-size: 24px;
+            font-weight: 900;
+            color: #ffffff;
+            line-height: 1;
+            letter-spacing: 1px;
+        }
+
+        .hud-time {
+            font-family: monospace;
+            font-size: 16px;
+            font-weight: 700;
+            color: #00f2fe;
+            line-height: 1.2;
+            margin-top: 2px;
+        }
+
+        .hud-part {
+            font-size: 10px;
+            font-weight: 800;
+            color: #a0aec0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* ==========================================
+           3. SYSTEM STATYSTYK TV XL (NAPRAWIONY)
+           ========================================== */
+        .stat-badge-xl-wrapper {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 680px; 
+            height: 85px;
+            background: linear-gradient(135deg, #121229 0%, #080816 100%);
+            border: 2px solid #252547;
+            border-radius: 8px;
+            display: flex;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+            z-index: 100;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .stat-badge-xl-stripe {
+            width: 12px;
+            height: 100%;
+            background: linear-gradient(to bottom, #00f2fe, #4facfe);
+            flex-shrink: 0;
+        }
+
+        .stat-badge-xl-content {
+            flex: 1;
+            display: flex;
+            padding: 0 0 0 25px;
+            align-items: center;
+            justify-content: space-between;
+            height: 100%;
+        }
+
+        .stat-badge-xl-left {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .stat-badge-xl-title {
+            font-size: 11px;
+            font-weight: 900;
+            color: #00f2fe; 
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .stat-badge-xl-player {
+            font-size: 22px;
+            font-weight: 900;
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-badge-xl-right {
+            display: flex;
+            align-items: center;
+            height: 100%;
+        }
+
+        .stat-badge-xl-val {
+            font-size: 42px;
+            font-weight: 900;
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.07);
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 30px;
+            min-width: 95px;
+            border-left: 2px solid #252547;
+        }
+
+        /* ==========================================
+           4. DOLNA BELKA GOLA
+           ========================================== */
+        .goal-badge-wrapper {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%) translateY(150px);
+            width: 620px;
+            height: 100px;
+            background: linear-gradient(135deg, #06060f 0%, #121220 100%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            display: flex;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8);
+            z-index: 101;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .goal-badge-club-stripe {
+            width: 12px;
+            height: 100%;
+            background-color: #ff0055;
+        }
+
+        .goal-badge-main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 14px 24px;
+            justify-content: center;
+        }
+
+        .goal-badge-top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .goal-badge-alert-text {
+            font-size: 12px;
+            font-weight: 800;
+            color: #ff0055;
+            letter-spacing: 3px;
+        }
+
+        .goal-badge-match-time {
+            font-size: 14px;
+            font-weight: 800;
+            color: #a0aec0;
+        }
+
+        .goal-badge-bottom-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+
+        .goal-badge-team-name {
+            font-size: 24px;
+            font-weight: 900;
+            color: #ff0055;
+        }
+
+        .goal-badge-player-info {
+            font-size: 20px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+    </style>
 </head>
 <body>
 
     <div class="hud-container">
         <div class="hud-home">
-            <img id="home-logo" class="hud-team-logo" src="" alt="" style="display: none;">
             <span id="home-name" class="hud-team-name">GOSPODARZE</span>
+            <img id="home-logo" class="hud-team-logo" src="" alt="" style="display: none;">
         </div>
         
         <div class="hud-center">
@@ -30,8 +294,8 @@
         <div class="stat-badge-xl-stripe"></div>
         <div class="stat-badge-xl-content">
             <div class="stat-badge-xl-left">
-                <div class="stat-badge-xl-title">STATYSTYKI MECZU</div>
-                <div id="stat-title" class="stat-badge-xl-player">STRZAŁY NA BRAMKĘ</div>
+                <div id="stat-main-title" class="stat-badge-xl-title">STATYSTYKI INDYWIDUALNE ZAWODNIKA</div>
+                <div id="stat-title" class="stat-badge-xl-player">NAZWISKO / ZAWODNIK</div>
             </div>
             <div class="stat-badge-xl-right">
                 <div id="stat-value" class="stat-badge-xl-val">0</div>
@@ -44,73 +308,18 @@
         <div class="goal-badge-main-content">
             <div class="goal-badge-top-row">
                 <span class="goal-badge-alert-text">GOOOL!!!</span>
-                <span id="goal-time" class="goal-badge-match-time">45'</span>
+                <span id="goal-time" class="goal-badge-match-time">00'</span>
             </div>
             <div class="goal-badge-bottom-row">
                 <span id="goal-team" class="goal-badge-team-name">TEAM</span>
-                <span id="goal-player" class="goal-badge-player-info">ZAWODNIK (10)</span>
-            </div>
-        </div>
-    </div>
-
-    <div id="lineup-overlay" class="lineup-tv-fullscreen">
-        <div class="lineup-tv-center-block">
-            <div class="tactical-pitch-container">
-                <div class="pitch-field">
-                    <div class="pitch-penalty-box top-box"></div>
-                    <div class="pitch-center-line"></div>
-                    <div class="pitch-center-circle"></div>
-                    <div class="pitch-penalty-box bottom-box"></div>
-                    
-                    <div class="player-node pos-gk">
-                        <div class="player-shirt" id="p-gk-shirt"><span class="p-num" id="l-gk-num">1</span></div>
-                        <div class="p-name" id="l-gk-name">Bramkarz</div>
-                    </div>
-                    <div class="player-node pos-df-l">
-                        <div class="player-shirt" id="p-dfl-shirt"><span class="p-num" id="l-dfl-num">2</span></div>
-                        <div class="p-name" id="l-dfl-name">Obronca L</div>
-                    </div>
-                    <div class="player-node pos-df-r">
-                        <div class="player-shirt" id="p-dfr-shirt"><span class="p-num" id="l-dfr-num">3</span></div>
-                        <div class="p-name" id="l-dfr-name">Obronca P</div>
-                    </div>
-                    <div class="player-node pos-fw-l">
-                        <div class="player-shirt" id="p-fwl-shirt"><span class="p-num" id="l-fwl-num">4</span></div>
-                        <div class="p-name" id="l-fwl-name">Atak L</div>
-                    </div>
-                    <div class="player-node pos-fw-r">
-                        <div class="player-shirt" id="p-fwr-shirt"><span class="p-num" id="l-fwr-num">5</span></div>
-                        <div class="p-name" id="l-fwr-name">Atak P</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="tactical-sidebar">
-                <div class="sidebar-header">
-                    <img id="l-team-logo" class="sidebar-team-logo" src="" alt="" style="display:none;">
-                    <div>
-                        <h1 id="l-team-name">DRUŻYNA</h1>
-                        <div class="sidebar-sub">WYJŚCIOWE ZESTAWIENIE</div>
-                    </div>
-                </div>
-                <div class="sidebar-section">
-                    <h3>REZERWOWI</h3>
-                    <ul class="bench-list">
-                        <li id="l-sub1">Zawodnik 6</li>
-                        <li id="l-sub2">Zawodnik 7</li>
-                    </ul>
-                </div>
-                <div class="coach-section">
-                    <div class="sidebar-sub" style="margin-bottom: 5px;">TRENER</div>
-                    <div class="coach-box" id="l-coach">Trener Drużyny</div>
-                </div>
+                <span id="goal-player" class="goal-badge-player-info">ZAWODNIK</span>
             </div>
         </div>
     </div>
 
     <script>
         function updateOverlay() {
-            // 1. Scoreboard
+            // 1. Synchronizacja Wyniku i Czasu z Twojego Głównego Panelu Realtime
             const homeName = localStorage.getItem('home_name') || 'GOSPODARZE';
             const awayName = localStorage.getItem('away_name') || 'GOŚCIE';
             const homeScore = localStorage.getItem('home_score') || '0';
@@ -124,6 +333,7 @@
             document.getElementById('hud-time').innerText = matchTime;
             document.getElementById('hud-part').innerText = matchPart;
 
+            // Logotypy w Scoreboardzie
             const homeLogo = localStorage.getItem('home_logo');
             const awayLogo = localStorage.getItem('away_logo');
             const hLogoEl = document.getElementById('home-logo');
@@ -132,13 +342,17 @@
             if (homeLogo) { hLogoEl.src = homeLogo; hLogoEl.style.display = 'block'; } else { hLogoEl.style.display = 'none'; }
             if (awayLogo) { aLogoEl.src = awayLogo; aLogoEl.style.display = 'block'; } else { aLogoEl.style.display = 'none'; }
 
-            // 2. Aktualizacja statystyk bez niszczenia klas CSS
+            // 2. Synchronizacja Statystyk Indywidualnych (Z Twojego nowego formularza)
             const statBadge = document.getElementById('stat-badge');
             if (localStorage.getItem('stat_visible') === 'true') {
-                const currentText = localStorage.getItem('stat_text') || 'STRZAŁY';
-                const currentVal = localStorage.getItem('stat_value') || '0';
-                
-                document.getElementById('stat-title').innerText = currentText.toUpperCase();
+                // Odczyt z pól formularza
+                const currentText = localStorage.getItem('stat_text') || 'STRZAŁY NA BRAMKĘ'; // Kategoria
+                const currentPlayer = localStorage.getItem('stat_player') || 'ZAWODNIK'; // Nazwisko wpisane z palca
+                const currentVal = localStorage.getItem('stat_value') || '1'; // Wartość
+
+                // Przypisanie do pól w overlayu (Górny nagłówek = Kategoria, Główny tekst = Nazwisko zawodnika)
+                document.getElementById('stat-main-title').innerText = currentText.toUpperCase();
+                document.getElementById('stat-title').innerText = currentPlayer.toUpperCase();
                 document.getElementById('stat-value').innerText = currentVal;
                 
                 statBadge.style.visibility = 'visible';
@@ -148,10 +362,10 @@
                 statBadge.style.opacity = '0';
             }
 
-            // 3. Powiadomienie o Bramce
+            // 3. Obsługa powiadomienia o Golach
             const goalBadge = document.getElementById('goal-badge');
             if (localStorage.getItem('goal_visible') === 'true') {
-                document.getElementById('goal-time').innerText = (localStorage.getItem('goal_time') || '45') + "'";
+                document.getElementById('goal-time').innerText = (localStorage.getItem('goal_time') || '00') + "'";
                 document.getElementById('goal-team').innerText = (localStorage.getItem('goal_team') || 'TEAM').toUpperCase();
                 document.getElementById('goal-player').innerText = (localStorage.getItem('goal_player') || 'ZAWODNIK').toUpperCase();
                 
@@ -167,55 +381,10 @@
                 goalBadge.style.visibility = 'hidden';
                 goalBadge.style.opacity = '0';
             }
-
-            // 4. Prezentacja Składów (Lineups)
-            const lineupOverlay = document.getElementById('lineup-overlay');
-            if (localStorage.getItem('lineup_visible') === 'true') {
-                const side = localStorage.getItem('lineup_side') || 'home';
-                const prefix = side === 'home' ? 'home' : 'away';
-                const teamColor = localStorage.getItem(`${prefix}_color`) || '#ff0055';
-
-                document.getElementById('l-team-name').innerText = (localStorage.getItem(`${prefix}_name`) || 'DRUŻYNA').toUpperCase();
-                document.getElementById('l-team-name').style.color = teamColor;
-
-                const teamLogo = localStorage.getItem(`${prefix}_logo`);
-                const lLogoEl = document.getElementById('l-team-logo');
-                if (teamLogo) { lLogoEl.src = teamLogo; lLogoEl.style.display = 'block'; } else { lLogoEl.style.display = 'none'; }
-
-                const shirts = ['p-gk-shirt', 'p-dfl-shirt', 'p-dfr-shirt', 'p-fwl-shirt', 'p-fwr-shirt'];
-                shirts.forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) el.style.backgroundColor = teamColor;
-                });
-
-                document.getElementById('l-gk-num').innerText = localStorage.getItem(`lineup_${side}_gk_num`) || '1';
-                document.getElementById('l-gk-name').innerText = localStorage.getItem(`lineup_${side}_gk_name`) || 'Bramkarz';
-                document.getElementById('l-dfl-num').innerText = localStorage.getItem(`lineup_${side}_dfl_num`) || '2';
-                document.getElementById('l-dfl-name').innerText = localStorage.getItem(`lineup_${side}_dfl_name`) || 'Obrońca L';
-                document.getElementById('l-dfr-num').innerText = localStorage.getItem(`lineup_${side}_dfr_num`) || '3';
-                document.getElementById('l-dfr-name').innerText = localStorage.getItem(`lineup_${side}_dfr_name`) || 'Obrońca P';
-                document.getElementById('l-fwl-num').innerText = localStorage.getItem(`lineup_${side}_fwl_num`) || '4';
-                document.getElementById('l-fwl-name').innerText = localStorage.getItem(`lineup_${side}_fwl_name`) || 'Atak L';
-                document.getElementById('l-fwr-num').innerText = localStorage.getItem(`lineup_${side}_fwr_num`) || '5';
-                document.getElementById('l-fwr-name').innerText = localStorage.getItem(`lineup_${side}_fwr_name`) || 'Atak P';
-
-                document.getElementById('l-sub1').innerText = localStorage.getItem(`lineup_${side}_sub1`) || 'Zawodnik R1';
-                document.getElementById('l-sub2').innerText = localStorage.getItem(`lineup_${side}_sub2`) || 'Zawodnik R2';
-                document.getElementById('l-coach').innerText = localStorage.getItem(`lineup_${side}_coach`) || 'Trener';
-                
-                document.getElementById('l-sub1').style.borderLeftColor = teamColor;
-                document.getElementById('l-sub2').style.borderLeftColor = teamColor;
-                document.getElementById('l-coach').style.borderLeftColor = teamColor;
-
-                lineupOverlay.style.visibility = 'visible';
-                lineupOverlay.style.opacity = '1';
-            } else {
-                lineupOverlay.style.visibility = 'hidden';
-                lineupOverlay.style.opacity = '0';
-            }
         }
 
-        setInterval(updateOverlay, 1000);
+        // Pooling 100ms dla ultra płynnej reakcji na przyciski z panelu
+        setInterval(updateOverlay, 100);
         window.onload = updateOverlay;
     </script>
 </body>
