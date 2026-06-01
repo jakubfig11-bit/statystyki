@@ -766,3 +766,101 @@ input[type="color"]::-webkit-color-swatch {
     line-height: 1;
     transition: color 0.3s ease;
 }
+
+/* ==========================================
+   POPRAWKA DLA GŁÓWNEJ BELKI MECZOWEJ (SCOREBOARD)
+   ========================================== */
+
+/* Główny kontener całej belki */
+.hud-container {
+    background: rgba(13, 13, 26, 0.95) !important; /* Ciemne, eleganckie tło pasujące do panelu */
+    border: 2px solid #252547 !important;
+    border-radius: 8px !important;
+    height: 55px !important;
+    display: flex !important;
+    align-items: center !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7) !important;
+    padding: 0 15px !important;
+}
+
+/* Lewa strona - Gospodarze */
+.hud-home {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important; /* Rozpycha logo na brzeg, a napis do środka */
+    width: 40% !important; /* Idealne proporcje bocznych bloków */
+    height: 100% !important;
+}
+
+/* Prawa strona - Goście */
+.hud-away {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-direction: row-reverse !important; /* Odwraca kolejność na prawej stronie: tekst przy wyniku, logo na brzegu */
+    width: 40% !important;
+    height: 100% !important;
+}
+
+/* Środkowy czarny blok z wynikiem i czasem */
+.hud-center {
+    background: #090915 !important;
+    border-left: 2px solid #252547 !important;
+    border-right: 2px solid #252547 !important;
+    height: 100% !important;
+    width: 20% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+/* STYLIZACJA TEKSTU I LOGO */
+
+/* Nazwy drużyn - pogrubione, czytelne, sportowy styl */
+.hud-team-name {
+    font-family: 'Arial Black', 'Impact', sans-serif !important;
+    font-size: 20px !important; /* Większa, bardzo czytelna czcionka */
+    font-weight: 900 !important;
+    color: #ffffff !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    white-space: nowrap !important;
+    margin: 0 15px !important; /* Odstęp od wyniku i od brzegu */
+}
+
+/* Logotypy na skrajach belki */
+.hud-team-logo {
+    width: 36px !important;
+    height: 36px !important;
+    object-fit: contain !important;
+    flex-shrink: 0 !important;
+}
+
+/* Wynik meczu */
+.hud-score {
+    font-family: 'Arial Black', sans-serif !important;
+    font-size: 24px !important;
+    font-weight: 900 !important;
+    color: #ffffff !important;
+    line-height: 1 !important;
+}
+
+/* Czas meczu */
+.hud-time {
+    font-family: 'Courier New', monospace !important;
+    font-size: 20px !important;
+    font-weight: 900 !important;
+    color: #00f2fe !important; /* Neonowy błękit z Twojego panelu */
+    line-height: 1.1 !important;
+}
+
+/* Część meczu (np. 1H, 2H) */
+.hud-part {
+    font-family: sans-serif !important;
+    font-size: 11px !important;
+    font-weight: 800 !important;
+    color: #a0aec0 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+}
