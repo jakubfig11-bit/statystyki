@@ -141,11 +141,11 @@ function swapTeams() {
     document.getElementById('input-home-name').value = awayName;
     document.getElementById('input-away-name').value = homeName;
     document.getElementById('input-home-color').value = awayColor;
-    document.getElementById('input-home-color').value = homeColor;
+    document.getElementById('input-away-color').value = homeColor;
     document.getElementById('input-home-text').value = awayText;
     document.getElementById('input-away-text').value = homeText;
     document.getElementById('input-home-logo').value = awayLogo;
-    document.getElementById('input-home-logo').value = homeLogo;
+    document.getElementById('input-away-logo').value = homeLogo;
     document.getElementById('txt-home-players').value = awayPlayers;
     document.getElementById('txt-away-players').value = homePlayers;
     document.getElementById('input-home-coach').value = awayCoach;
