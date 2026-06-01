@@ -3,12 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>PANEL KONTROLNY - Scoreboard v3</title>
-    <!-- Ładowanie Supabase z CDN (identycznie jak w overlay) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Ładowanie stylów panelu -->
     <link rel="stylesheet" href="style-v3.css">
     <style>
-        /* Szybkie, czytelne poprawki wizualne dla panelu sterowania */
         body {
             background: #11141a;
             color: #f1f1f1;
@@ -17,7 +14,7 @@
             padding: 20px;
         }
         .control-container {
-            max-width: 1000px;
+            max-width: 1100px;
             margin: 0 auto;
             background: #1a1f29;
             padding: 25px;
@@ -99,7 +96,6 @@
         .btn-secondary { background: #4a5568; color: white; }
         .btn-secondary:hover { background: #313b4e; }
         
-        /* Wyświetlacz wyniku w panelu */
         .score-panel-display {
             display: flex;
             justify-content: center;
@@ -130,6 +126,27 @@
             border-radius: 4px;
             letter-spacing: 2px;
         }
+        
+        /* Styl przełącznika składów (Tabs) */
+        .lineup-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+            background: #11141a;
+            padding: 5px;
+            border-radius: 6px;
+        }
+        .tab-btn {
+            flex: 1;
+            background: transparent;
+            color: #a0aec0;
+            padding: 8px;
+            font-size: 12px;
+        }
+        .tab-btn.active {
+            background: #4facfe;
+            color: #fff;
+        }
     </style>
 </head>
 <body>
@@ -137,7 +154,6 @@
 <div class="control-container">
     <h2>Meczowy Panel Sterowania Realtime</h2>
     
-    <!-- 1. LIVE WYNIK I CZAS -->
     <div class="score-panel-display">
         <div class="score-box">
             <label>Gospodarze</label>
@@ -167,7 +183,6 @@
         </div>
     </div>
 
-    <!-- 2. KONFIGURACJA DRUŻYN ORAZ BARW -->
     <div class="grid-two">
         <div class="section-box">
             <h3>Gospodarze (Ustawienia)</h3>
@@ -188,6 +203,10 @@
             <div class="form-group">
                 <label>Link do Logo URL</label>
                 <input type="text" id="home-logo-input" placeholder="https://link-do-grafiki.png/logo.png">
+            </div>
+            <div class="form-group">
+                <label>Trener Gospodarzy</label>
+                <input type="text" id="home-coach-input" placeholder="Trener Gospodarzy">
             </div>
         </div>
 
@@ -211,10 +230,13 @@
                 <label>Link do Logo URL</label>
                 <input type="text" id="away-logo-input" placeholder="https://link-do-grafiki.png/logo.png">
             </div>
+            <div class="form-group">
+                <label>Trener Gości</label>
+                <input type="text" id="away-coach-input" placeholder="Trener Gości">
+            </div>
         </div>
     </div>
 
-    <!-- POMOCNICZE OPERACJE GLOBALNE -->
     <div class="section-box" style="margin-bottom: 20px; display: flex; gap: 15px; align-items: center;">
         <div style="flex: 1;">
             <label>Część Meczu (Połowa/Kwarta)</label>
@@ -225,43 +247,46 @@
             </select>
         </div>
         <button id="btn-swap" class="btn-secondary" style="margin-top: 15px;">Zamień Strony (SWAP)</button>
-        <button id="btn-force-update" style="margin-top: 15px;">Wymuś synchronizację barw</button>
+        <button id="btn-force-update" style="margin-top: 15px;">Wymuś synchronizację</button>
     </div>
 
-    <!-- 3. ZARZĄDZANIE SKŁADAMI (LINEUPS) -->
     <div class="section-box" style="margin-bottom: 20px;">
-        <h3>Zarządzanie Składami i Trenerem</h3>
-        <p style="font-size: 11px; color: #a0aec0; margin-top: -5px;">Wpisz każdego zawodnika w nowej linii. Wpisanie numeru kropką (np. "10. J. Kowalski") automatycznie ustawi go na koszulce.</p>
+        <h3>Zarządzanie Składami</h3>
+        
+        <div class="lineup-tabs">
+            <button type="button" id="tab-home" class="tab-btn active" onclick="switchLineupTab('home')">EDYCJA: GOSPODARZE</button>
+            <button type="button" id="tab-away" class="tab-btn" onclick="switchLineupTab('away')">EDYCJA: GOŚCIE</button>
+        </div>
         
         <div class="grid-two">
             <div class="form-group">
-                <label>Skład Główny (Pierwsza piątka - 5 linii)</label>
-                <textarea id="lineup-main-input" rows="5" placeholder="1. Bramkarz&#10;2. Obrońca Lewy&#10;3. Obrońca Prawy&#10;4. Napastnik Lewy&#10;5. Napastnik Prawy"></textarea>
+                <label id="main-players-label">Skład Główny Gospodarzy (5 linii)</label>
+                <textarea id="lineup-main-input" rows="5" placeholder="1. Nazwisko GK&#10;2. Nazwisko DF L&#10;3. Nazwisko DF P&#10;4. Nazwisko FW L&#10;5. Nazwisko FW P"></textarea>
             </div>
             <div class="form-group">
-                <label>Zawodnicy Rezerwowi (Każdy w nowej linii)</label>
-                <textarea id="lineup-bench-input" rows="5" placeholder="12. Rezerwowy 1&#10;14. Rezerwowy 2&#10;16. Rezerwowy 3"></textarea>
+                <label id="bench-players-label">Zawodnicy Rezerwowi Gospodarzy</label>
+                <textarea id="lineup-bench-input" rows="5" placeholder="12. Zawodnik A&#10;14. Zawodnik B"></textarea>
             </div>
         </div>
-        <div class="form-group">
-            <label>Trener (Coach)</label>
-            <input type="text" id="lineup-coach-input" placeholder="Imię i Nazwisko Trenera">
-        </div>
         <div class="flex-row" style="justify-content: flex-end;">
-            <button id="btn-save-lineups" class="btn-secondary">Zapisz składy do pamięci</button>
+            <button id="btn-save-lineups" class="btn-secondary">Zapisz aktualny skład</button>
         </div>
     </div>
 
-    <!-- 4. WYZWALACZE ANIMACJI (TRIGGERS) -->
     <div class="grid-two">
         <div class="section-box">
-            <h3>Wizualizacja Składów</h3>
-            <div class="flex-row" style="flex-wrap: wrap;">
+            <h3>Wizualizacja Składów (Mecz)</h3>
+            <div class="flex-row" style="flex-wrap: wrap; margin-bottom: 15px;">
                 <button id="btn-show-lineup-home">Pokaż Skład Gospodarzy</button>
                 <button id="btn-show-lineup-away">Pokaż Skład Gości</button>
                 <button id="btn-hide-lineup" class="btn-danger">Ukryj Grafiki Składu</button>
             </div>
-            <h3 style="margin-top: 20px;">Szybkie Animacje Goli</h3>
+            
+            <h3>Strzelcy i Animacja Goli</h3>
+            <div class="form-group">
+                <label>Nazwisko strzelca bramki</label>
+                <input type="text" id="goal-scorer-input" placeholder="np. 9. LEWANDOWSKI">
+            </div>
             <div class="flex-row">
                 <button id="btn-goal-home">GOL Gospodarze! (+1)</button>
                 <button id="btn-goal-away">GOL Goście! (+1)</button>
@@ -279,17 +304,15 @@
             </div>
             <div class="form-group">
                 <label>Nazwisko / Zawodnik</label>
-                <input type="text" id="stat-player-input" placeholder="np. 9. KOWALSKI">
+                <input type="text" id="stat-player-input" placeholder="np. 10. ZAWODNIK">
             </div>
             <div class="grid-two" style="margin-bottom:0;">
                 <div class="form-group">
                     <label>Kategoria statystyki</label>
                     <select id="stat-category-select">
-                        <option value="Punkty">PUNKTY</option>
-                        <option value="Asysty">ASYSTY</option>
-                        <option value="Faul">FAULE</option>
-                        <option value="Żółta kartka">ŻÓŁTA KARTKA</option>
-                        <option value="Czerwona kartka">CZERWONA KARTKA</option>
+                        <option value="Strzały na bramke">STRZAŁY NA BRAMKĘ</option>
+                        <option value="Podania">PODANIA</option>
+                        <option value="Kopnięcia">KOPNIĘCIA</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -303,8 +326,6 @@
 
 </div>
 
-<!-- PODPIĘCIE GŁÓWNEGO SYSTEMU STEROWANIA Z PLIKU APP.JS -->
 <script src="app.js"></script>
-
 </body>
 </html>
