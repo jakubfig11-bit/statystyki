@@ -214,15 +214,8 @@ input[type="color"]::-webkit-color-swatch {
 }
 
 /* ==========================================
-   3. STYLIZACJA EKRANU MECZOWEGO (overlay.html)
+   3. NOWA PRZEBUDOWANA BELKA MECZOWA (overlay.html)
    ========================================== */
-.overlay-body {
-    background: transparent;
-    width: 1920px;
-    height: 1080px;
-    position: relative;
-}
-
 .hud-container {
     position: absolute;
     top: 30px;
@@ -242,17 +235,20 @@ input[type="color"]::-webkit-color-swatch {
     display: flex;
     align-items: center;
     height: 100%;
-    padding: 0 24px;
-    min-width: 240px;
+    padding: 0 18px;
+    min-width: 250px;
+    gap: 14px;
 }
 
+/* Gospodarze: Logo po lewej stronie brzegu, tekst przysunięty do wyniku */
 .hud-home { 
-    justify-content: flex-end; 
+    justify-content: flex-start;
 }
 
+/* Goście: Odwrócenie kolejności (Nazwa po lewej przy wyniku, Logo po prawej na brzegu) */
 .hud-away { 
     justify-content: flex-start;
-    gap: 16px; /* Wymuszona bezpieczna przestrzeń dla logo gości */
+    flex-direction: row-reverse; 
 }
 
 .hud-team-name {
@@ -262,17 +258,15 @@ input[type="color"]::-webkit-color-swatch {
     letter-spacing: 1px;
     text-transform: uppercase;
     transition: color 0.2s ease;
+    white-space: nowrap;
 }
 
 .hud-team-logo {
     width: 32px;
     height: 32px;
     object-fit: contain;
-    flex-shrink: 0; /* Zabezpieczenie przed spłaszczeniem w OBS */
+    flex-shrink: 0;
 }
-
-.hud-home .hud-team-logo { margin-right: 14px; }
-.hud-away .hud-team-logo { margin-left: 2px; }
 
 .hud-score {
     font-size: 26px;
@@ -287,8 +281,9 @@ input[type="color"]::-webkit-color-swatch {
     min-width: 65px;
 }
 
-.hud-home .hud-score { margin-left: 20px; }
-.hud-away .hud-score { margin-right: 20px; }
+/* Automatyczne wypchnięcie bloków bocznych od wyniku */
+.hud-home .hud-team-name { margin-left: auto; }
+.hud-away .hud-team-name { margin-right: auto; }
 
 .hud-center {
     display: flex;
@@ -712,7 +707,7 @@ input[type="color"]::-webkit-color-swatch {
     border-radius: 8px;
     display: flex;
     overflow: hidden;
-    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.85);
+    box-shadow: 0 20px 45 rgba(0, 0, 0, 0.85);
     z-index: 99;
     visibility: hidden;
     opacity: 0;
