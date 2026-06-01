@@ -2,12 +2,12 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>OVERLAY SCOREBOARD v3</title>
+    <title>OVERLAY SCOREBOARD v3 - FIXED</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <link rel="stylesheet" href="style-v3.css">
     <style>
-        /* Reset i przygotowanie przezroczystego tła pod OBS */
+        /* GŁÓWNE PARAMETRY EKRANU OBS */
         html, body {
             margin: 0;
             padding: 0;
@@ -18,43 +18,52 @@
             height: 1080px;
         }
 
-        /* NEW GŁÓWNY HUD (POTRÓJNY PODZIAŁ Z CZASEM POD WYNIKIEM) */
+        /* HUB GŁÓWNY - SZTYWNA STRUKTURA I IDEALNA SYMETRIA */
         .hud-container {
             position: absolute;
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            display: grid;
-            grid-template-columns: 1fr 180px 1fr;
-            align-items: center;
-            background: rgba(20, 24, 33, 0.95);
-            border: 2px solid #2d3748;
-            border-radius: 8px;
-            padding: 8px 20px;
-            width: 650px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.6);
-        }
-        .hud-team-left {
             display: flex;
             align-items: center;
-            gap: 12px;
-            font-weight: 800;
-            color: #fff;
-            font-size: 18px;
+            background: #141821;
+            border: 2px solid #2d3748;
+            border-radius: 6px;
+            width: 650px;
+            height: 65px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+            box-sizing: border-box;
+            padding: 0;
+        }
+
+        /* Drużyny zajmują równo po 40% szerokości paska */
+        .hud-team-left {
+            width: 40%;
+            display: flex;
+            align-items: center;
             justify-content: flex-start;
+            padding-left: 20px;
+            font-weight: 800;
+            color: #ffffff;
+            font-size: 18px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .hud-team-right {
+            width: 40%;
             display: flex;
             align-items: center;
-            gap: 12px;
-            font-weight: 800;
-            color: #fff;
-            font-size: 18px;
             justify-content: flex-end;
+            padding-right: 20px;
+            font-weight: 800;
+            color: #ffffff;
+            font-size: 18px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .hud-logo {
             width: 28px;
@@ -62,67 +71,64 @@
             object-fit: contain;
             display: none;
         }
-        
-        /* Środkowy blok: Wynik i czas pod spodem */
+
+        /* Środkowy boks (Dokładnie 20% szerokości) - Bez ucinania tekstu */
         .hud-center-score-block {
+            width: 20%;
+            height: 55px;
+            background: #0b0e14;
+            border: 1px solid #2d3748;
+            border-radius: 4px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: #0b0e14;
-            border: 1px solid #2d3748;
-            border-radius: 6px;
-            padding: 4px 0;
             box-sizing: border-box;
         }
         .score-row {
             display: flex;
             align-items: center;
-            gap: 12px;
+            justify-content: center;
+            gap: 10px;
             font-family: monospace;
-            font-size: 26px;
+            font-size: 24px;
             font-weight: 900;
             color: #ffffff;
             line-height: 1;
         }
         .score-divider {
             color: #4a5568;
-            font-size: 22px;
         }
         .time-row {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 6px;
-            margin-top: 4px;
-            border-top: 1px solid #1a202c;
-            width: 100%;
-            padding-top: 3px;
+            margin-top: 3px;
         }
         #hud-timer {
             color: #00ffaa;
             font-family: monospace;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: bold;
-            letter-spacing: 1px;
         }
         #hud-period {
-            font-size: 10px;
+            font-size: 9px;
             color: #a0aec0;
             background: #2d3748;
             padding: 1px 4px;
-            border-radius: 3px;
+            border-radius: 2px;
             font-weight: bold;
         }
 
-        /* EKRAN PREZENTACJI SKŁADÓW */
+        /* SKŁADY - PANEL CENTRALNY */
         #lineups-overlay {
             position: absolute;
             top: 0;
             left: 0;
             width: 1920px;
             height: 1080px;
-            background: rgba(10, 14, 23, 0.8);
+            background: rgba(10, 14, 23, 0.85);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -140,8 +146,6 @@
             box-shadow: 0 30px 60px rgba(0,0,0,0.8);
             overflow: hidden;
         }
-        
-        /* Lewa strona - Boisko z wymuszonym zachowaniem proporcji kół */
         .lineup-pitch-side {
             flex: 1.2;
             background: #1a1f2c;
@@ -155,7 +159,7 @@
         .pitch-outline {
             width: 100%;
             height: 100%;
-            max-width: 480px; /* Zabezpieczenie przed rozciąganiem w poziomie */
+            max-width: 480px;
             border: 2px solid #3f4e66;
             border-radius: 8px;
             position: relative;
@@ -170,7 +174,6 @@
             height: 130px;
             border: 2px solid #3f4e66;
             border-radius: 50%;
-            box-sizing: border-box;
         }
         .pitch-center-line {
             position: absolute;
@@ -201,7 +204,7 @@
             border-bottom: none;
         }
 
-        /* IDEALNIE OKRĄGŁE KULKI ZAWODNIKÓW (FIX ASRECT RATIO) */
+        /* KULKI ZAWODNIKÓW - PEŁNE ZABEZPIECZENIE GEOMETRII */
         .player-node {
             position: absolute;
             display: flex;
@@ -211,48 +214,49 @@
             z-index: 5;
         }
         .player-shirt {
-            width: 50px;
-            height: 50px;
-            aspect-ratio: 1 / 1 !important; /* Wymuszenie idealnego koła */
+            width: 48px;
+            height: 48px;
+            min-width: 48px;
+            min-height: 48px;
+            aspect-ratio: 1 / 1 !important;
             background: #ff0055;
-            border: 3px solid #fff;
+            border: 3px solid #ffffff;
             border-radius: 50% !important;
             display: flex;
             justify-content: center;
             align-items: center;
-            box-shadow: 0 6px 14px rgba(0,0,0,0.5);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.6);
             box-sizing: border-box;
         }
         .p-num {
             font-size: 18px;
             font-weight: 900;
-            color: #fff;
-            font-family: system-ui, sans-serif;
+            color: #ffffff;
             line-height: 1;
         }
         .p-name {
             background: rgba(10, 14, 23, 0.95);
-            color: #fff;
-            padding: 4px 12px;
+            color: #ffffff;
+            padding: 4px 10px;
             border-radius: 4px;
             font-size: 11px;
             font-weight: bold;
-            margin-top: 8px;
+            margin-top: 6px;
             text-transform: uppercase;
             border: 1px solid #2d3748;
             white-space: nowrap;
             letter-spacing: 0.5px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
         }
 
-        /* Pozycje kulek w formacji 1-2-2 */
-        .pos-gk    { top: 88%; left: 50%; }
-        .pos-df-l  { top: 62%; left: 24%; }
-        .pos-df-r  { top: 62%; left: 76%; }
-        .pos-fw-l  { top: 26%; left: 24%; }
-        .pos-fw-r  { top: 26%; left: 76%; }
+        /* Pozycje bazowe dla formacji maksymalnej (1-2-2).
+           Jeśli app.js generuje strukturę dynamicznie, te klasy posłużą jako punkty zaczepienia */
+        .pos-gk    { top: 86%; left: 50%; }
+        .pos-df-l  { top: 60%; left: 25%; }
+        .pos-df-r  { top: 60%; left: 75%; }
+        .pos-fw-l  { top: 26%; left: 25%; }
+        .pos-fw-r  { top: 26%; left: 75%; }
 
-        /* Prawa strona - Lista rezerwowych i trener */
+        /* PANEL INFO (PRAWA STRONA) */
         .lineup-info-side {
             flex: 1;
             background: #11141a;
@@ -277,7 +281,7 @@
         #lineup-team-title {
             font-size: 32px;
             font-weight: 900;
-            letter-spacing: 1px;
+            color: #ffffff;
             margin: 0;
             text-transform: uppercase;
         }
@@ -286,7 +290,6 @@
             color: #a0aec0;
             letter-spacing: 2px;
             text-transform: uppercase;
-            margin-top: -2px;
         }
         .bench-section {
             margin-top: 10px;
@@ -304,30 +307,94 @@
         #lineup-bench-list {
             padding: 0;
             margin: 0;
+            list-style: none;
         }
         .coach-section {
             margin-top: auto;
             background: #161a24;
             padding: 12px 15px;
             border-radius: 6px;
+            border: 1px solid #2d3748;
         }
         .coach-section label {
             display: block;
             font-size: 10px;
             color: #a0aec0;
-            letter-spacing: 1px;
             text-transform: uppercase;
             margin-bottom: 3px;
         }
         #lineup-coach-display {
             font-size: 16px;
             font-weight: bold;
-            color: #fff;
+            color: #ffffff;
             text-transform: uppercase;
-            padding-left: 8px;
         }
 
-        /* STATYSTYK INDYWIDUALNE (BOTTOM BADGE) */
+        /* ANONS BRAMKI (GOAL POPUP) - DOSTOSOWANY POD KLIK */
+        #goal-badge-container {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            background: rgba(18, 22, 33, 0.95);
+            border: 2px solid #2d3748;
+            border-radius: 8px;
+            padding: 15px 25px;
+            width: 550px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+            z-index: 999;
+            box-sizing: border-box;
+        }
+        #goal-badge-accent {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 6px;
+            border-top-left-radius: 6px;
+            border-bottom-left-radius: 6px;
+            background-color: #ff0055;
+        }
+        .goal-meta-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 2px;
+        }
+        .goal-string {
+            color: #ffffff !important;
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        #goal-badge-team {
+            font-size: 16px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: #ff0055;
+        }
+        #goal-badge-scorer {
+            font-size: 28px;
+            font-weight: 900;
+            color: #ffffff !important;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+        #goal-badge-time {
+            font-size: 24px;
+            font-weight: bold;
+            color: #a0aec0;
+            font-family: monospace;
+            padding-left: 25px;
+            border-left: 1px solid #2d3748;
+            margin-left: auto;
+        }
+
+        /* STATYSTYKI INDYWIDUALNE */
         #stat-badge-container {
             position: absolute;
             bottom: 50px;
@@ -343,39 +410,6 @@
             box-shadow: 0 20px 40px rgba(0,0,0,0.6);
             z-index: 90;
             visibility: hidden;
-        }
-        #stat-badge-accent {
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 6px;
-            border-top-left-radius: 6px;
-            border-bottom-left-radius: 6px;
-        }
-        .stat-text-block {
-            display: flex;
-            flex-direction: column;
-            flex: 1;
-        }
-        #stat-badge-player-name {
-            font-size: 20px;
-            font-weight: 800;
-            color: #fff;
-            text-transform: uppercase;
-        }
-        #stat-badge-category {
-            font-size: 12px;
-            color: #a0aec0;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-top: 2px;
-        }
-        #stat-badge-value {
-            font-size: 36px;
-            font-weight: 900;
-            font-family: monospace;
-            padding-left: 20px;
         }
     </style>
 </head>
@@ -414,25 +448,27 @@
                     <div class="pitch-penalty-box-top"></div>
                     <div class="pitch-penalty-box-bottom"></div>
                     
-                    <div class="player-node pos-gk">
-                        <div class="player-shirt"><span class="p-num">-</span></div>
-                        <div class="p-name">-</div>
-                    </div>
-                    <div class="player-node pos-df-l">
-                        <div class="player-shirt"><span class="p-num">-</span></div>
-                        <div class="p-name">-</div>
-                    </div>
-                    <div class="player-node pos-df-r">
-                        <div class="player-shirt"><span class="p-num">-</span></div>
-                        <div class="p-name">-</div>
-                    </div>
-                    <div class="player-node pos-fw-l">
-                        <div class="player-shirt"><span class="p-num">-</span></div>
-                        <div class="p-name">-</div>
-                    </div>
-                    <div class="player-node pos-fw-r">
-                        <div class="player-shirt"><span class="p-num">-</span></div>
-                        <div class="p-name">-</div>
+                    <div id="pitch-players-container">
+                        <div class="player-node pos-gk">
+                            <div class="player-shirt"><span class="p-num">-</span></div>
+                            <div class="p-name">-</div>
+                        </div>
+                        <div class="player-node pos-df-l">
+                            <div class="player-shirt"><span class="p-num">-</span></div>
+                            <div class="p-name">-</div>
+                        </div>
+                        <div class="player-node pos-df-r">
+                            <div class="player-shirt"><span class="p-num">-</span></div>
+                            <div class="p-name">-</div>
+                        </div>
+                        <div class="player-node pos-fw-l">
+                            <div class="player-shirt"><span class="p-num">-</span></div>
+                            <div class="p-name">-</div>
+                        </div>
+                        <div class="player-node pos-fw-r">
+                            <div class="player-shirt"><span class="p-num">-</span></div>
+                            <div class="p-name">-</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -453,25 +489,23 @@
                 
                 <div class="coach-section">
                     <label>TRENER</label>
-                    <div id="lineup-coach-display">-</div>
+                    <div id="lineup-coach-display">BRAK TRENERA</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="goal-badge-container" style="visibility: hidden; position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; background: rgba(18, 22, 33, 0.95); border: 2px solid #2d3748; border-radius: 8px; padding: 12px 25px; min-width: 500px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); z-index: 999; font-family: 'Segoe UI', sans-serif;">
-        <div id="goal-badge-accent" style="position: absolute; left: 0; top: 0; bottom: 0; width: 6px; border-top-left-radius: 6px; border-bottom-left-radius: 6px;"></div>
-        
-        <div style="display: flex; flex-direction: column; flex: 1;">
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
-                <span style="color: #ffffff !important; font-size: 11px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; opacity: 1;">STRZELONY GOL!</span>
-                <span style="color: #ffffff; font-size: 12px;">⚽</span>
+    <div id="goal-badge-container" style="visibility: hidden;">
+        <div id="goal-badge-accent"></div>
+        <div style="display: flex; flex-direction: column;">
+            <div class="goal-meta-row">
+                <span class="goal-string">STRZELONY GOL!</span>
+                <span style="color: #ffffff; font-size: 13px;">⚽</span>
             </div>
-            <div id="goal-badge-team" style="font-size: 15px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase;">GOSPODARZE</div>
-            <div id="goal-badge-scorer" style="font-size: 26px; font-weight: 900; color: #ffffff !important; text-transform: uppercase; margin-top: 2px; letter-spacing: 0.5px;">ZAWODNIK</div>
+            <div id="goal-badge-team">GOSPODARZE</div>
+            <div id="goal-badge-scorer">ZAWODNIK</div>
         </div>
-        
-        <div id="goal-badge-time" style="font-size: 20px; font-weight: bold; color: #a0aec0; font-family: monospace; padding-left: 20px; border-left: 1px solid #2d3748;">00:00</div>
+        <div id="goal-badge-time">00:00</div>
     </div>
 
     <div id="stat-badge-container">
