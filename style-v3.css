@@ -243,7 +243,7 @@ input[type="color"]::-webkit-color-swatch {
     align-items: center;
     height: 100%;
     padding: 0 24px;
-    min-width: 240px; /* Gwarancja symetrii szerokości nazw drużyn */
+    min-width: 240px;
 }
 
 .hud-home { 
@@ -252,6 +252,7 @@ input[type="color"]::-webkit-color-swatch {
 
 .hud-away { 
     justify-content: flex-start;
+    gap: 16px; /* Wymuszona bezpieczna przestrzeń dla logo gości */
 }
 
 .hud-team-name {
@@ -267,10 +268,11 @@ input[type="color"]::-webkit-color-swatch {
     width: 32px;
     height: 32px;
     object-fit: contain;
+    flex-shrink: 0; /* Zabezpieczenie przed spłaszczeniem w OBS */
 }
 
 .hud-home .hud-team-logo { margin-right: 14px; }
-.hud-away .hud-team-logo { margin-left: 14px; }
+.hud-away .hud-team-logo { margin-left: 2px; }
 
 .hud-score {
     font-size: 26px;
@@ -334,7 +336,8 @@ input[type="color"]::-webkit-color-swatch {
     overflow: hidden;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
     z-index: 100;
-    visibility: hidden; /* Domyślnie ukryte pod animacje GSAP */
+    visibility: hidden;
+    opacity: 0;
 }
 
 .stat-badge-xl-stripe {
@@ -410,7 +413,7 @@ input[type="color"]::-webkit-color-swatch {
     position: absolute;
     bottom: 50px;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translateX(-50%) translateY(150px);
     width: 620px;
     height: 100px;
     background: linear-gradient(135deg, rgba(6, 6, 15, 0.98) 0%, rgba(18, 18, 32, 0.95) 100%);
@@ -420,7 +423,7 @@ input[type="color"]::-webkit-color-swatch {
     overflow: hidden;
     box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8);
     z-index: 101;
-    visibility: hidden; /* Naprawa: zapobiega mignięciu przed pierwszą animacją */
+    visibility: hidden;
     opacity: 0;
 }
 
@@ -447,7 +450,6 @@ input[type="color"]::-webkit-color-swatch {
 }
 
 .goal-badge-alert-text {
-    box-sizing: border-box;
     font-size: 12px;
     font-weight: 800;
     color: #ff0055;
@@ -495,7 +497,8 @@ input[type="color"]::-webkit-color-swatch {
     justify-content: center;
     align-items: center;
     z-index: 5;
-    visibility: hidden; /* Ukryte bazowo do wejścia GSAP */
+    visibility: hidden;
+    opacity: 0;
 }
 
 .lineup-tv-center-block {
@@ -574,7 +577,6 @@ input[type="color"]::-webkit-color-swatch {
 .pos-fw-l { bottom: 70%; left: 20%; }
 .pos-fw-r { bottom: 70%; left: 62%; }
 
-/* OCHRONA PROPORCJI KULEK (ZABEZPIECZENIE DLA OBS) */
 .player-shirt {
     width: 48px !important;
     height: 48px !important;
@@ -693,4 +695,79 @@ input[type="color"]::-webkit-color-swatch {
     border-left: 4px solid #ff0055;
     text-transform: uppercase;
     transition: border-left-color 0.2s ease;
+}
+
+/* ==========================================
+   7. DYNAMICZNA BELKA STATYSTYK (TV PREMIUM REDESIGN)
+   ========================================== */
+.tv-stat-wrapper {
+    position: absolute;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%) translateY(150px);
+    width: 560px;
+    height: 80px;
+    background: linear-gradient(135deg, rgba(8, 8, 22, 0.98) 0%, rgba(18, 18, 38, 0.95) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    display: flex;
+    overflow: hidden;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.85);
+    z-index: 99;
+    visibility: hidden;
+    opacity: 0;
+}
+
+.tv-stat-stripe {
+    width: 10px;
+    height: 100%;
+    background-color: #00f2fe;
+    transition: background-color 0.3s ease;
+}
+
+.tv-stat-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+}
+
+.tv-stat-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.tv-stat-label {
+    font-size: 10px;
+    font-weight: 800;
+    color: #718096;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+}
+
+.tv-stat-name {
+    font-size: 22px;
+    font-weight: 900;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+.tv-stat-value-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.tv-stat-value {
+    font-size: 44px;
+    font-weight: 950;
+    color: #00f2fe;
+    text-shadow: 0 0 15px rgba(0, 242, 254, 0.5);
+    line-height: 1;
+    transition: color 0.3s ease;
 }
