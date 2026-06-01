@@ -305,25 +305,27 @@ input[type="color"]::-webkit-color-swatch {
 }
 
 /* ==========================================
-   4. DUŻE STATYSTYKI ZAWODNIKA (STYL TV XL) - NOWY UKŁAD
+   4. SYSTEM STATYSTYK TV XL
    ========================================== */
 .stat-badge-xl-wrapper {
     position: absolute !important;
     bottom: 50px !important;
     left: 50% !important;
     transform: translateX(-50%) !important;
-    width: 680px !important; /* Bezpieczna szerokość na długie nazwy */
-    height: 90px !important;
-    background: linear-gradient(135deg, #111125 0%, #070714 100%) !important; /* Głębokie, eleganckie ciemne tło */
+    width: 680px !important; 
+    height: 85px !important;
+    background: linear-gradient(135deg, #121229 0%, #080816 100%) !important;
     border: 2px solid #252547 !important;
     border-radius: 8px !important;
     display: flex !important;
     overflow: hidden !important;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8) !important;
     z-index: 100 !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    visibility: hidden;
+    opacity: 0;
 }
 
-/* Nowy, błękitny pasek ozdobny dopasowany do stylistyki panelu */
 .stat-badge-xl-stripe {
     width: 12px !important;
     height: 100% !important;
@@ -334,13 +336,12 @@ input[type="color"]::-webkit-color-swatch {
 .stat-badge-xl-content {
     flex: 1 !important;
     display: flex !important;
-    padding: 0 25px !important;
+    padding: 0 0 0 25px !important;
     align-items: center !important;
     justify-content: space-between !important;
     height: 100% !important;
 }
 
-/* Lewy blok: Nazwisko i etykieta */
 .stat-badge-xl-left {
     display: flex !important;
     flex-direction: column !important;
@@ -348,17 +349,15 @@ input[type="color"]::-webkit-color-swatch {
     gap: 4px !important;
 }
 
-/* Mały górny napis pomocniczy - teraz jasny i widoczny */
 .stat-badge-xl-title {
     font-family: 'Arial Black', sans-serif !important;
     font-weight: 900 !important;
     font-size: 11px !important;
-    color: #00f2fe !important;
+    color: #00f2fe !important; 
     letter-spacing: 2px !important;
     text-transform: uppercase !important;
 }
 
-/* Imię i Nazwisko zawodnika - gruba, biała, czytelna czcionka */
 .stat-badge-xl-player {
     font-family: 'Arial Black', 'Impact', sans-serif !important;
     font-weight: 900 !important;
@@ -368,41 +367,25 @@ input[type="color"]::-webkit-color-swatch {
     letter-spacing: 0.5px !important;
 }
 
-/* Prawy blok: Statystyka odizolowana od cyfry */
 .stat-badge-xl-right {
     display: flex !important;
     align-items: center !important;
-    gap: 25px !important;
     height: 100% !important;
 }
 
-/* Nazwa kategorii (np. STRZAŁY NA BRAMKĘ) - jasna, nie nachodzi na wynik */
-.stat-badge-xl-cat {
-    font-family: 'Arial Black', sans-serif !important;
-    font-weight: 900 !important;
-    font-size: 14px !important;
-    color: #e2e8f0 !important;
-    letter-spacing: 1px !important;
-    text-transform: uppercase !important;
-    text-align: right !important;
-    max-width: 220px !important;
-    line-height: 1.2 !important;
-}
-
-/* Duża cyfra wartości statystyki - dostała własną wydzieloną strefę */
 .stat-badge-xl-val {
     font-family: 'Arial Black', sans-serif !important;
     font-weight: 900 !important;
-    font-size: 46px !important;
+    font-size: 44px !important;
     color: #ffffff !important;
-    background: rgba(255, 255, 255, 0.08) !important; /* Estetyczny boks pod cyfrą */
+    background: rgba(255, 255, 255, 0.07) !important;
     height: 100% !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    padding: 0 20px !important;
-    min-width: 70px !important;
-    border-left: 1px solid rgba(255, 255, 255, 0.15) !important;
+    padding: 0 30px !important;
+    min-width: 90px !important;
+    border-left: 2px solid #252547 !important;
 }
 
 /* ==========================================
