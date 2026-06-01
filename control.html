@@ -56,12 +56,12 @@
                     
                     <div class="form-group-row" style="border-top: 1px solid #222235; padding-top: 10px; margin-top: 5px;">
                         <div>
-                            <label>Logo Gospodarza (Link URL do PNG)</label>
-                            <input type="text" id="input-home-logo" placeholder="https://i.imgur.com/...png" value="">
+                            <label>Logo Gospodarza (Adres URL .png)</label>
+                            <input type="text" id="input-home-logo" placeholder="https://i.imgur.com/logo1.png" value="">
                         </div>
                         <div>
-                            <label>Logo Gościa (Link URL do PNG)</label>
-                            <input type="text" id="input-away-logo" placeholder="https://i.imgur.com/...png" value="">
+                            <label>Logo Gościa (Adres URL .png)</label>
+                            <input type="text" id="input-away-logo" placeholder="https://i.imgur.com/logo2.png" value="">
                         </div>
                     </div>
                 </div>
@@ -126,29 +126,26 @@
 
             <div class="control-card wide-card">
                 <h3>ZARZĄDZANIE SKŁADAMI (CENTRALNE BOISKO 5-OSOBOWE)</h3>
-                <p style="font-size:12px; color:#a0aec0; margin-bottom:15px;">
-                    Wpisz zawodników po przecinku. Pierwszych 5 osób wskoczy na pozycje taktyczne (GK, DF-L, DF-R, FW-L, FW-R). Pozostali wylądują na ławce rezerwowych!
-                </p>
                 
                 <div class="form-group-row">
                     <div>
-                        <label>Zawodnicy Gospodarzy (Format: 1. NICK, 2. NICK...)</label>
-                        <textarea id="txt-home-players" rows="3" placeholder="1. BRAMKARZ, 2. DEF_L, 3. DEF_R, 4. ATT_L, 5. ATT_R, 6. REZERWA_1, 7. REZERWA_2"></textarea>
+                        <label>Zawodnicy Gospodarzy (Rozdzielaj przecinkami)</label>
+                        <textarea id="txt-home-players" rows="3" placeholder="1. GK, 2. DF_L, 3. DF_R, 4. FW_L, 5. FW_R, 6. REZERWA"></textarea>
                     </div>
                     <div>
-                        <label>Zawodnicy Gości (Format: 1. NICK, 2. NICK...)</label>
-                        <textarea id="txt-away-players" rows="3" placeholder="1. BRAMKARZ, 2. DEF_L, 3. DEF_R, 4. ATT_L, 5. ATT_R, 6. REZERWA_1, 7. REZERWA_2"></textarea>
+                        <label>Zawodnicy Gości (Rozdzielaj przecinkami)</label>
+                        <textarea id="txt-away-players" rows="3" placeholder="1. GK, 2. DF_L, 3. DF_R, 4. FW_L, 5. FW_R, 6. REZERWA"></textarea>
                     </div>
                 </div>
 
                 <div class="form-group-row" style="margin-top: 15px;">
                     <div>
                         <label>Trener Gospodarzy</label>
-                        <input type="text" id="input-home-coach" value="Trener Gospodarzy" placeholder="np. J. KLOPP">
+                        <input type="text" id="input-home-coach" value="Trener Gospodarzy">
                     </div>
                     <div>
                         <label>Trener Gości</label>
-                        <input type="text" id="input-away-coach" value="Trener Gości" placeholder="np. P. GUARDIOLA">
+                        <input type="text" id="input-away-coach" value="Trener Gości">
                     </div>
                 </div>
 
