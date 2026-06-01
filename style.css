@@ -510,3 +510,68 @@ label {
     display: block; 
     margin-top: 8px;
 }
+/* --- STYLIZACJA BELKI STATYSTYK ZAWODNIKA --- */
+.stat-badge-wrapper {
+    position: absolute;
+    top: 130px; /* Umiejscowienie pod tablicą wyników (która ma wysokość ok. 80-90px) */
+    left: 40px;  /* Wyrównanie do lewej krawędzi ekranu meczowego */
+    width: 320px;
+    height: 75px;
+    background: linear-gradient(135deg, rgba(10, 10, 22, 0.95) 0%, rgba(25, 25, 45, 0.9) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 6px;
+    display: flex;
+    overflow: hidden;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
+    z-index: 99;
+}
+
+/* Kolorowy pasek boczny zależny od barw wybranego zespołu */
+.stat-badge-accent-stripe {
+    width: 6px;
+    height: 100%;
+    background-color: #ff0055;
+}
+
+.stat-badge-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 15px;
+    justify-content: center;
+}
+
+.stat-badge-player-row {
+    font-family: 'Arial', sans-serif;
+    font-weight: 800;
+    font-size: 15px;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+}
+
+.stat-badge-data-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.stat-badge-data-row .stat-cat {
+    font-family: 'Arial', sans-serif;
+    font-weight: 600;
+    font-size: 11px;
+    color: #a0aec0;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.stat-badge-data-row .stat-val {
+    font-family: 'Arial', sans-serif;
+    font-weight: 900;
+    font-size: 24px;
+    color: #ff0055;
+    padding-left: 10px;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.5);
+}
