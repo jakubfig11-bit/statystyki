@@ -1,577 +1,120 @@
 /* ==========================================
-   RESET I GŁÓWNE USTAWIENIA EKRANU (1080p)
+   1. RESET BAZOWY I ZMIENNE GLOBALNE
    ========================================== */
-* { 
-    margin: 0; 
-    padding: 0; 
-    box-sizing: border-box; 
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-.overlay-body { 
-    background: transparent !important; 
-    overflow: hidden; 
-    width: 1920px; 
-    height: 1080px; 
-    position: relative; 
-}
-
-/* ==========================================
-   HUD - GŁÓWNA TABLICA WYNIKÓW (GÓRA)
-   ========================================== */
-.hud-container { 
-    position: absolute; 
-    top: 30px; 
-    left: 50%; 
-    transform: translateX(-50%); 
-    display: flex; 
-    align-items: center; 
-    background: rgba(10, 10, 10, 0.95); 
-    border: 2px solid #252525; 
-    border-radius: 6px; 
-    padding: 5px 20px; 
-    box-shadow: 0 10px 30px rgba(0,0,0,0.7); 
-    z-index: 10; 
-}
-.hud-side { 
-    display: flex; 
-    align-items: center; 
-    gap: 12px; 
-}
-
-/* NOWE STYLE DLA LOGO W HUD */
-.hud-team-logo {
-    width: 30px;
-    height: 30px;
-    object-fit: contain;
-    display: block;
-}
-/* Ukryj logo jeśli nie ma podanego linku (brak błędu pustego obrazka) */
-.hud-team-logo[src=""], .hud-team-logo:not([src]) {
-    display: none !important;
-}
-
-.hud-team-name { 
-    color: #fff; 
-    font-size: 20px; 
-    font-weight: 800; 
-    letter-spacing: 1px; 
-    min-width: 130px; 
-}
-.hud-home .hud-team-name { text-align: right; }
-.hud-away .hud-team-name { text-align: left; }
-
-/* Odwrócenie kolejności dla gości (żeby logo było po prawej lub lewej stronie nazwy) */
-.hud-home { flex-direction: row; }
-.hud-away { flex-direction: row-reverse; }
-
-.hud-score { 
-    color: #00ebff; 
-    font-size: 28px; 
-    font-weight: 900; 
-    background: #111; 
-    padding: 2px 12px; 
-    border-radius: 4px; 
-    border: 1px solid #333; 
-}
-.hud-center { 
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
-    margin: 0 25px; 
-    padding: 0 15px; 
-    border-left: 2px solid #333; 
-    border-right: 2px solid #333; 
-}
-.hud-time { 
-    color: #fff; 
-    font-size: 22px; 
-    font-weight: 700; 
-    font-family: monospace; 
-}
-.hud-part { 
-    color: #ff0055; 
-    font-size: 12px; 
-    font-weight: 800; 
-    margin-top: -2px; 
-}
-
-/* ==========================================
-   DOLNA BELKA GOLA (TV ANIMATION)
-   ========================================== */
-.goal-badge-wrapper { 
-    position: absolute; 
-    bottom: 60px; 
-    left: 50%; 
-    transform: translateX(-50%); 
-    width: 700px; 
-    height: 130px; 
-    background: rgba(12, 12, 15, 0.98); 
-    border: 1px solid rgba(255, 255, 255, 0.15); 
-    border-radius: 6px; 
-    display: flex; 
-    box-shadow: 0 20px 45px rgba(0,0,0,0.9); 
-    overflow: hidden; 
-    z-index: 5; 
-}
-.goal-badge-club-stripe { 
-    width: 18px; 
-    height: 100%; 
-    background: #ff0055; 
-    flex-shrink: 0; 
-}
-.goal-badge-main-content { 
-    flex-grow: 1; 
-    display: flex; 
-    flex-direction: column; 
-    justify-content: center; 
-    padding: 0 30px; 
-}
-.goal-badge-top-row { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    margin-bottom: 6px; 
-}
-.goal-badge-alert-text { 
-    color: #fff; 
-    font-size: 16px; 
-    font-weight: 800; 
-    letter-spacing: 3px; 
-    text-transform: uppercase; 
-    opacity: 0.7; 
-}
-.goal-badge-match-time { 
-    background: rgba(255, 255, 255, 0.15); 
-    color: #fff; 
-    font-size: 15px; 
-    font-weight: 900; 
-    padding: 3px 12px; 
-    border-radius: 4px; 
-    font-family: monospace; 
-}
-.goal-badge-bottom-row { display: flex; flex-direction: column; }
-.goal-badge-team-name { 
-    font-size: 16px; 
-    font-weight: 800; 
-    text-transform: uppercase; 
-    letter-spacing: 1px; 
-}
-.goal-badge-player-info { 
-    color: #fff; 
-    font-size: 32px; 
-    font-weight: 900; 
-    text-transform: uppercase; 
-    line-height: 1.1; 
-}
-
-/* ==========================================
-   🏟️ PREZENTACJA SKŁADÓW NA SAMYM ŚRODKU SCREENU
-   ========================================== */
-.lineup-tv-fullscreen { 
-    position: absolute; 
-    top: 0; 
-    left: 0; 
-    width: 1920px; 
-    height: 1080px; 
-    background: rgba(5, 5, 8, 0.85); 
-    backdrop-filter: blur(10px); 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    z-index: 4; 
-}
-
-.lineup-tv-center-block { 
-    display: flex; 
-    width: 1350px; 
-    height: 720px; 
-    background: rgba(15, 15, 22, 0.95); 
-    border-radius: 12px; 
-    border: 2px solid rgba(255, 255, 255, 0.08); 
-    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.9); 
-    overflow: hidden; 
-}
-
-/* KONTUR BOISKA (LEWA STRONA PANELU) */
-.tactical-pitch-container { 
-    width: 750px; 
-    height: 100%; 
-    background: rgba(10, 14, 12, 0.3); 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    padding: 35px; 
-    border-right: 1px solid rgba(255, 255, 255, 0.05); 
-}
-
-.pitch-field { 
-    position: relative; 
-    width: 100%; 
-    height: 100%; 
-    border: 3px solid rgba(255, 255, 255, 0.3); 
-    border-radius: 4px; 
-}
-
-.pitch-center-line { 
-    position: absolute; 
-    top: 50%; 
-    left: 0; 
-    width: 100%; 
-    height: 3px; 
-    background: rgba(255, 255, 255, 0.3); 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-}
-
-.pitch-center-circle { 
-    width: 140px; 
-    height: 140px; 
-    border: 3px solid rgba(255, 255, 255, 0.3); 
-    border-radius: 50%; 
-    background: transparent; 
-}
-
-.pitch-penalty-box { 
-    position: absolute; 
-    left: 50%; 
-    transform: translateX(-50%); 
-    width: 320px; 
-    height: 110px; 
-    border: 3px solid rgba(255, 255, 255, 0.3); 
-}
-.top-box { top: -3px; border-top: none; }
-.bottom-box { bottom: -3px; border-bottom: none; }
-
-/* KÓŁKA / SQUAD GRACZY NA BOISKU */
-.player-node { 
-    position: absolute; 
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
-    transform: translateX(-50%); 
-    text-align: center; 
-    width: 160px; 
-}
-
-.player-shirt { 
-    width: 60px; 
-    height: 60px; 
-    border-radius: 50%; 
-    background: #fff; 
-    border: 3px solid #000; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    box-shadow: 0 6px 15px rgba(0,0,0,0.5); 
-    transition: background 0.3s, border-color 0.3s; 
-}
-
-.player-shirt .p-num { 
-    font-size: 22px; 
-    font-weight: 900; 
-}
-
-.p-name { 
-    margin-top: 8px; 
-    color: #ffffff !important; 
-    font-size: 15px !important; 
-    font-weight: 800 !important; 
-    text-transform: uppercase; 
-    background: rgba(0, 0, 0, 0.85) !important; 
-    padding: 3px 12px; 
-    border-radius: 4px; 
-    letter-spacing: 0.5px; 
-    border: 1px solid rgba(255, 255, 255, 0.15) !important; 
-    width: 150px; 
-    white-space: nowrap; 
-    overflow: hidden; 
-    text-overflow: ellipsis; 
-    display: block !important;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.4);
-}
-
-/* POZYCJE SYSTEMU 5-OSOBOWEGO */
-.pos-gk   { bottom: 20px; left: 50%; }   
-.pos-df-l { bottom: 210px; left: 25%; }  
-.pos-df-r { bottom: 210px; left: 75%; }  
-.pos-fw-l { top: 160px; left: 25%; }    
-.pos-fw-r { top: 160px; left: 75%; }    
-
-/* ==========================================
-   PANEL BOCZNY (REZERWA, TRENER, TEAM)
-   ========================================== */
-.tactical-sidebar { 
-    width: 600px; 
-    height: 100%; 
-    padding: 45px; 
-    display: flex; 
-    flex-direction: column; 
-}
-
-.sidebar-header { 
-    margin-bottom: 30px; 
-    border-bottom: 2px solid rgba(255,255,255,0.05); 
-    padding-bottom: 15px; 
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-/* NOWY STYL DLA DUŻEGO LOGO W SKŁADACH */
-.sidebar-team-logo {
-    width: 55px;
-    height: 55px;
-    object-fit: contain;
-}
-.sidebar-team-logo[src=""], .sidebar-team-logo:not([src]) {
-    display: none !important;
-}
-
-#lineup-team-title { 
-    font-size: 40px; 
-    font-weight: 900; 
-    letter-spacing: 1px; 
-    line-height: 1.1; 
-}
-
-.sidebar-sub { 
-    font-size: 13px; 
-    font-weight: 800; 
-    color: #667; 
-    letter-spacing: 3px; 
-    margin-top: 2px; 
-}
-
-.sidebar-section { margin-bottom: 30px; }
-.sidebar-section h3 { 
-    font-size: 13px; 
-    font-weight: 800; 
-    color: rgba(255,255,255,0.4); 
-    letter-spacing: 2px; 
-    margin-bottom: 12px; 
-}
-
-/* ŁAWKA REZERWOWYCH */
-.bench-list { 
-    list-style: none; 
-    display: flex; 
-    flex-direction: column; 
-    gap: 8px; 
-}
-
-.bench-list li { 
-    font-size: 17px; 
-    font-weight: 700; 
-    color: #fff; 
-    background: rgba(255,255,255,0.03); 
-    padding: 6px 15px; 
-    border-radius: 4px; 
-    text-transform: uppercase; 
-    border-left: 4px solid #444; 
-    transition: border-color 0.3s;
-}
-
-/* TRENER PANEL */
-.coach-box { 
-    font-size: 20px; 
-    font-weight: 800; 
-    color: #fff; 
-    background: rgba(255,255,255,0.05); 
-    padding: 10px 20px; 
-    border-radius: 4px; 
-    text-transform: uppercase; 
-    border: 1px solid rgba(255,255,255,0.1); 
-}
-
-/* ==========================================
-   PANEL STEROWANIA (BACKEND CONTROL.HTML)
-   ========================================== */
-.control-body { 
-    background: #070708; 
-    color: #e2e8f0; 
-    padding: 20px; 
-}
-
-.control-panel { 
-    max-width: 1200px; 
-    margin: 0 auto; 
-    background: #111115; 
-    border: 1px solid #1f1f2e; 
-    border-radius: 12px; 
-    padding: 25px; 
-}
-
-.control-header { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    border-bottom: 1px solid #1f1f2e; 
-    padding-bottom: 15px; 
-    margin-bottom: 25px; 
-}
-
-.control-grid { 
-    display: grid; 
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); 
-    gap: 20px; 
-}
-
-.control-card { 
-    background: #161622; 
-    border: 1px solid #222235; 
-    border-radius: 8px; 
-    padding: 20px; 
-}
-
-.wide-card { 
-    grid-column: span 2; 
-}
-
-.score-actions { 
-    display: flex; 
-    align-items: center; 
-    justify-content: space-between; 
-    margin-top: 10px; 
-    background: #0d0d14; 
-    padding: 8px; 
-    border-radius: 6px; 
-}
-
-.score-display { 
-    font-size: 32px; 
-    font-weight: 900; 
-    color: #00ebff; 
-}
-
-.timer-control-display { 
-    font-size: 48px; 
-    font-weight: 900; 
-    color: #fff; 
-    text-align: center; 
-    font-family: monospace; 
-    margin: 15px 0; 
-    background: #0d0d14; 
-    border-radius: 6px; 
-    padding: 5px; 
-}
-
-.form-group-row { 
-    display: flex; 
-    gap: 15px; 
-    width: 100%;
-}
-
-.form-group-row > div { 
-    flex: 1; 
-}
-
-.btn-group { 
-    display: flex; 
-    gap: 10px; 
-}
-
-.btn { 
-    border: none; 
-    padding: 10px 15px; 
-    font-weight: 700; 
-    border-radius: 4px; 
-    cursor: pointer; 
-    text-transform: uppercase; 
-    text-align: center; 
-}
-
-.btn-neon { background: #00ebff; color: #000; }
-.btn-red { background: #ff0055; color: #fff; }
-.btn-sm { padding: 5px 15px; font-size: 14px; }
-.btn-block { width: 100%; display: block; margin-top: 10px; }
-
-input, select, textarea { 
-    width: 100%; 
-    background: #0d0d14; 
-    border: 1px solid #222235; 
-    color: #fff; 
-    padding: 10px; 
-    border-radius: 4px; 
-    font-size: 14px; 
-    margin-top: 4px;
-}
-
-textarea {
-    resize: vertical;
-}
-
-label { 
-    font-size: 11px; 
-    font-weight: 700; 
-    color: #6c6c84; 
-    text-transform: uppercase; 
-    display: block; 
-    margin-top: 8px;
-}
-/* --- STYLIZACJA BELKI STATYSTYK ZAWODNIKA --- */
-.stat-badge-wrapper {
-    position: absolute;
-    top: 130px; /* Umiejscowienie pod tablicą wyników (która ma wysokość ok. 80-90px) */
-    left: 40px;  /* Wyrównanie do lewej krawędzi ekranu meczowego */
-    width: 320px;
-    height: 75px;
-    background: linear-gradient(135deg, rgba(10, 10, 22, 0.95) 0%, rgba(25, 25, 45, 0.9) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 6px;
-    display: flex;
+body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
     overflow: hidden;
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
-    z-index: 99;
+    background-color: transparent; /* Kluczowe dla nakładki w OBS */
 }
 
-/* Kolorowy pasek boczny zależny od barw wybranego zespołu */
-.stat-badge-accent-stripe {
-    width: 6px;
-    height: 100%;
-    background-color: #ff0055;
+/* ==========================================
+   2. STYLIZACJA PANELU STEROWANIA (control.html)
+   ========================================== */
+.control-body {
+    background-color: #0d0d1a;
+    color: #e2e8f0;
+    overflow-y: auto;
+    padding: 30px;
 }
 
-.stat-badge-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    padding: 10px 15px;
-    justify-content: center;
+.control-panel {
+    max-width: 1300px;
+    margin: 0 auto;
 }
 
-.stat-badge-player-row {
-    font-family: 'Arial', sans-serif;
-    font-weight: 800;
-    font-size: 15px;
-    color: #ffffff;
-    letter-spacing: 0.5px;
-    margin-bottom: 4px;
-    text-transform: uppercase;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.4);
-}
-
-.stat-badge-data-row {
+.control-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    border-bottom: 2px solid #1e1e38;
+    padding-bottom: 20px;
+    margin-bottom: 30px;
 }
 
-.stat-badge-data-row .stat-cat {
-    font-family: 'Arial', sans-serif;
-    font-weight: 600;
-    font-size: 11px;
-    color: #a0aec0;
+.control-header h2 {
+    font-size: 24px;
+    font-weight: 800;
     letter-spacing: 1px;
+    color: #00f2fe;
     text-transform: uppercase;
 }
 
-.stat-badge-data-row .stat-val {
-    font-family: 'Arial', sans-serif;
-    font-weight: 900;
-    font-size: 24px;
-    color: #ff0055;
-    padding-left: 10px;
-    text-shadow: 0 2px 6px rgba(0,0,0,0.5);
+.control-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 25px;
 }
+
+.control-card {
+    background: #16162d;
+    border: 1px solid #252547;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.control-card h3 {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: #a0aec0;
+    text-transform: uppercase;
+    border-bottom: 1px solid #252547;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.wide-card {
+    grid-column: 1 / -1;
+}
+
+/* Formularze i kontrolki w panelu */
+label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #718096;
+    margin-bottom: 6px;
+    letter-spacing: 0.5px;
+}
+
+input[type="text"],
+input[type="number"],
+select,
+textarea {
+    width: 100%;
+    background-color: #090915;
+    border: 1px solid #2d2d54;
+    border-radius: 6px;
+    color: #fff;
+    padding: 10px 12px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+input[type="text"]:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: #00f2fe;
+    box-shadow: 0 0 8px rgba(0, 242, 254, 0.2);
+}
+
+input[type="color"] {
+    -webkit-appearance: none;
+    border: none;
+    width: 100%;
+    height: 40px;
+    border-radius: 6px;
+    cursor: pointer;
+    background: none;
+}
+
+input
