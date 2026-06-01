@@ -2,141 +2,42 @@
 <html lang="pl" style="background: #11141a !important; overflow-y: auto !important;">
 <head>
     <meta charset="UTF-8">
-    <title>PANEL KONTROLNY - Boisko z Kulkami</title>
+    <title>Pełny Panel Kontrolny</title>
     <style>
-        html, body {
-            background: #11141a !important;
-            overflow-y: auto !important;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            color: #fff;
-            padding: 15px;
-            margin: 0;
-        }
-        .control-container {
-            max-width: 900px;
-            margin: 0 auto;
-            background: #1a1f29;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-        }
-        h2, h3 {
-            margin-top: 0;
-            text-transform: uppercase;
-            color: #00ffaa;
-            border-bottom: 1px solid #2d3748;
-            padding-bottom: 6px;
-        }
-        .grid-two {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 15px;
-        }
-        .section-box {
-            background: #242b38;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #2d3748;
-        }
-        .form-group {
-            margin-bottom: 12px;
-        }
-        label {
-            display: block;
-            font-size: 11px;
-            font-weight: bold;
-            color: #a0aec0;
-            margin-bottom: 4px;
-            text-transform: uppercase;
-        }
-        input[type="text"], select, textarea {
-            width: 100%;
-            padding: 8px;
-            background: #11141a;
-            border: 1px solid #3f4e66;
-            color: #fff;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        .flex-row {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        button {
-            background: #00ffaa;
-            color: #000;
-            border: none;
-            padding: 10px 14px;
-            font-weight: bold;
-            text-transform: uppercase;
-            border-radius: 4px;
-            cursor: pointer;
-        }
+        html, body { background: #11141a !important; overflow-y: auto !important; font-family: 'Segoe UI', Arial, sans-serif; color: #fff; padding: 15px; margin: 0; }
+        .control-container { max-width: 950px; margin: 0 auto; background: #1a1f29; padding: 20px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+        h2, h3 { margin-top: 0; text-transform: uppercase; color: #00ffaa; border-bottom: 1px solid #2d3748; padding-bottom: 6px; }
+        .grid-two { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 15px; }
+        .section-box { background: #242b38; padding: 15px; border-radius: 8px; border: 1px solid #2d3748; margin-bottom: 15px; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-size: 11px; font-weight: bold; color: #a0aec0; margin-bottom: 4px; text-transform: uppercase; }
+        input[type="text"], select, textarea { width: 100%; padding: 8px; background: #11141a; border: 1px solid #3f4e66; color: #fff; border-radius: 4px; box-sizing: border-box; }
+        .flex-row { display: flex; gap: 10px; align-items: center; }
+        button { background: #00ffaa; color: #000; border: none; padding: 10px 14px; font-weight: bold; text-transform: uppercase; border-radius: 4px; cursor: pointer; }
         button:hover { background: #00cc88; }
         .btn-danger { background: #ff4d4d; color: white; }
         .btn-danger:hover { background: #cc3333; }
         .btn-secondary { background: #4a5568; color: white; }
+        .btn-primary { background: #4facfe; color: white; }
+        .btn-primary:hover { background: #00f2fe; }
         
-        .score-display-box {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 40px;
-            background: #11141a;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        .score-num {
-            font-size: 42px;
-            font-weight: bold;
-            color: #00ffaa;
-            font-family: monospace;
-            margin: 5px 0;
-            text-align: center;
-        }
-        .timer-large {
-            font-size: 32px;
-            font-weight: bold;
-            font-family: monospace;
-            background: #242b38;
-            padding: 5px 15px;
-            border-radius: 4px;
-        }
-        .tab-menu {
-            display: flex;
-            gap: 5px;
-            background: #11141a;
-            padding: 5px;
-            border-radius: 6px;
-            margin-bottom: 10px;
-        }
-        .tab-btn {
-            flex: 1;
-            background: transparent;
-            color: #a0aec0;
-            padding: 6px;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        .tab-btn.active {
-            background: #4facfe;
-            color: white;
-        }
+        .score-display-box { display: flex; justify-content: center; align-items: center; gap: 40px; background: #11141a; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .score-num { font-size: 42px; font-weight: bold; color: #00ffaa; font-family: monospace; text-align: center; margin: 5px 0; }
+        .timer-large { font-size: 32px; font-weight: bold; font-family: monospace; background: #242b38; padding: 5px 15px; border-radius: 4px; }
+        
+        .tab-menu { display: flex; gap: 5px; background: #11141a; padding: 5px; border-radius: 6px; margin-bottom: 10px; }
+        .tab-btn { flex: 1; background: transparent; color: #a0aec0; padding: 8px; border: none; cursor: pointer; font-weight: bold; text-transform: uppercase; }
+        .tab-btn.active { background: #4facfe; color: white; }
     </style>
 </head>
 <body>
 
 <div class="control-container">
-    <h2>Panel Kontrolny Meczu</h2>
+    <h2>Meczowy Panel Sterowania Realtime</h2>
     
-    <!-- WYNIKI I CZAS -->
     <div class="score-display-box">
         <div>
-            <div id="label-home" style="text-align:center; font-weight:bold;">GOSPODARZE</div>
+            <div id="label-home" style="text-align:center; font-weight:bold; text-transform:uppercase;">GOSPODARZE</div>
             <div class="score-num" id="dsp-home-score">0</div>
             <div class="flex-row">
                 <button onclick="changeScore('home', -1)" class="btn-secondary">-1</button>
@@ -145,7 +46,7 @@
         </div>
         
         <div style="text-align: center;">
-            <label>Stoper</label>
+            <label>Aktualny Czas</label>
             <div class="timer-large" id="dsp-timer">00:00</div>
             <div class="flex-row" style="margin-top: 8px; justify-content: center;">
                 <button id="btn-start" onclick="toggleTimer()">START</button>
@@ -154,7 +55,7 @@
         </div>
 
         <div>
-            <div id="label-away" style="text-align:center; font-weight:bold;">GOŚCIE</div>
+            <div id="label-away" style="text-align:center; font-weight:bold; text-transform:uppercase;">GOŚCIE</div>
             <div class="score-num" id="dsp-away-score">0</div>
             <div class="flex-row">
                 <button onclick="changeScore('away', -1)" class="btn-secondary">-1</button>
@@ -163,53 +64,87 @@
         </div>
     </div>
 
-    <!-- NAZWY DRUŻYN -->
     <div class="grid-two">
         <div class="section-box">
-            <h3>Gospodarze</h3>
+            <h3>Gospodarze (Ustawienia)</h3>
             <div class="form-group">
-                <label>Nazwa</label>
-                <input type="text" id="inp-home-name" value="TORINO" oninput="syncTeams()">
+                <label>Nazwa Drużyny</label>
+                <input type="text" id="inp-home-name" value="TORINO" oninput="syncData()">
+            </div>
+            <div class="form-group">
+                <label>Trener Gospodarzy</label>
+                <input type="text" id="inp-home-coach" value="Trener Gospodarzy" oninput="syncData()">
             </div>
         </div>
         <div class="section-box">
-            <h3>Goście</h3>
+            <h3>Goście (Ustawienia)</h3>
             <div class="form-group">
-                <label>Nazwa</label>
-                <input type="text" id="inp-away-name" value="ELCHE" oninput="syncTeams()">
+                <label>Nazwa Drużyny</label>
+                <input type="text" id="inp-away-name" value="ELCHE" oninput="syncData()">
+            </div>
+            <div class="form-group">
+                <label>Trener Gości</label>
+                <input type="text" id="inp-away-coach" value="Trener Gości" oninput="syncData()">
             </div>
         </div>
     </div>
 
-    <!-- CZĘŚĆ MECZU -->
-    <div class="section-box" style="margin-bottom: 20px;">
-        <label>Połowa / Część meczu</label>
-        <select id="inp-period" onchange="syncTeams()">
-            <option value="1H">1. POŁOWA</option>
-            <option value="2H">2. POŁOWA</option>
-            <option value="OT">DOGRYWKA</option>
+    <div class="section-box">
+        <label>Część meczu / Połowa</label>
+        <select id="inp-period" onchange="syncData()">
+            <option value="1H">1. Połowa</option>
+            <option value="2H">2. Połowa</option>
+            <option value="OT">Dogrywka</option>
         </select>
     </div>
 
-    <!-- EDYTOR SKŁADÓW (KULKI BOISKA) -->
-    <div class="section-box" style="margin-bottom: 20px;">
-        <h3>Wprowadzanie Składów na Boisko</h3>
+    <div class="section-box">
+        <h3>Zarządzanie Składami i Rezerwowymi</h3>
         <div class="tab-menu">
-            <button id="tab-h" class="tab-btn active" onclick="switchTab('home')">SKŁAD: GOSPODARZE</button>
-            <button id="tab-a" class="tab-btn" onclick="switchTab('away')">SKŁAD: GOŚCIE</button>
+            <button id="tab-h" class="tab-btn active" onclick="switchTab('home')">Edycja: Gospodarze</button>
+            <button id="tab-a" class="tab-btn" onclick="switchTab('away')">Edycja: Goście</button>
         </div>
         <div class="form-group">
-            <label id="textarea-label">Wpisz maksymalnie 5 zawodników (każdy w nowej linii):</label>
-            <textarea id="inp-lineup-text" rows="6" placeholder="1. Bramkarz&#10;2. Obrońca&#10;3. Pomocnik" oninput="saveCurrentLineup()"></textarea>
+            <label>Skład Główny na Boisko (Max 5 linii - Format: "Numer. Nazwisko")</label>
+            <textarea id="inp-lineup-text" rows="5" placeholder="1. Bramkarz&#10;2. Zawodnik" oninput="saveCurrentLineup()"></textarea>
+        </div>
+        <div class="form-group">
+            <label>Zawodnicy Rezerwowi (Wpisz ciągiem po przecinku)</label>
+            <input type="text" id="inp-bench-text" placeholder="Nowak, Kowalski, Wiśniewski" oninput="saveCurrentLineup()">
         </div>
     </div>
 
-    <!-- KONTROLA WIZUALIZACJI -->
+    <div class="section-box" style="border: 1px solid #00ffaa;">
+        <h3>Statystyki Indywidualne Zawodnika (Animacja pop-up)</h3>
+        <div class="grid-two" style="margin-bottom: 10px;">
+            <div class="form-group">
+                <label>Nazwisko / Zawodnik</label>
+                <input type="text" id="stat-player-name" placeholder="np. 10. ZAWODNIK">
+            </div>
+            <div class="form-group">
+                <label>Kategoria statystyki</label>
+                <select id="stat-category">
+                    <option value="Strzały na bramkę">Strzały na bramkę</option>
+                    <option value="Gol!">Gol!</option>
+                    <option value="Asysta">Asysta</option>
+                    <option value="Faul">Faul</option>
+                    <option value="Żółta kartka">Żółta kartka</option>
+                    <option value="Czerwona kartka">Czerwona kartka</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Wartość / Liczba</label>
+            <input type="text" id="stat-value" value="1" style="width: 100px;">
+        </div>
+        <button onclick="triggerStatAnimation()" style="background: #00ffaa; color: #000; width: 100%; padding: 12px;">Wyślij i animuj statystykę</button>
+    </div>
+
     <div class="section-box">
-        <h3>Sterowanie boiskiem w OBS</h3>
+        <h3>Sterowanie Widokiem Boiska w OBS</h3>
         <div class="flex-row">
-            <button onclick="togglePitch('home')" style="background: #4facfe; color: #fff;">Pokaż Boisko Gospodarzy</button>
-            <button onclick="togglePitch('away')" style="background: #4facfe; color: #fff;">Pokaż Boisko Gości</button>
+            <button onclick="togglePitch('home')" class="btn-primary">Pokaż Skład Gospodarzy</button>
+            <button onclick="togglePitch('away')" class="btn-primary">Pokaż Skład Gości</button>
             <button onclick="togglePitch('hide')" class="btn-danger">Schowaj Boisko</button>
         </div>
     </div>
@@ -220,16 +155,20 @@
     let sHome = 0, sAway = 0, tSeconds = 0, tInterval = null;
     let activeTab = 'home';
 
-    function syncTeams() {
+    function syncData() {
         const hName = document.getElementById('inp-home-name').value;
         const aName = document.getElementById('inp-away-name').value;
+        const hCoach = document.getElementById('inp-home-coach').value;
+        const aCoach = document.getElementById('inp-away-coach').value;
         
         localStorage.setItem('teamHome', hName);
         localStorage.setItem('teamAway', aName);
+        localStorage.setItem('coachHome', hCoach);
+        localStorage.setItem('coachAway', aCoach);
         localStorage.setItem('match_period', document.getElementById('inp-period').value);
         
-        document.getElementById('label-home').innerText = hName.toUpperCase();
-        document.getElementById('label-away').innerText = aName.toUpperCase();
+        document.getElementById('label-home').innerText = hName;
+        document.getElementById('label-away').innerText = aName;
     }
 
     function changeScore(team, val) {
@@ -249,11 +188,9 @@
         if(tInterval) {
             clearInterval(tInterval);
             tInterval = null;
-            btn.innerText = "START";
-            btn.style.background = "#00ffaa";
+            btn.innerText = "START"; btn.style.background = "#00ffaa";
         } else {
-            btn.innerText = "STOP";
-            btn.style.background = "#ffcc00";
+            btn.innerText = "STOP"; btn.style.background = "#ffcc00";
             tInterval = setInterval(() => {
                 tSeconds++;
                 let m = Math.floor(tSeconds / 60).toString().padStart(2, '0');
@@ -266,9 +203,7 @@
     }
 
     function resetTimer() {
-        clearInterval(tInterval);
-        tInterval = null;
-        tSeconds = 0;
+        clearInterval(tInterval); tInterval = null; tSeconds = 0;
         document.getElementById('dsp-timer').innerText = "00:00";
         localStorage.setItem('match_timer_string', "00:00");
         document.getElementById('btn-start').innerText = "START";
@@ -280,23 +215,37 @@
         if(side === 'home') {
             document.getElementById('tab-h').classList.add('active');
             document.getElementById('tab-a').classList.remove('active');
-            document.getElementById('textarea-label').innerText = "Skład: GOSPODARZE (max 5 linii):";
             document.getElementById('inp-lineup-text').value = localStorage.getItem('lineupHome') || '';
+            document.getElementById('inp-bench-text').value = localStorage.getItem('benchHome') || '';
         } else {
             document.getElementById('tab-a').classList.add('active');
             document.getElementById('tab-h').classList.remove('active');
-            document.getElementById('textarea-label').innerText = "Skład: GOŚCIE (max 5 linii):";
             document.getElementById('inp-lineup-text').value = localStorage.getItem('lineupAway') || '';
+            document.getElementById('inp-bench-text').value = localStorage.getItem('benchAway') || '';
         }
     }
 
     function saveCurrentLineup() {
-        const val = document.getElementById('inp-lineup-text').value;
+        const lVal = document.getElementById('inp-lineup-text').value;
+        const bVal = document.getElementById('inp-bench-text').value;
         if(activeTab === 'home') {
-            localStorage.setItem('lineupHome', val);
+            localStorage.setItem('lineupHome', lVal);
+            localStorage.setItem('benchHome', bVal);
         } else {
-            localStorage.setItem('lineupAway', val);
+            localStorage.setItem('lineupAway', lVal);
+            localStorage.setItem('benchAway', bVal);
         }
+    }
+
+    function triggerStatAnimation() {
+        const pName = document.getElementById('stat-player-name').value || "Zawodnik";
+        const cat = document.getElementById('stat-category').value;
+        const val = document.getElementById('stat-value').value;
+
+        const packet = { player: pName, category: cat, value: val };
+        // Wysyłamy unikalny klucz z timestampem, aby zmusić do reakcji za każdym kliknięciem
+        localStorage.setItem('trigger_stat_anim', JSON.stringify(packet));
+        localStorage.removeItem('trigger_stat_anim'); 
     }
 
     function togglePitch(action) {
@@ -313,13 +262,8 @@
     }
 
     window.onload = () => {
-        localStorage.clear();
-        syncTeams();
-        localStorage.setItem('scoreHome', 0);
-        localStorage.setItem('scoreAway', 0);
-        localStorage.setItem('match_timer_string', "00:00");
-        localStorage.setItem('showHomeLineup', 'false');
-        localStorage.setItem('showAwayLineup', 'false');
+        syncData();
+        saveCurrentLineup();
     };
 </script>
 </body>
