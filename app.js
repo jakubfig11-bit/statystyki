@@ -14,7 +14,11 @@ let matchState = {
     homeColor: "#ff0055",
     homeTextColor: "#ffffff",
     awayColor: "#ffff00",
-    awayTextColor: "#000000"
+    awayTextColor: "#000000",
+    homeCoach: "Trener Gospodarzy",
+    awayCoach: "Trener Gości",
+    homeLogo: "",
+    awayLogo: ""
 };
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -101,6 +105,11 @@ function updateTeams() {
     matchState.homeTextColor = document.getElementById('input-home-text').value;
     matchState.awayColor = document.getElementById('input-away-color').value;
     matchState.awayTextColor = document.getElementById('input-away-text').value;
+    
+    // Pobieranie linków logotypów z panelu sterowania
+    matchState.homeLogo = document.getElementById('input-home-logo').value.trim();
+    matchState.awayLogo = document.getElementById('input-away-logo').value.trim();
+    
     sendToOBS('state_update', matchState);
 }
 
@@ -150,14 +159,7 @@ function triggerGoalAnimation() {
     const side = document.getElementById('select-goal-team').value;
     const teamName = side === 'home' ? matchState.homeName : matchState.awayName;
     const scorer = document.getElementById('input-goal-scorer').value || "ZAWODNIK";
-    
-    let currentTimeString = "00:00";
-    const timerDisplay = document.getElementById('control-timer');
-    if (timerDisplay) {
-        currentTimeString = timerDisplay.innerText;
-    } else {
-        currentTimeString = formatTime(matchState.timerSeconds);
-    }
+    const currentTimeString = formatTime(matchState.timerSeconds);
     
     sendToOBS('trigger_action', { 
         id: "goal_" + Date.now(), 
@@ -170,15 +172,13 @@ function triggerGoalAnimation() {
 }
 
 function updateLineupsData() {
-    // Łapiemy wpisane ciągi z pól tekstowych i dzielimy po przecinkach
     matchState.homePlayers = document.getElementById('txt-home-players').value.split(',').map(p => p.trim()).filter(p => p !== "");
     matchState.awayPlayers = document.getElementById('txt-away-players').value.split(',').map(p => p.trim()).filter(p => p !== "");
     
-    // Pobranie Trenerów z dedykowanych pól (upewnij się, że masz takie ID w control.html lub dodaj je)
     const homeCoachInput = document.getElementById('input-home-coach');
     const awayCoachInput = document.getElementById('input-away-coach');
-    matchState.homeCoach = homeCoachInput ? homeCoachInput.value : "Trener A";
-    matchState.awayCoach = awayCoachInput ? awayCoachInput.value : "Trener B";
+    matchState.homeCoach = homeCoachInput ? homeCoachInput.value : "Trener Gospodarzy";
+    matchState.awayCoach = awayCoachInput ? awayCoachInput.value : "Trener Gości";
 
     sendToOBS('state_update', matchState);
 }
@@ -194,6 +194,12 @@ function updateOverlayUI() {
     if (document.getElementById('hud-away-score')) document.getElementById('hud-away-score').innerText = matchState.awayScore;
     if (document.getElementById('hud-timer')) document.getElementById('hud-timer').innerText = formatTime(matchState.timerSeconds);
     if (document.getElementById('hud-period')) document.getElementById('hud-period').innerText = matchState.period;
+
+    // Aktualizacja grafik herbów w belce HUD na górze
+    const homeHudImg = document.getElementById('hud-home-logo');
+    const awayHudImg = document.getElementById('hud-away-logo');
+    if (homeHudImg) homeHudImg.src = matchState.homeLogo || "";
+    if (awayHudImg) awayHudImg.src = matchState.awayLogo || "";
 }
 
 function animateGoal(side, team, scorer, timeString) {
@@ -218,7 +224,6 @@ function animateGoal(side, team, scorer, timeString) {
       }});
 }
 
-// 🏟️ NOWA FUNKCJA GLOBALNA: OBSŁUGA CENTRALNEGO BOISKA TAKTYCZNEGO
 function animateLineupCentral(side, show) {
     if (typeof gsap === 'undefined') return;
     
@@ -230,14 +235,17 @@ function animateLineupCentral(side, show) {
         const mainColor = side === 'home' ? matchState.homeColor : matchState.awayColor;
         const textColor = side === 'home' ? matchState.homeTextColor : matchState.awayTextColor;
         const playersList = side === 'home' ? matchState.homePlayers : matchState.awayPlayers;
-        const coachName = side === 'home' ? (matchState.homeCoach || "TRENER A") : (matchState.awayCoach || "TRENER B");
+        const coachName = side === 'home' ? matchState.homeCoach : matchState.awayCoach;
+        const teamLogoUrl = side === 'home' ? matchState.homeLogo : matchState.awayLogo;
 
-        // 1. Nagłówek i kontury boiska w kolorach klubu
+        // Przypisanie logo do nagłówka składów
+        const lineupLogoImg = document.getElementById('lineup-team-logo');
+        if (lineupLogoImg) lineupLogoImg.src = teamLogoUrl || "";
+
         document.getElementById('lineup-team-title').innerText = teamName;
         document.getElementById('lineup-team-title').style.color = mainColor;
         document.getElementById('pitch-border-line').style.borderColor = mainColor;
 
-        // 2. Podział zawodników: pierwsze 5 na boisko, reszta na ławkę
         const positions = ['.pos-gk', '.pos-df-l', '.pos-df-r', '.pos-fw-l', '.pos-fw-r'];
         
         positions.forEach((selector, idx) => {
@@ -247,7 +255,6 @@ function animateLineupCentral(side, show) {
             const nameEl = node.querySelector('.p-name');
             
             if (playersList[idx]) {
-                // Wyciąganie numeru i nazwiska (np. "9. NICK" -> numer: 9, nazwisko: NICK)
                 const parts = playersList[idx].split('.');
                 let pNum = idx + 1;
                 let pName = playersList[idx];
@@ -260,18 +267,15 @@ function animateLineupCentral(side, show) {
                 numEl.innerText = pNum;
                 nameEl.innerText = pName;
                 
-                // Stylizacja kółka barwami klubu
                 shirt.style.setProperty('background-color', mainColor, 'important');
                 shirt.style.setProperty('border-color', textColor, 'important');
                 numEl.style.setProperty('color', textColor, 'important');
                 node.style.display = 'flex';
             } else {
-                // Ukryj kółko, jeśli nie wpisano wystarczającej liczby graczy
                 node.style.display = 'none';
             }
         });
 
-        // 3. Budowanie ławki rezerwowych (od 6 elementu w górę)
         const benchUl = document.getElementById('lineup-bench-list');
         benchUl.innerHTML = "";
         const benchPlayers = playersList.slice(5);
@@ -287,12 +291,10 @@ function animateLineupCentral(side, show) {
             benchUl.innerHTML = "<li style='opacity:0.5; border-left:none;'>BRAK REZERWOWYCH</li>";
         }
 
-        // 4. Trener
         const coachDiv = document.getElementById('lineup-coach-display');
         coachDiv.innerText = coachName;
         coachDiv.style.borderLeft = `4px solid ${mainColor}`;
 
-        // 5. Animacja wejścia GSAP (EFEKT CENTRALNEGO WYSUWANIA I POWIĘKSZANIA)
         gsap.killTweensOf([overlay, centerBlock]);
         gsap.set(overlay, { visibility: 'visible' });
         
@@ -303,7 +305,6 @@ function animateLineupCentral(side, show) {
           .fromTo("#lineup-bench-list li", { x: 30, opacity: 0 }, { x: 0, opacity: 1, duration: 0.3, stagger: 0.05 }, "-=0.2");
 
     } else {
-        // Animacja wyjścia
         const tl = gsap.timeline();
         tl.to(centerBlock, { scale: 0.8, opacity: 0, duration: 0.4, ease: "power2.in" })
           .to(overlay, { opacity: 0, duration: 0.3, onComplete: () => {
