@@ -13,14 +13,14 @@
         <div class="control-header">
             <h2>PANEL STEROWANIA OVERLAYEM V2 (SUPABASE)</h2>
             <div>
-                <button class="btn btn-neon btn-sm" onclick="updateTeams()">💥 Zaktualizuj Nazwy i Kolory w OBS</button>
+                <button class="btn btn-neon btn-sm" onclick="updateTeams()">💥 Zaktualizuj Nazwy, Kolory i Logo w OBS</button>
             </div>
         </div>
 
         <div class="control-grid">
             
             <div class="control-card">
-                <h3>DRUŻYNY I BARWY</h3>
+                <h3>DRUŻYNY, BARWY I LOGO</h3>
                 <div style="margin-top:15px; display:flex; flex-direction:column; gap:10px;">
                     <div class="form-group-row">
                         <div>
@@ -50,6 +50,17 @@
                         <div>
                             <label>Kolor Tekstu Gościa</label>
                             <input type="color" id="input-away-text" value="#000000">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group-row" style="border-top: 1px solid #222235; padding-top: 10px; margin-top: 5px;">
+                        <div>
+                            <label>Logo Gospodarza (Link URL do PNG)</label>
+                            <input type="text" id="input-home-logo" placeholder="https://i.imgur.com/...png" value="">
+                        </div>
+                        <div>
+                            <label>Logo Gościa (Link URL do PNG)</label>
+                            <input type="text" id="input-away-logo" placeholder="https://i.imgur.com/...png" value="">
                         </div>
                     </div>
                 </div>
@@ -151,7 +162,7 @@
                     </div>
                     <div>
                         <button class="btn btn-neon" style="width:100%;" onclick="triggerLineupVisual('away', true)">📺 POKAŻ SKŁAD GOŚCI</button>
-                        <button class="btn btn-red" style="width:100%; margin-top:5px;" onclick="triggerLineupVisual('away', false)">❌ UKRYJ GOŚCI</button>
+                        <button class="btn btn-red" style="width:100%; margin-top:5px;" onclick="triggerLineupVisual('away', false)">❌ UKRYJ GOCI</button>
                     </div>
                 </div>
             </div>
