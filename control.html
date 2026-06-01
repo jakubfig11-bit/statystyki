@@ -2,7 +2,7 @@
 <html lang="pl" style="background: #11141a !important; overflow-y: auto !important;">
 <head>
     <meta charset="UTF-8">
-    <title>Pełny Panel Kontrolny</title>
+    <title>Pełny Panel Kontrolny - Barwy Klubowe</title>
     <style>
         html, body { background: #11141a !important; overflow-y: auto !important; font-family: 'Segoe UI', Arial, sans-serif; color: #fff; padding: 15px; margin: 0; }
         .control-container { max-width: 950px; margin: 0 auto; background: #1a1f29; padding: 20px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
@@ -12,6 +12,7 @@
         .form-group { margin-bottom: 12px; }
         label { display: block; font-size: 11px; font-weight: bold; color: #a0aec0; margin-bottom: 4px; text-transform: uppercase; }
         input[type="text"], select, textarea { width: 100%; padding: 8px; background: #11141a; border: 1px solid #3f4e66; color: #fff; border-radius: 4px; box-sizing: border-box; }
+        input[type="color"] { width: 100%; height: 38px; background: #11141a; border: 1px solid #3f4e66; padding: 2px; cursor: pointer; border-radius: 4px; }
         .flex-row { display: flex; gap: 10px; align-items: center; }
         button { background: #00ffaa; color: #000; border: none; padding: 10px 14px; font-weight: bold; text-transform: uppercase; border-radius: 4px; cursor: pointer; }
         button:hover { background: #00cc88; }
@@ -66,25 +67,46 @@
 
     <div class="grid-two">
         <div class="section-box">
-            <h3>Gospodarze (Ustawienia)</h3>
+            <h3>Gospodarze (Personalizacja)</h3>
             <div class="form-group">
                 <label>Nazwa Drużyny</label>
                 <input type="text" id="inp-home-name" value="TORINO" oninput="syncData()">
             </div>
             <div class="form-group">
-                <label>Trener Gospodarzy</label>
+                <label>Trener</label>
                 <input type="text" id="inp-home-coach" value="Trener Gospodarzy" oninput="syncData()">
             </div>
+            <div class="grid-two" style="margin-bottom:0;">
+                <div class="form-group">
+                    <label>Kolor Klubu</label>
+                    <input type="color" id="inp-home-color" value="#00f2fe" oninput="syncData()">
+                </div>
+                <div class="form-group">
+                    <label>Link do herbu (URL)</label>
+                    <input type="text" id="inp-home-logo" placeholder="https://link-do-grafiki.png" oninput="syncData()">
+                </div>
+            </div>
         </div>
+        
         <div class="section-box">
-            <h3>Goście (Ustawienia)</h3>
+            <h3>Goście (Personalizacja)</h3>
             <div class="form-group">
                 <label>Nazwa Drużyny</label>
                 <input type="text" id="inp-away-name" value="ELCHE" oninput="syncData()">
             </div>
             <div class="form-group">
-                <label>Trener Gości</label>
+                <label>Trener</label>
                 <input type="text" id="inp-away-coach" value="Trener Gości" oninput="syncData()">
+            </div>
+            <div class="grid-two" style="margin-bottom:0;">
+                <div class="form-group">
+                    <label>Kolor Klubu</label>
+                    <input type="color" id="inp-away-color" value="#ff0055" oninput="syncData()">
+                </div>
+                <div class="form-group">
+                    <label>Link do herbu (URL)</label>
+                    <input type="text" id="inp-away-logo" placeholder="https://link-do-grafiki.png" oninput="syncData()">
+                </div>
             </div>
         </div>
     </div>
@@ -99,30 +121,30 @@
     </div>
 
     <div class="section-box">
-        <h3>Zarządzanie Składami i Rezerwowymi</h3>
+        <h3>Składy i Rezerwowi</h3>
         <div class="tab-menu">
-            <button id="tab-h" class="tab-btn active" onclick="switchTab('home')">Edycja: Gospodarze</button>
-            <button id="tab-a" class="tab-btn" onclick="switchTab('away')">Edycja: Goście</button>
+            <button id="tab-h" class="tab-btn active" onclick="switchTab('home')">Gospodarze</button>
+            <button id="tab-a" class="tab-btn" onclick="switchTab('away')">Goście</button>
         </div>
         <div class="form-group">
-            <label>Skład Główny na Boisko (Max 5 linii - Format: "Numer. Nazwisko")</label>
+            <label>Skład na Boisko (Max 5 linii - Format: "Numer. Nazwisko")</label>
             <textarea id="inp-lineup-text" rows="5" placeholder="1. Bramkarz&#10;2. Zawodnik" oninput="saveCurrentLineup()"></textarea>
         </div>
         <div class="form-group">
-            <label>Zawodnicy Rezerwowi (Wpisz ciągiem po przecinku)</label>
-            <input type="text" id="inp-bench-text" placeholder="Nowak, Kowalski, Wiśniewski" oninput="saveCurrentLineup()">
+            <label>Zawodnicy Rezerwowi</label>
+            <input type="text" id="inp-bench-text" placeholder="Wpisz po przecinku" oninput="saveCurrentLineup()">
         </div>
     </div>
 
     <div class="section-box" style="border: 1px solid #00ffaa;">
-        <h3>Statystyki Indywidualne Zawodnika (Animacja pop-up)</h3>
+        <h3>Statystyki Indywidualne Zawodnika</h3>
         <div class="grid-two" style="margin-bottom: 10px;">
             <div class="form-group">
                 <label>Nazwisko / Zawodnik</label>
-                <input type="text" id="stat-player-name" placeholder="np. 10. ZAWODNIK">
+                <input type="text" id="stat-player-name" placeholder="np. 10. KOWALSKI">
             </div>
             <div class="form-group">
-                <label>Kategoria statystyki</label>
+                <label>Kategoria</label>
                 <select id="stat-category">
                     <option value="Strzały na bramkę">Strzały na bramkę</option>
                     <option value="Gol!">Gol!</option>
@@ -134,7 +156,7 @@
             </div>
         </div>
         <div class="form-group">
-            <label>Wartość / Liczba</label>
+            <label>Wartość</label>
             <input type="text" id="stat-value" value="1" style="width: 100px;">
         </div>
         <button onclick="triggerStatAnimation()" style="background: #00ffaa; color: #000; width: 100%; padding: 12px;">Wyślij i animuj statystykę</button>
@@ -160,11 +182,19 @@
         const aName = document.getElementById('inp-away-name').value;
         const hCoach = document.getElementById('inp-home-coach').value;
         const aCoach = document.getElementById('inp-away-coach').value;
+        const hColor = document.getElementById('inp-home-color').value;
+        const aColor = document.getElementById('inp-away-color').value;
+        const hLogo = document.getElementById('inp-home-logo').value;
+        const aLogo = document.getElementById('inp-away-logo').value;
         
         localStorage.setItem('teamHome', hName);
         localStorage.setItem('teamAway', aName);
         localStorage.setItem('coachHome', hCoach);
         localStorage.setItem('coachAway', aCoach);
+        localStorage.setItem('colorHome', hColor);
+        localStorage.setItem('colorAway', aColor);
+        localStorage.setItem('logoHome', hLogo);
+        localStorage.setItem('logoAway', aLogo);
         localStorage.setItem('match_period', document.getElementById('inp-period').value);
         
         document.getElementById('label-home').innerText = hName;
@@ -186,8 +216,7 @@
     function toggleTimer() {
         const btn = document.getElementById('btn-start');
         if(tInterval) {
-            clearInterval(tInterval);
-            tInterval = null;
+            clearInterval(tInterval); tInterval = null;
             btn.innerText = "START"; btn.style.background = "#00ffaa";
         } else {
             btn.innerText = "STOP"; btn.style.background = "#ffcc00";
@@ -241,9 +270,7 @@
         const pName = document.getElementById('stat-player-name').value || "Zawodnik";
         const cat = document.getElementById('stat-category').value;
         const val = document.getElementById('stat-value').value;
-
         const packet = { player: pName, category: cat, value: val };
-        // Wysyłamy unikalny klucz z timestampem, aby zmusić do reakcji za każdym kliknięciem
         localStorage.setItem('trigger_stat_anim', JSON.stringify(packet));
         localStorage.removeItem('trigger_stat_anim'); 
     }
