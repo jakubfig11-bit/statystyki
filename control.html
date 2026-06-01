@@ -2,7 +2,7 @@
 <html lang="pl" style="background: #11141a !important; overflow-y: auto !important;">
 <head>
     <meta charset="UTF-8">
-    <title>Pełny Panel Kontrolny - Barwy Klubowe</title>
+    <title>Panel Kontrolny - Sterowanie Ręczne</title>
     <style>
         html, body { background: #11141a !important; overflow-y: auto !important; font-family: 'Segoe UI', Arial, sans-serif; color: #fff; padding: 15px; margin: 0; }
         .control-container { max-width: 950px; margin: 0 auto; background: #1a1f29; padding: 20px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
@@ -136,8 +136,8 @@
         </div>
     </div>
 
-    <div class="section-box" style="border: 1px solid #00ffaa;">
-        <h3>Statystyki Indywidualne Zawodnika</h3>
+    <div class="section-box" style="border: 2px solid #00ffaa;">
+        <h3>Zarządzanie Kwadratem Statystyk (Wysuwany Panel)</h3>
         <div class="grid-two" style="margin-bottom: 10px;">
             <div class="form-group">
                 <label>Nazwisko / Zawodnik</label>
@@ -159,7 +159,11 @@
             <label>Wartość</label>
             <input type="text" id="stat-value" value="1" style="width: 100px;">
         </div>
-        <button onclick="triggerStatAnimation()" style="background: #00ffaa; color: #000; width: 100%; padding: 12px;">Wyślij i animuj statystykę</button>
+        
+        <div class="flex-row">
+            <button onclick="controlStatPanel('show')" style="background: #00ffaa; color: #000; flex: 2; padding: 12px;">Zastosuj i WYSUŃ panel</button>
+            <button onclick="controlStatPanel('hide')" class="btn-danger" style="flex: 1; padding: 12px;">SCHOWAJ panel</button>
+        </div>
     </div>
 
     <div class="section-box">
@@ -266,13 +270,20 @@
         }
     }
 
-    function triggerStatAnimation() {
-        const pName = document.getElementById('stat-player-name').value || "Zawodnik";
-        const cat = document.getElementById('stat-category').value;
-        const val = document.getElementById('stat-value').value;
-        const packet = { player: pName, category: cat, value: val };
-        localStorage.setItem('trigger_stat_anim', JSON.stringify(packet));
-        localStorage.removeItem('trigger_stat_anim'); 
+    // NOWA FUNKCJA RĘCZNEGO ZARZĄDZANIA WYSUNIĘCIEM KWADRATU
+    function controlStatPanel(action) {
+        if(action === 'show') {
+            const pName = document.getElementById('stat-player-name').value || "ZAWODNIK";
+            const cat = document.getElementById('stat-category').value;
+            const val = document.getElementById('stat-value').value;
+
+            localStorage.setItem('stat_cur_player', pName);
+            localStorage.setItem('stat_cur_cat', cat);
+            localStorage.setItem('stat_cur_val', val);
+            localStorage.setItem('showStatPanel', 'true');
+        } else {
+            localStorage.setItem('showStatPanel', 'false');
+        }
     }
 
     function togglePitch(action) {
