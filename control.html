@@ -2,7 +2,7 @@
 <html lang="pl" style="background: #11141a !important; overflow-y: auto !important;">
 <head>
     <meta charset="UTF-8">
-    <title>Panel Kontrolny - Sterowanie Realtime</title>
+    <title>Panel Kontrolny - Sterowanie Ręczne</title>
     <style>
         html, body { background: #11141a !important; overflow-y: auto !important; font-family: 'Segoe UI', Arial, sans-serif; color: #fff; padding: 15px; margin: 0; }
         .control-container { max-width: 950px; margin: 0 auto; background: #1a1f29; padding: 20px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
@@ -25,42 +25,38 @@
         .score-display-box { display: flex; justify-content: center; align-items: center; gap: 40px; background: #11141a; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
         .score-num { font-size: 42px; font-weight: bold; color: #00ffaa; font-family: monospace; text-align: center; margin: 5px 0; }
         .timer-large { font-size: 32px; font-weight: bold; font-family: monospace; background: #242b38; padding: 5px 15px; border-radius: 4px; }
-        
-        .tab-menu { display: flex; gap: 5px; background: #11141a; padding: 5px; border-radius: 6px; margin-bottom: 10px; }
-        .tab-btn { flex: 1; background: transparent; color: #a0aec0; padding: 8px; border: none; cursor: pointer; font-weight: bold; text-transform: uppercase; }
-        .tab-btn.active { background: #4facfe; color: white; }
     </style>
 </head>
 <body>
 
 <div class="control-container">
-    <h2>Meczowy Panel Sterowania Realtime</h2>
+    <h2>Meczowy Panel Sterowania</h2>
     
     <div class="score-display-box">
         <div>
             <div style="text-align:center; font-weight:bold; text-transform:uppercase;">GOSPODARZE</div>
-            <div class="score-num" id="home-score-display">0</div>
+            <div class="score-num" id="dsp-score-home">0</div>
             <div class="flex-row">
-                <button id="home-minus" class="btn-secondary">-1</button>
-                <button id="home-plus">+1</button>
+                <button onclick="changeScore('home', -1)" class="btn-secondary">-1</button>
+                <button onclick="changeScore('home', 1)">+1</button>
             </div>
         </div>
         
         <div style="text-align: center;">
             <label>Aktualny Czas</label>
-            <div class="timer-large" id="control-timer-display">00:00</div>
+            <div class="timer-large" id="dsp-timer">00:00</div>
             <div class="flex-row" style="margin-top: 8px; justify-content: center;">
-                <button id="btn-timer-start">START</button>
-                <button id="btn-timer-reset" class="btn-danger">RESET</button>
+                <button onclick="toggleTimer()" id="btn-timer-trigger">START</button>
+                <button onclick="resetTimer()" class="btn-danger">RESET</button>
             </div>
         </div>
 
         <div>
             <div style="text-align:center; font-weight:bold; text-transform:uppercase;">GOŚCIE</div>
-            <div class="score-num" id="away-score-display">0</div>
+            <div class="score-num" id="dsp-score-away">0</div>
             <div class="flex-row">
-                <button id="away-minus" class="btn-secondary">-1</button>
-                <button id="away-plus">+1</button>
+                <button onclick="changeScore('away', -1)" class="btn-secondary">-1</button>
+                <button onclick="changeScore('away', 1)">+1</button>
             </div>
         </div>
     </div>
@@ -70,24 +66,24 @@
             <h3>Gospodarze (Personalizacja)</h3>
             <div class="form-group">
                 <label>Nazwa Drużyny</label>
-                <input type="text" id="home-name-input" value="TORINO">
+                <input type="text" id="inp-home-name" value="TORINO" oninput="syncData()">
             </div>
             <div class="form-group">
                 <label>Trener</label>
-                <input type="text" id="home-coach-input" value="TRENER GOSPODARZY">
+                <input type="text" id="inp-home-coach" value="TRENER GOSPODARZY" oninput="syncData()">
             </div>
-            <div class="grid-two" style="margin-bottom:0; grid-template-columns: 1fr 1fr 1fr;">
+            <div class="grid-two" style="margin-bottom:0; grid-template-columns: 1fr 1fr 2fr;">
                 <div class="form-group">
-                    <label>Kolor Główny</label>
-                    <input type="color" id="home-color-input" value="#00f2fe">
+                    <label>Kolor</label>
+                    <input type="color" id="inp-home-color" value="#00f2fe" onchange="syncData()">
                 </div>
                 <div class="form-group">
-                    <label>Kolor Tekstu</label>
-                    <input type="color" id="home-textcolor-input" value="#ffffff">
+                    <label>Tekst</label>
+                    <input type="color" id="inp-home-textcolor" value="#ffffff" onchange="syncData()">
                 </div>
-                <div class="form-group" style="grid-column: span 1;">
+                <div class="form-group">
                     <label>Link do herbu (URL)</label>
-                    <input type="text" id="home-logo-input" placeholder="https://link-do-grafiki.png">
+                    <input type="text" id="inp-home-logo" placeholder="https://link-do-grafiki.png" oninput="syncData()">
                 </div>
             </div>
         </div>
@@ -96,24 +92,24 @@
             <h3>Goście (Personalizacja)</h3>
             <div class="form-group">
                 <label>Nazwa Drużyny</label>
-                <input type="text" id="away-name-input" value="ELCHE">
+                <input type="text" id="inp-away-name" value="ELCHE" oninput="syncData()">
             </div>
             <div class="form-group">
                 <label>Trener</label>
-                <input type="text" id="away-coach-input" value="TRENER GOŚCI">
+                <input type="text" id="inp-away-coach" value="TRENER GOŚCI" oninput="syncData()">
             </div>
-            <div class="grid-two" style="margin-bottom:0; grid-template-columns: 1fr 1fr 1fr;">
+            <div class="grid-two" style="margin-bottom:0; grid-template-columns: 1fr 1fr 2fr;">
                 <div class="form-group">
-                    <label>Kolor Główny</label>
-                    <input type="color" id="away-color-input" value="#ff0055">
+                    <label>Kolor</label>
+                    <input type="color" id="inp-away-color" value="#ff0055" onchange="syncData()">
                 </div>
                 <div class="form-group">
-                    <label>Kolor Tekstu</label>
-                    <input type="color" id="away-textcolor-input" value="#ffffff">
+                    <label>Tekst</label>
+                    <input type="color" id="inp-away-textcolor" value="#ffffff" onchange="syncData()">
                 </div>
-                <div class="form-group" style="grid-column: span 1;">
+                <div class="form-group">
                     <label>Link do herbu (URL)</label>
-                    <input type="text" id="away-logo-input" placeholder="https://link-do-grafiki.png">
+                    <input type="text" id="inp-away-logo" placeholder="https://link-do-grafiki.png" oninput="syncData()">
                 </div>
             </div>
         </div>
@@ -122,57 +118,39 @@
     <div class="grid-two">
         <div class="section-box">
             <label>Część meczu / Połowa</label>
-            <select id="period-select">
+            <select id="inp-period" onchange="syncData()">
                 <option value="1H">1. Połowa</option>
                 <option value="2H">2. Połowa</option>
                 <option value="OT">Dogrywka</option>
             </select>
         </div>
-        <div class="section-box" style="display: flex; align-items: flex-end; justify-content: gap; gap: 10px;">
-            <button id="btn-swap" class="btn-secondary" style="width: 50%;">Zamień Strony (Swap)</button>
-            <button id="btn-force-update" class="btn-primary" style="width: 50%;">Wymuś synchronizację</button>
+        <div class="section-box" style="display: flex; align-items: flex-end;">
+            <button onclick="swapTeams()" class="btn-secondary" style="width: 100%;">Zamień Strony (Swap)</button>
         </div>
-    </div>
-
-    <div class="section-box">
-        <h3>Składy i Rezerwowi</h3>
-        <div class="tab-menu">
-            <button id="tab-home" class="tab-btn active">Gospodarze</button>
-            <button id="tab-away" class="tab-btn">Goście</button>
-        </div>
-        <div class="form-group">
-            <label>Skład na Boisko (Format: "Numer. Nazwisko" — Każdy w nowej linii)</label>
-            <textarea id="lineup-main-input" rows="5" placeholder="1. Bramkarz&#10;2. Zawodnik"></textarea>
-        </div>
-        <div class="form-group">
-            <label>Zawodnicy Rezerwowi (Każdy w nowej linii)</label>
-            <textarea id="lineup-bench-input" rows="2" placeholder="12. Rezerwowy 1&#10;14. Rezerwowy 2"></textarea>
-        </div>
-        <button id="btn-save-lineups" class="btn-primary">Zapisz zmiany w składzie</button>
     </div>
 
     <div class="section-box" style="border: 2px solid #ffcc00;">
-        <h3>System Bramkowy (Dynamiczna Belka Animowana)</h3>
+        <h3>System Bramkowy (Wysuwana Animacja z dołu)</h3>
         <div class="form-group">
-            <label>Nazwisko / Nick zawodnika, który strzelił bramkę</label>
-            <input type="text" id="goal-scorer-input" placeholder="np. 9. LEWANDOWSKI">
+            <label>Nick / Nazwisko zawodnika, który strzelił</label>
+            <input type="text" id="inp-goal-scorer" placeholder="np. 9. Zawodnik">
         </div>
         <div class="flex-row">
-            <button id="btn-goal-home" style="background: #4facfe; color: #fff; flex: 1;">Gol dla GOSPODARZY (+1 i Animacja)</button>
-            <button id="btn-goal-away" style="background: #ff0055; color: #fff; flex: 1;">Gol dla GOŚCI (+1 i Animacja)</button>
+            <button onclick="triggerGoal('home')" style="background: #4facfe; color: #fff; flex: 1;">Gol dla Gospodarzy (+1 i Animacja)</button>
+            <button onclick="triggerGoal('away')" style="background: #ff0055; color: #fff; flex: 1;">Gol dla Gości (+1 i Animacja)</button>
         </div>
     </div>
 
     <div class="section-box" style="border: 2px solid #00ffaa;">
-        <h3>Zarządzanie Kwadratem Statystyk (Wysuwany Panel)</h3>
+        <h3>Zarządzanie Kwadratem Statystyk</h3>
         <div class="grid-two" style="margin-bottom: 10px;">
             <div class="form-group">
-                <label>Nazwisko / Zawodnik</label>
-                <input type="text" id="stat-player-input" placeholder="np. 10. KOWALSKI">
+                <label>Zawodnik</label>
+                <input type="text" id="stat-player-name" placeholder="np. 10. KOWALSKI">
             </div>
             <div class="form-group">
                 <label>Kategoria</label>
-                <select id="stat-category-select">
+                <select id="stat-category">
                     <option value="Strzały na bramkę">Strzały na bramkę</option>
                     <option value="Gol!">Gol!</option>
                     <option value="Asysta">Asysta</option>
@@ -184,26 +162,167 @@
         </div>
         <div class="form-group">
             <label>Wartość</label>
-            <input type="text" id="stat-value-input" value="1" style="width: 100px;">
+            <input type="text" id="stat-value" value="1" style="width: 100px;">
         </div>
         
         <div class="flex-row">
-            <button id="btn-show-stat" style="background: #00ffaa; color: #000; flex: 1; padding: 12px;">Zastosuj i WYSUŃ panel statystyk</button>
+            <button onclick="controlStatPanel('show')" style="background: #00ffaa; color: #000; flex: 1;">Pokaż Statystyki</button>
+            <button onclick="controlStatPanel('hide')" class="btn-danger">Ukryj Statystyki</button>
         </div>
     </div>
 
     <div class="section-box">
-        <h3>Sterowanie Widokiem Boiska w OBS</h3>
+        <h3>Składy drużyn</h3>
+        <div class="grid-two">
+            <div>
+                <label>Gospodarze - Skład Boisko</label>
+                <textarea id="lineup-home-main" rows="5" oninput="saveCurrentLineup()"></textarea>
+                <label style="margin-top:5px;">Gospodarze - Rezerwa</label>
+                <textarea id="lineup-home-bench" rows="2" oninput="saveCurrentLineup()"></textarea>
+            </div>
+            <div>
+                <label>Goście - Skład Boisko</label>
+                <textarea id="lineup-away-main" rows="5" oninput="saveCurrentLineup()"></textarea>
+                <label style="margin-top:5px;">Goście - Rezerwa</label>
+                <textarea id="lineup-away-bench" rows="2" oninput="saveCurrentLineup()"></textarea>
+            </div>
+        </div>
         <div class="flex-row">
-            <button id="btn-show-lineup-home" class="btn-primary">Pokaż Skład Gospodarzy</button>
-            <button id="btn-show-lineup-away" class="btn-primary">Pokaż Skład Gości</button>
-            <button id="btn-hide-lineup" class="btn-danger">Schowaj Boisko</button>
+            <button onclick="togglePitch('home')" class="btn-primary">Pokaż Boisko Gospodarzy</button>
+            <button onclick="togglePitch('away')" class="btn-primary">Pokaż Boisko Gości</button>
+            <button onclick="togglePitch('hide')" class="btn-danger">Schowaj Boisko</button>
         </div>
     </div>
-
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js"></script>
+<script>
+    let timerInterval = null;
+
+    function syncData() {
+        localStorage.setItem('homeName', document.getElementById('inp-home-name').value.toUpperCase());
+        localStorage.setItem('homeCoach', document.getElementById('inp-home-coach').value.toUpperCase());
+        localStorage.setItem('homeColor', document.getElementById('inp-home-color').value);
+        localStorage.setItem('homeTextColor', document.getElementById('inp-home-textcolor').value);
+        localStorage.setItem('homeLogo', document.getElementById('inp-home-logo').value);
+
+        localStorage.setItem('awayName', document.getElementById('inp-away-name').value.toUpperCase());
+        localStorage.setItem('awayCoach', document.getElementById('inp-away-coach').value.toUpperCase());
+        localStorage.setItem('awayColor', document.getElementById('inp-away-color').value);
+        localStorage.setItem('awayTextColor', document.getElementById('inp-away-textcolor').value);
+        localStorage.setItem('awayLogo', document.getElementById('inp-away-logo').value);
+
+        localStorage.setItem('period', document.getElementById('inp-period').value);
+    }
+
+    function changeScore(team, val) {
+        let key = (team === 'home') ? 'homeScore' : 'awayScore';
+        let cur = parseInt(localStorage.getItem(key)) || 0;
+        let next = Math.max(0, cur + val);
+        localStorage.setItem(key, next);
+        document.getElementById(`dsp-score-${team}`).innerText = next;
+    }
+
+    function toggleTimer() {
+        let running = localStorage.getItem('timerRunning') === 'true';
+        if(!running) {
+            localStorage.setItem('timerRunning', 'true');
+            document.getElementById('btn-timer-trigger').innerText = 'PAUZA';
+            document.getElementById('btn-timer-trigger').className = 'btn-danger';
+            
+            let seconds = parseInt(localStorage.getItem('timerSeconds')) || 0;
+            timerInterval = setInterval(() => {
+                seconds++;
+                localStorage.setItem('timerSeconds', seconds);
+                updateTimerDisplay(seconds);
+            }, 1000);
+        } else {
+            localStorage.setItem('timerRunning', 'false');
+            document.getElementById('btn-timer-trigger').innerText = 'START';
+            document.getElementById('btn-timer-trigger').className = '';
+            clearInterval(timerInterval);
+        }
+    }
+
+    function resetTimer() {
+        localStorage.setItem('timerRunning', 'false');
+        localStorage.setItem('timerSeconds', 0);
+        document.getElementById('btn-timer-trigger').innerText = 'START';
+        document.getElementById('btn-timer-trigger').className = '';
+        clearInterval(timerInterval);
+        updateTimerDisplay(0);
+    }
+
+    function updateTimerDisplay(totalSecs) {
+        let m = Math.floor(totalSecs / 60).toString().padStart(2, '0');
+        let s = (totalSecs % 60).toString().padStart(2, '0');
+        document.getElementById('dsp-timer').innerText = `${m}:${s}`;
+    }
+
+    function triggerGoal(side) {
+        changeScore(side, 1);
+        let scorer = document.getElementById('inp-goal-scorer').value || "ZAWODNIK";
+        let teamName = localStorage.getItem(side === 'home' ? 'homeName' : 'awayName') || "KLUB";
+        let teamColor = localStorage.getItem(side === 'home' ? 'homeColor' : 'awayColor') || "#fff";
+        let teamLogo = localStorage.getItem(side === 'home' ? 'homeLogo' : 'awayLogo') || "";
+        
+        let totalSecs = parseInt(localStorage.getItem('timerSeconds')) || 0;
+        let m = Math.floor(totalSecs / 60).toString().padStart(2, '0');
+        let s = (totalSecs % 60).toString().padStart(2, '0');
+        let goalTime = `${m}:${s}`;
+
+        localStorage.setItem('goal_event_trigger', JSON.stringify({
+            timestamp: Date.now(),
+            side: side,
+            scorer: scorer.toUpperCase(),
+            team: teamName,
+            color: teamColor,
+            logo: teamLogo,
+            time: goalTime
+        }));
+        
+        document.getElementById('inp-goal-scorer').value = "";
+    }
+
+    function controlStatPanel(action) {
+        if(action === 'show') {
+            localStorage.setItem('stat_cur_player', document.getElementById('stat-player-name').value || "ZAWODNIK");
+            localStorage.setItem('stat_cur_cat', document.getElementById('stat-category').value);
+            localStorage.setItem('stat_cur_val', document.getElementById('stat-value').value);
+            localStorage.setItem('showStatPanel', 'true');
+        } else {
+            localStorage.setItem('showStatPanel', 'false');
+        }
+    }
+
+    function togglePitch(action) {
+        if(action === 'home') {
+            localStorage.setItem('showAwayLineup', 'false');
+            localStorage.setItem('showHomeLineup', 'true');
+        } else if(action === 'away') {
+            localStorage.setItem('showHomeLineup', 'false');
+            localStorage.setItem('showAwayLineup', 'true');
+        } else {
+            localStorage.setItem('showHomeLineup', 'false');
+            localStorage.setItem('showAwayLineup', 'false');
+        }
+    }
+
+    function saveCurrentLineup() {
+        localStorage.setItem('lineupHome', document.getElementById('lineup-home-main').value);
+        localStorage.setItem('benchHome', document.getElementById('lineup-home-bench').value);
+        localStorage.setItem('lineupAway', document.getElementById('lineup-away-main').value);
+        localStorage.setItem('benchAway', document.getElementById('lineup-away-bench').value);
+    }
+
+    window.onload = () => {
+        localStorage.clear();
+        syncData();
+        saveCurrentLineup();
+        localStorage.setItem('homeScore', 0);
+        localStorage.setItem('awayScore', 0);
+        localStorage.setItem('timerSeconds', 0);
+        localStorage.setItem('timerRunning', 'false');
+    }
+</script>
 </body>
 </html>
