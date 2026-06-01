@@ -21,11 +21,11 @@ let matchState = {
     awayLogo: ""
 };
 
-// Lokalny stan managera składów w panelu sterowania
+// Bezpieczna separacja struktur danych dla edytora składów
 let currentEditingTeam = 'home';
 let localLineups = {
-    home: { main: "", bench: "" },
-    away: { main: "", bench: "" }
+    home: { main: "1. GK\n2. DEF L\n3. DEF P\n4. FW L\n5. FW P", bench: "12. Rezerwa H" },
+    away: { main: "1. Tyan\n2. Zaza\n6. Pogba\n8. Gówno\n9. Lewandowski", bench: "44. teetet\n55. seks" }
 };
 
 const isOverlay = window.location.pathname.includes('overlay.html');
@@ -114,6 +114,9 @@ function initControl() {
     document.getElementById('btn-swap').addEventListener('click', swapTeams);
     document.getElementById('btn-force-update').addEventListener('click', updateTeams);
     
+    // Obsługa zakładek składów
+    document.getElementById('tab-home').addEventListener('click', () => switchLineupTab('home'));
+    document.getElementById('tab-away').addEventListener('click', () => switchLineupTab('away'));
     document.getElementById('btn-save-lineups').addEventListener('click', saveActiveLineupTab);
     
     document.getElementById('btn-goal-home').addEventListener('click', () => triggerGoalAnimation('home'));
@@ -123,6 +126,10 @@ function initControl() {
     document.getElementById('btn-show-lineup-home').addEventListener('click', () => triggerLineupVisual('home', true));
     document.getElementById('btn-show-lineup-away').addEventListener('click', () => triggerLineupVisual('away', true));
     document.getElementById('btn-hide-lineup').addEventListener('click', () => triggerLineupVisual('home', false));
+
+    // Wstrzyknięcie domyślnych danych do pól na starcie
+    document.getElementById('lineup-main-input').value = localLineups[currentEditingTeam].main;
+    document.getElementById('lineup-bench-input').value = localLineups[currentEditingTeam].bench;
 
     const liveInputs = [
         'home-name-input', 'away-name-input', 
@@ -139,28 +146,33 @@ function initControl() {
 }
 
 function switchLineupTab(team) {
-    // Zapisz stary stan z formularzy przed zmianą karty
+    // KROK 1: Zapisz to co użytkownik aktualnie edytował w polach tekstowych
     localLineups[currentEditingTeam].main = document.getElementById('lineup-main-input').value;
     localLineups[currentEditingTeam].bench = document.getElementById('lineup-bench-input').value;
 
+    // KROK 2: Przełącz aktywny stan drużyny
     currentEditingTeam = team;
 
+    // KROK 3: Zmień wygląd przycisków tabów
     document.getElementById('tab-home').classList.toggle('active', team === 'home');
     document.getElementById('tab-away').classList.toggle('active', team === 'away');
 
     document.getElementById('main-players-label').innerText = team === 'home' ? "Skład Główny Gospodarzy (5 linii)" : "Skład Główny Gości (5 linii)";
     document.getElementById('bench-players-label').innerText = team === 'home' ? "Zawodnicy Rezerwowi Gospodarzy" : "Zawodnicy Rezerwowi Gości";
 
-    // Przywróć dane dla wybranej drużyny
+    // KROK 4: Wczytaj dane z pamięci podręcznej dla nowo wybranej drużyny
     document.getElementById('lineup-main-input').value = localLineups[team].main;
     document.getElementById('lineup-bench-input').value = localLineups[team].bench;
 }
 
 function saveActiveLineupTab() {
+    // Przypisz aktualny tekst z pól formularza do właściwej drużyny w pamięci lokalnej
     localLineups[currentEditingTeam].main = document.getElementById('lineup-main-input').value;
     localLineups[currentEditingTeam].bench = document.getElementById('lineup-bench-input').value;
     
+    // Wyślij pełną zaktualizowaną paczkę do OBS
     updateTeams();
+    alert("Skład zapisany w buforze i przesłany!");
 }
 
 function updateControlUI() {
@@ -194,13 +206,16 @@ function updateTeams() {
     matchState.homeCoach = document.getElementById('home-coach-input').value.toUpperCase();
     matchState.awayCoach = document.getElementById('away-coach-input').value.toUpperCase();
     
-    // Konwersja składów z pamięci lokalnej kart na tablice stanu globalnego
-    // Gospodarze
+    // Zabezpieczenie przed utratą danych aktualnie otwartej zakładki przy wywołaniu updateTeams()
+    localLineups[currentEditingTeam].main = document.getElementById('lineup-main-input').value;
+    localLineups[currentEditingTeam].bench = document.getElementById('lineup-bench-input').value;
+
+    // Parsowanie składu Gospodarzy z pamięci podręcznej
     const homeMain = localLineups.home.main.split('\n').map(p => p.trim()).filter(p => p !== "");
     const homeBench = localLineups.home.bench.split('\n').map(p => p.trim()).filter(p => p !== "");
     matchState.homePlayers = [...homeMain, ...homeBench];
 
-    // Goście
+    // Parsowanie składu Gości z pamięci podręcznej
     const awayMain = localLineups.away.main.split('\n').map(p => p.trim()).filter(p => p !== "");
     const awayBench = localLineups.away.bench.split('\n').map(p => p.trim()).filter(p => p !== "");
     matchState.awayPlayers = [...awayMain, ...awayBench];
@@ -237,12 +252,10 @@ function swapTeams() {
     matchState.homeScore = matchState.awayScore;
     matchState.awayScore = tempScore;
 
-    // Zamiana składów w pamięci podręcznej panelu
     const tempLineups = localLineups.home;
     localLineups.home = localLineups.away;
     localLineups.away = tempLineups;
 
-    // Odświeżenie pól tekstowych aktualnie otwartej zakładki
     document.getElementById('lineup-main-input').value = localLineups[currentEditingTeam].main;
     document.getElementById('lineup-bench-input').value = localLineups[currentEditingTeam].bench;
 
@@ -323,6 +336,9 @@ function triggerPlayerStat() {
 }
 
 function triggerLineupVisual(side, show) {
+    // Wymuszenie aktualizacji danych bezpośrednio przed pokazaniem grafiki, by uniknąć pustych pól
+    updateTeams();
+    
     sendToOBS('trigger_action', { 
         id: `lineup_${side}_` + Date.now(), 
         type: side === 'home' ? 'LINEUP_HOME' : 'LINEUP_AWAY', 
@@ -399,7 +415,6 @@ function animateGoal(side, team, scorer, timeString) {
 
     gsap.killTweensOf(container);
 
-    // KONTROLA CZASU ANIMACJI: równe 8 sekund wyświetlania belki na ekranie
     const tl = gsap.timeline();
     tl.set(container, { visibility: 'visible', y: 250, opacity: 0 })
       .to(container, { y: 0, opacity: 1, duration: 0.6, ease: "back.out(1.1)" })
