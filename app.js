@@ -214,7 +214,6 @@ function triggerGoalAnimation() {
     });
 }
 
-// NOWA FUNKCJA: Nadawanie sygnału o statystykach zawodnika z panelu sterowania
 function triggerPlayerStat() {
     const side = document.getElementById('select-stat-team').value;
     const player = document.getElementById('input-stat-player').value || "ZAWODNIK";
@@ -267,7 +266,6 @@ function updateOverlayUI() {
     }
 }
 
-// NOWA FUNKCJA: Wykonanie animacji wjeżdżania statystyk na ekranie OBS (czas trwania: ok. 8.5 sekundy)
 function animatePlayerStat(side, player, category, value) {
     if (typeof gsap === 'undefined') return;
     
@@ -275,27 +273,20 @@ function animatePlayerStat(side, player, category, value) {
     const accentStripe = document.getElementById('stat-badge-accent');
     const mainColor = side === 'home' ? matchState.homeColor : matchState.awayColor;
 
-    // Przypisanie tekstu
     document.getElementById('stat-badge-player-name').innerText = player;
     document.getElementById('stat-badge-category').innerText = category;
     document.getElementById('stat-badge-value').innerText = value;
 
-    // Zmiana barw akcentu na dynamiczny kolor wybranej drużyny
     accentStripe.style.setProperty('background-color', mainColor, 'important');
     document.getElementById('stat-badge-value').style.setProperty('color', mainColor, 'important');
 
-    // Oczyszczenie poprzednich animacji na tym elemencie
     gsap.killTweensOf(container);
 
     const tl = gsap.timeline();
-    // Ustawienie startowe: niewidoczne, wysunięte w lewo o 350 pikseli
-    tl.set(container, { visibility: 'visible', x: -350, opacity: 0 })
-      // Wjazd z lewej strony na pozycję podstawową
-      .to(container, { x: 0, opacity: 1, duration: 0.6, ease: "back.out(1.1)" })
-      // Czas wyświetlania (Zatrzymanie na ekranie przez 8.5 sekundy)
+    tl.set(container, { visibility: 'visible', y: 250, opacity: 0 })
+      .to(container, { y: 0, opacity: 1, duration: 0.7, ease: "back.out(1.2)" })
       .to({}, { duration: 8.5 })
-      // Odjazd z powrotem za lewą krawędź ekranu
-      .to(container, { x: -350, opacity: 0, duration: 0.5, ease: "power2.in", onComplete: () => {
+      .to(container, { y: 250, opacity: 0, duration: 0.5, ease: "power2.in", onComplete: () => {
           gsap.set(container, { visibility: 'hidden' });
       }});
 }
