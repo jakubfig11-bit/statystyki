@@ -10,40 +10,30 @@
         body { margin: 0; padding: 0; width: 1920px; height: 1080px; overflow: hidden; background: transparent; font-family: 'Montserrat', sans-serif; }
 
         /* ==========================================
-           1. NOWY DUŻY SCOREBOARD (STYL TELEWIZYJNY)
+           1. SCOREBOARD (STYL TELEWIZYJNY) - BEZ ZMIAN
            ========================================== */
         .hud-wrapper {
             position: absolute; top: 30px; left: 50%; transform: translateX(-50%);
             display: flex; flex-direction: column; align-items: center; z-index: 10;
         }
-        
         .hud-main-scoreboard {
             display: flex; align-items: center;
             background: #0d0f14; border: 2px solid #232731; border-radius: 12px;
             height: 65px; min-width: 650px; overflow: hidden;
             box-shadow: 0 12px 24px rgba(0,0,0,0.6);
         }
-
-        /* Skrajne pozycje na loga drużyn */
         .hud-crest-box { width: 70px; height: 100%; display: flex; justify-content: center; align-items: center; background: #121620; }
         .hud-crest-box img { width: 42px; height: 42px; object-fit: contain; }
         .hud-crest-box img.hidden { display: none; }
-
-        /* Pasy kolorystyczne przy logach */
         .hud-side-accent { width: 8px; height: 100%; }
-
-        /* Nazwy zespołów i wynik */
         .hud-team-name { color: #ffffff; font-size: 22px; font-weight: 800; letter-spacing: 1px; padding: 0 20px; flex: 1; }
         .hud-team-name.home { text-align: right; }
         .hud-team-name.away { text-align: left; }
-
         .hud-score-center {
             background: #1c2130; height: 100%; display: flex; align-items: center; justify-content: center;
             padding: 0 30px; font-size: 32px; font-weight: 900; color: #ffffff; gap: 10px;
             border-left: 2px solid #232731; border-right: 2px solid #232731;
         }
-
-        /* TIMER POD SCOREBOARDEM */
         .hud-timer-container {
             background: rgba(13, 15, 20, 0.95); border: 2px solid #232731; border-top: none;
             border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;
@@ -52,7 +42,7 @@
         }
 
         /* ==========================================
-           2. ANIMACJA GOLA (NA DOLE EKRANU)
+           2. ANIMACJA GOLA (NA DOLE) - BEZ ZMIAN
            ========================================== */
         #goal-overlay { position: fixed; bottom: 80px; left: 0; width: 100vw; display: flex; justify-content: center; z-index: 100; pointer-events: none; }
         .goal-tv-card { width: 460px; background: #0d0f14; border: 2px solid #232731; border-radius: 16px; padding: 22px; text-align: center; color: white; position: relative; overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.8); }
@@ -64,7 +54,7 @@
         #goal-bg-logo { position: absolute; top: 50%; left: 50%; width: 160px; height: 160px; object-fit: contain; transform: translate(-50%, -50%); opacity: 0.04; pointer-events: none; }
 
         /* ==========================================
-           3. SKŁAD WYJŚCIOWY BOISKO
+           3. SKŁAD WYJŚCIOWY BOISKO - BEZ ZMIAN
            ========================================== */
         #tactical-lineups-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; z-index: 90; }
         .tactical-card { width: 780px; background: #0d0f14; border: 2px solid #232731; border-radius: 20px; padding: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
@@ -73,7 +63,6 @@
         #tactical-top-logo.hidden { display: none; }
         .header-text h1 { color: #ffffff; font-size: 32px; font-weight: 800; margin: 0; letter-spacing: 1px; }
         .header-text p { color: #838996; font-size: 14px; font-weight: 600; margin: 4px 0 0 0; }
-        
         .pitch-container { position: relative; width: 100%; height: 420px; background: #121620; border: 1.5px solid #242936; border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
         .pitch-line { position: absolute; border: 1px solid rgba(255, 255, 255, 0.04); }
         .center-line { top: 0; bottom: 0; left: 50%; width: 0; }
@@ -81,39 +70,90 @@
         .penalty-area-left { top: 15%; bottom: 15%; left: 0; width: 100px; }
         .pitch-watermark { position: absolute; top: 50%; left: 50%; width: 180px; height: 180px; object-fit: contain; transform: translate(-50%, -50%); opacity: 0.06; }
         .pitch-watermark.hidden { display: none; }
-
         .tactical-player { position: absolute; display: flex; flex-direction: column; align-items: center; gap: 8px; width: 110px; text-align: center; }
         .player-shirt { width: 44px; height: 44px; background: #1c2130; border: 2px solid #ffffff; border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
         .player-number { color: #ffffff; font-size: 16px; font-weight: 700; }
         .player-name { color: #ffffff; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.8); background: rgba(13, 15, 20, 0.85); padding: 3px 8px; border-radius: 4px; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
         .tactical-subs-bar { background: #121620; border: 1px solid #242936; border-radius: 8px; padding: 12px 20px; display: flex; gap: 10px; font-size: 13px; }
         .subs-label { color: #626875; font-weight: 700; }
         .subs-values { color: #c5cbd3; font-weight: 600; }
+
+        /* ==========================================
+           4. NOWOŚĆ: MODUŁ STATYSTYK PO LEWEJ STRONIE
+           ========================================== */
+        #player-stats-overlay {
+            position: absolute; top: 250px; left: 40px;
+            width: 340px; background: #0d0f14; border: 2px solid #232731; border-radius: 14px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.7); overflow: hidden; z-index: 50;
+        }
+        .stats-player-header {
+            background: #1c2130; padding: 15px 18px; border-bottom: 1px solid #232731;
+            position: relative;
+        }
+        #stats-player-accent {
+            position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: #0052cc;
+        }
+        .stats-player-title { color: #838996; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin: 0; }
+        #stats-player-name { color: #ffffff; font-size: 20px; font-weight: 800; margin: 4px 0 0 0; letter-spacing: 0.5px; }
+        
+        .stats-rows-container { padding: 10px 18px; }
+        .stat-item-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 11px 0; border-bottom: 1px solid rgba(35, 39, 49, 0.5);
+        }
+        .stat-item-row:last-child { border-bottom: none; }
+        .stat-label { color: #c5cbd3; font-size: 14px; font-weight: 600; }
+        .stat-value { color: #ffffff; font-size: 18px; font-weight: 800; }
     </style>
 </head>
 <body>
 
+    <!-- SCOREBOARD (BEZ ZMIAN) -->
     <div class="hud-wrapper">
         <div class="hud-main-scoreboard">
             <div class="hud-crest-box"><img id="hud-home-logo" class="hidden" src="" alt="L"></div>
             <div id="hud-home-accent" class="hud-side-accent"></div>
             <div id="hud-home-name" class="hud-team-name home">HOME</div>
-            
             <div class="hud-score-center">
                 <span id="hud-home-score">0</span>
                 <span style="color: rgba(255,255,255,0.2); font-size:20px;">-</span>
                 <span id="hud-away-score">0</span>
             </div>
-            
             <div id="hud-away-name" class="hud-team-name away">AWAY</div>
             <div id="hud-away-accent" class="hud-side-accent"></div>
             <div class="hud-crest-box"><img id="hud-away-logo" class="hidden" src="" alt="R"></div>
         </div>
-        
         <div id="hud-timer" class="hud-timer-container">00:00</div>
     </div>
 
+    <!-- NOWOŚĆ: INDYWIDUALNA KARTA STATYSTYK (PO LEWEJ STRONIE) -->
+    <div id="player-stats-overlay" style="visibility: hidden;">
+        <div class="stats-player-header">
+            <div id="stats-player-accent"></div>
+            <p class="stats-player-title">Statystyki meczowe</p>
+            <h2 id="stats-player-name">ZAWODNIK</h2>
+        </div>
+        <div class="stats-rows-container">
+            <div class="stat-item-row">
+                <span class="stat-label">Strzały na bramkę</span>
+                <span id="stat-val-shots" class="stat-value">0</span>
+            </div>
+            <div class="stat-item-row">
+                <span class="stat-label">Podania</span>
+                <span id="stat-val-passes" class="stat-value">0</span>
+            </div>
+            <div class="stat-item-row">
+                <span class="stat-label">Gole</span>
+                <span id="stat-val-goals" class="stat-value">0</span>
+            </div>
+            <div class="stat-item-row">
+                <span class="stat-label">Asysty</span>
+                <span id="stat-val-assists" class="stat-value">0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ANIMACJA GOLA (BEZ ZMIAN) -->
     <div id="goal-overlay" style="visibility: hidden;">
         <div class="goal-tv-card">
             <img id="goal-bg-logo" class="hidden" src="" alt="BG">
@@ -125,6 +165,7 @@
         </div>
     </div>
 
+    <!-- PREZENTACJA SKŁADU (BEZ ZMIAN) -->
     <div id="tactical-lineups-overlay" style="visibility: hidden;">
         <div class="tactical-card">
             <div class="tactical-header">
@@ -134,13 +175,11 @@
                     <p id="tactical-coach-name">TRENER: PEP GUARDIOLA</p>
                 </div>
             </div>
-
             <div class="pitch-container">
                 <img id="tactical-bg-logo" class="pitch-watermark hidden" src="" alt="WM">
                 <div class="pitch-line center-line"></div>
                 <div class="pitch-line center-circle"></div>
                 <div class="pitch-line penalty-area-left"></div>
-
                 <div class="tactical-player" id="tactical-p1" style="left: 12%; top: 50%; transform: translate(-50%, -50%);">
                     <div class="player-shirt"><span class="player-number">1</span></div>
                     <div class="player-name">ZAWODNIK 1</div>
@@ -162,7 +201,6 @@
                     <div class="player-name">ZAWODNIK 5</div>
                 </div>
             </div>
-
             <div class="tactical-subs-bar">
                 <span class="subs-label">REZERWOWI:</span>
                 <span id="tactical-subs-list" class="subs-values">-</span>
