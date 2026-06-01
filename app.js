@@ -44,7 +44,6 @@ async function initOverlayView() {
 }
 
 function handleStateUpdate(data) {
-    // KLUCZOWA POPRAWKA: Animacja odpala się tylko gdy flaga zmienia się z false na true
     if (data.show_goal_trigger === true && currentMatchState.show_goal_trigger === false) {
         runGSAPGoalAnimation(data.scorer_name, data.scorer_team === 'home' ? data.home_name : data.away_name, data.scorer_team === 'home' ? data.home_color : data.away_color);
     }
@@ -100,19 +99,25 @@ function renderLineupsStructures() {
     document.getElementById('away-players-list').innerHTML = defaultAwayPlayers.map(p => `<li><span>―</span>${p}</li>`).join('');
 }
 
+// ZMODYFIKOWANA ANIMACJA GOLA (DÓŁ EKRANU, 8 SEKUND, AUTOMATYCZNY CZAS)
 function runGSAPGoalAnimation(scorer, teamName, teamColor) {
+    // Pobranie i sformatowanie dokładnego czasu z licznika w momencie strzału
+    const exactGoalTime = formatTime(currentMatchState.match_time);
+    
     document.getElementById('goal-scorer').innerText = scorer || "ZAWODNIK";
     document.getElementById('goal-team').innerText = teamName;
-    document.getElementById('goal-card-accent').style.borderTop = `6px solid ${teamColor}`;
+    document.getElementById('goal-time').innerText = exactGoalTime;
+    document.getElementById('goal-card-accent').style.borderBottom = `6px solid ${teamColor}`;
 
     const overlay = document.getElementById('goal-overlay');
     const card = overlay.querySelector('.goal-tv-card');
 
     let tl = gsap.timeline({ onStart: () => { gsap.set(overlay, { visibility: 'visible', opacity: 1 }); } });
 
-    tl.fromTo(card, { y: -150, opacity: 0, scale: 0.9 }, { y: 0, opacity: 1, scale: 1, duration: 0.5, ease: "power4.out" })
-      .to({}, { duration: 4.0 })
-      .to(card, { y: 150, opacity: 0, scale: 0.9, duration: 0.4, ease: "power4.in", onComplete: () => {
+    // Animacja wysunięcia od dołu (y: 150 -> y: 0)
+    tl.fromTo(card, { y: 150, opacity: 0, scale: 0.95 }, { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: "power4.out" })
+      .to({}, { duration: 8.0 }) // Trzymanie grafiki na ekranie przez równe 8 sekund
+      .to(card, { y: 150, opacity: 0, scale: 0.95, duration: 0.5, ease: "power4.in", onComplete: () => {
           gsap.set(overlay, { visibility: 'hidden' });
           resetGoalTrigger();
       }});
@@ -219,7 +224,6 @@ function resetGoalTrigger() {
     supabaseClient.from('match_state').update({ show_goal_trigger: false }).eq('id', 'live_match');
 }
 
-// Helper
 function formatTime(totalSeconds) {
     const mins = Math.floor(totalSeconds / 60);
     const secs = totalSeconds % 60;
