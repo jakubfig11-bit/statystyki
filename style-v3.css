@@ -268,7 +268,6 @@ input[type="color"]::-webkit-color-swatch {
     object-fit: contain;
 }
 
-/* Kontrola odstępów logo od tekstu niezależnie od przeglądarki */
 .hud-home .hud-team-logo { margin-right: 12px; }
 .hud-away .hud-team-logo { margin-left: 12px; }
 
