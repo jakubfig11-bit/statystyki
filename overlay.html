@@ -18,69 +18,111 @@
             height: 1080px;
         }
 
-        /* GŁÓWNY HUD (GÓRNY PASEK WYNIKU) */
+        /* NEW GŁÓWNY HUD (POTRÓJNY PODZIAŁ Z CZASEM POD WYNIKIEM) */
         .hud-container {
             position: absolute;
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            display: flex;
+            display: grid;
+            grid-template-columns: 1fr 180px 1fr;
             align-items: center;
-            background: rgba(20, 24, 33, 0.9);
+            background: rgba(20, 24, 33, 0.95);
             border: 2px solid #2d3748;
-            border-radius: 6px;
-            padding: 5px 15px;
-            min-width: 450px;
-            justify-content: space-between;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            border-radius: 8px;
+            padding: 8px 20px;
+            width: 650px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.6);
         }
-        .hud-team {
+        .hud-team-left {
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-weight: bold;
+            gap: 12px;
+            font-weight: 800;
             color: #fff;
-            font-size: 16px;
+            font-size: 18px;
+            justify-content: flex-start;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .hud-team-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 800;
+            color: #fff;
+            font-size: 18px;
+            justify-content: flex-end;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         .hud-logo {
-            width: 24px;
-            height: 24px;
+            width: 28px;
+            height: 28px;
             object-fit: contain;
-            display: none; /* Pokazywane przez JS gdy jest URL */
+            display: none;
         }
-        .hud-score-center {
+        
+        /* Środkowy blok: Wynik i czas pod spodem */
+        .hud-center-score-block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #0b0e14;
+            border: 1px solid #2d3748;
+            border-radius: 6px;
+            padding: 4px 0;
+            box-sizing: border-box;
+        }
+        .score-row {
             display: flex;
             align-items: center;
-            background: #11141a;
-            padding: 4px 12px;
-            border-radius: 4px;
-            gap: 10px;
+            gap: 12px;
             font-family: monospace;
-            font-size: 20px;
-            font-weight: bold;
-            border: 1px solid #2d3748;
+            font-size: 26px;
+            font-weight: 900;
+            color: #ffffff;
+            line-height: 1;
         }
-        #hud-home-score { color: #fff; }
-        #hud-away-score { color: #fff; }
-        .hud-divider { color: #4a5568; }
-        #hud-timer { color: #00ffaa; }
+        .score-divider {
+            color: #4a5568;
+            font-size: 22px;
+        }
+        .time-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 4px;
+            border-top: 1px solid #1a202c;
+            width: 100%;
+            padding-top: 3px;
+        }
+        #hud-timer {
+            color: #00ffaa;
+            font-family: monospace;
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
         #hud-period {
-            font-size: 11px;
+            font-size: 10px;
             color: #a0aec0;
             background: #2d3748;
             padding: 1px 4px;
-            border-radius: 2px;
-            margin-left: 5px;
+            border-radius: 3px;
+            font-weight: bold;
         }
 
-        /* EKRAN PREZENTACJI SKŁADÓW (CENTRALNY PANEL TV) */
+        /* EKRAN PREZENTACJI SKŁADÓW */
         #lineups-overlay {
             position: absolute;
             top: 0;
             left: 0;
             width: 1920px;
             height: 1080px;
-            background: rgba(10, 14, 23, 0.75);
+            background: rgba(10, 14, 23, 0.8);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -89,7 +131,7 @@
             visibility: hidden;
         }
         .lineup-tv-center-block {
-            width: 1100px;
+            width: 1150px;
             height: 650px;
             background: #161a24;
             border: 3px solid #2d3748;
@@ -99,17 +141,21 @@
             overflow: hidden;
         }
         
-        /* Lewa strona - Boisko */
+        /* Lewa strona - Boisko z wymuszonym zachowaniem proporcji kół */
         .lineup-pitch-side {
             flex: 1.2;
             background: #1a1f2c;
             position: relative;
-            padding: 20px;
+            padding: 25px;
             box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         .pitch-outline {
             width: 100%;
             height: 100%;
+            max-width: 480px; /* Zabezpieczenie przed rozciąganiem w poziomie */
             border: 2px solid #3f4e66;
             border-radius: 8px;
             position: relative;
@@ -120,10 +166,11 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 140px;
-            height: 140px;
+            width: 130px;
+            height: 130px;
             border: 2px solid #3f4e66;
             border-radius: 50%;
+            box-sizing: border-box;
         }
         .pitch-center-line {
             position: absolute;
@@ -138,8 +185,8 @@
             top: 0;
             left: 50%;
             transform: translateX(-50%);
-            width: 260px;
-            height: 100px;
+            width: 240px;
+            height: 90px;
             border: 2px solid #3f4e66;
             border-top: none;
         }
@@ -148,13 +195,13 @@
             bottom: 0;
             left: 50%;
             transform: translateX(-50%);
-            width: 260px;
-            height: 100px;
+            width: 240px;
+            height: 90px;
             border: 2px solid #3f4e66;
             border-bottom: none;
         }
 
-        /* Kulki zawodników na boisku */
+        /* IDEALNIE OKRĄGŁE KULKI ZAWODNIKÓW (FIX ASRECT RATIO) */
         .player-node {
             position: absolute;
             display: flex;
@@ -164,41 +211,46 @@
             z-index: 5;
         }
         .player-shirt {
-            width: 45px;
-            height: 45px;
+            width: 50px;
+            height: 50px;
+            aspect-ratio: 1 / 1 !important; /* Wymuszenie idealnego koła */
             background: #ff0055;
             border: 3px solid #fff;
-            border-radius: 50%;
+            border-radius: 50% !important;
             display: flex;
             justify-content: center;
             align-items: center;
-            box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.5);
+            box-sizing: border-box;
         }
         .p-num {
             font-size: 18px;
             font-weight: 900;
             color: #fff;
-            font-family: Arial, sans-serif;
+            font-family: system-ui, sans-serif;
+            line-height: 1;
         }
         .p-name {
-            background: rgba(10, 14, 23, 0.9);
+            background: rgba(10, 14, 23, 0.95);
             color: #fff;
-            padding: 3px 10px;
+            padding: 4px 12px;
             border-radius: 4px;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
-            margin-top: 6px;
+            margin-top: 8px;
             text-transform: uppercase;
             border: 1px solid #2d3748;
             white-space: nowrap;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
         }
 
-        /* Pozycje kulek w formacji 1-2-2 (Futsal / Orlik) */
-        .pos-gk    { top: 85%; left: 50%; }
-        .pos-df-l  { top: 58%; left: 25%; }
-        .pos-df-r  { top: 58%; left: 75%; }
-        .pos-fw-l  { top: 25%; left: 25%; }
-        .pos-fw-r  { top: 25%; left: 75%; }
+        /* Pozycje kulek w formacji 1-2-2 */
+        .pos-gk    { top: 88%; left: 50%; }
+        .pos-df-l  { top: 62%; left: 24%; }
+        .pos-df-r  { top: 62%; left: 76%; }
+        .pos-fw-l  { top: 26%; left: 24%; }
+        .pos-fw-r  { top: 26%; left: 76%; }
 
         /* Prawa strona - Lista rezerwowych i trener */
         .lineup-info-side {
@@ -275,7 +327,7 @@
             padding-left: 8px;
         }
 
-        /* POPIERŚNICZE STATYSTYKI INDYWIDUALNE (BOTTOM BADGE) */
+        /* STATYSTYK INDYWIDUALNE (BOTTOM BADGE) */
         #stat-badge-container {
             position: absolute;
             bottom: 50px;
@@ -330,20 +382,24 @@
 <body>
 
     <div class="hud-container">
-        <div class="hud-team">
+        <div class="hud-team-left">
             <img id="hud-home-logo" class="hud-logo" src="" alt="L">
             <span id="hud-home-name">TORINO</span>
         </div>
         
-        <div class="hud-score-center">
-            <span id="hud-home-score">0</span>
-            <span class="hud-divider">:</span>
-            <span id="hud-away-score">0</span>
-            <span id="hud-timer">00:00</span>
-            <span id="hud-period">1H</span>
+        <div class="hud-center-score-block">
+            <div class="score-row">
+                <span id="hud-home-score">0</span>
+                <span class="score-divider">:</span>
+                <span id="hud-away-score">0</span>
+            </div>
+            <div class="time-row">
+                <span id="hud-timer">00:00</span>
+                <span id="hud-period">1H</span>
+            </div>
         </div>
 
-        <div class="hud-team" style="justify-content: flex-end;">
+        <div class="hud-team-right">
             <span id="hud-away-name">ELCHE</span>
             <img id="hud-away-logo" class="hud-logo" src="" alt="R">
         </div>
@@ -392,8 +448,7 @@
                 
                 <div class="bench-section">
                     <h4>ŁAWKA REZERWOWYCH</h4>
-                    <ul id="lineup-bench-list">
-                        </ul>
+                    <ul id="lineup-bench-list"></ul>
                 </div>
                 
                 <div class="coach-section">
@@ -405,16 +460,14 @@
     </div>
 
     <div id="goal-badge-container" style="visibility: hidden; position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; background: rgba(18, 22, 33, 0.95); border: 2px solid #2d3748; border-radius: 8px; padding: 12px 25px; min-width: 500px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); z-index: 999; font-family: 'Segoe UI', sans-serif;">
-        <div id="goal-badge-accent" style="position: absolute; left: 0; top: 0; bottom: 0; width: 6px; border-top-left-radius: 6px; border-bottom-left-radius: 6px; background-color: #ff0055;"></div>
+        <div id="goal-badge-accent" style="position: absolute; left: 0; top: 0; bottom: 0; width: 6px; border-top-left-radius: 6px; border-bottom-left-radius: 6px;"></div>
         
         <div style="display: flex; flex-direction: column; flex: 1;">
             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
                 <span style="color: #ffffff !important; font-size: 11px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; opacity: 1;">STRZELONY GOL!</span>
                 <span style="color: #ffffff; font-size: 12px;">⚽</span>
             </div>
-            
             <div id="goal-badge-team" style="font-size: 15px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase;">GOSPODARZE</div>
-            
             <div id="goal-badge-scorer" style="font-size: 26px; font-weight: 900; color: #ffffff !important; text-transform: uppercase; margin-top: 2px; letter-spacing: 0.5px;">ZAWODNIK</div>
         </div>
         
