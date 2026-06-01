@@ -35,7 +35,7 @@ body, html {
     backdrop-filter: blur(16px);
     border: 1px solid var(--glass-border);
     border-radius: 14px;
-    height: 58px; /* Zwiększona ogólna wysokość */
+    height: 58px;
     box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45);
     overflow: hidden;
 }
@@ -43,10 +43,10 @@ body, html {
 .tv-team {
     display: flex;
     align-items: center;
-    font-size: 18px; /* Powiększone nazwy zespołów */
+    font-size: 18px;
     font-weight: 700;
     letter-spacing: 0.5px;
-    color: #ffffff !important; /* Wymuszona czysta biel */
+    color: #ffffff !important;
     padding: 0 24px;
     text-transform: uppercase;
     height: 100%;
@@ -69,7 +69,6 @@ body, html {
 }
 .club-crest.hidden { display: none !important; }
 
-/* Paski akcentowe kolorów */
 .color-accent {
     width: 5px;
     height: 100%;
@@ -79,7 +78,6 @@ body, html {
 .tv-team.home .color-accent { left: 0; }
 .tv-team.away .color-accent { right: 0; }
 
-/* Środkowa sekcja - Wynik i Zegar */
 .tv-center-core {
     display: flex;
     flex-direction: column;
@@ -97,28 +95,28 @@ body, html {
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 26px; /* Potężne, czytelne cyfry */
+    font-size: 26px;
     font-weight: 900;
     line-height: 1;
-    color: #ffffff !important; /* Wymuszona czysta biel */
+    color: #ffffff !important;
 }
 .tv-divider { width: 2px; height: 16px; background: rgba(255,255,255,0.3); }
 
 .tv-timer {
-    font-size: 13px; /* Bardziej widoczny stoper */
+    font-size: 13px;
     font-weight: 700;
-    color: #ffffff !important; /* Zmiana z szarego na biały */
+    color: #ffffff !important;
     margin-top: 4px;
     letter-spacing: 0.5px;
 }
 
 /* ==========================================================================
-   ANIMACJA GOL - DOLNA POZYCJA (TV CARD)
+   ANIMACJA GOL - DOLNA POZYCJA Z LOGO W TLE (30% OPACITY)
    ========================================================================== */
 .goal-overlay-container.bottom-position {
     position: fixed;
     top: auto;
-    bottom: 60px; /* Pozycjonowanie na dole ekranu */
+    bottom: 60px;
     left: 0;
     width: 100%;
     height: auto;
@@ -146,6 +144,29 @@ body, html {
     text-align: center;
     box-shadow: 0 24px 48px rgba(0,0,0,0.6);
     min-width: 380px;
+    position: relative; /* Wymagane do pozycjonowania tła */
+    overflow: hidden;   /* Ukrywa wystające części logotypu */
+}
+
+/* Wodne logo drużyny w tle cieszynki */
+.goal-card-bg-crest {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-height: 130%; /* Duże, widowiskowe logo */
+    width: auto;
+    object-fit: contain;
+    opacity: 0.3 !important; /* Dokładnie 30% przezroczystości */
+    z-index: 1;
+    pointer-events: none;
+}
+.goal-card-bg-crest.hidden { display: none !important; }
+
+/* Kontener trzymający teksty nad logiem */
+.goal-card-content {
+    position: relative;
+    z-index: 2;
 }
 
 .goal-tv-title {
@@ -172,7 +193,6 @@ body, html {
 #goal-scorer { color: #ffffff; }
 #goal-team { color: #94a3b8; font-weight: 500; }
 
-/* Znacznik minuty strzelenia bramki */
 .goal-time-badge {
     background: rgba(255, 255, 255, 0.1);
     color: #ffffff;
