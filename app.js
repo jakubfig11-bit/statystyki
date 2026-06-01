@@ -2,8 +2,8 @@ const SUPABASE_URL = "https://puhnsjqbqmojjouhsjnk.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1aG5zanFicW1vampvdWhzam5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyMjg4MDgsImV4cCI6MjA5NTgwNDgwOH0.fBFk7OyEeQ8T_v-tzXAffcDb1xfvgeVZfOvq2WqDC7k";
 
 let matchState = {
-    homeName: "GOSPODARZE",
-    awayName: "GOŚCIE",
+    homeName: "TORINO",
+    awayName: "ELCHE",
     homeScore: 0,
     awayScore: 0,
     timerSeconds: 0,
@@ -21,11 +21,17 @@ let matchState = {
     awayLogo: ""
 };
 
-// Bezpieczna separacja struktur danych dla edytora składów
+// Domyślna pamięć lokalna paneli
 let currentEditingTeam = 'home';
 let localLineups = {
-    home: { main: "1. GK\n2. DEF L\n3. DEF P\n4. FW L\n5. FW P", bench: "12. Rezerwa H" },
-    away: { main: "1. Tyan\n2. Zaza\n6. Pogba\n8. Gówno\n9. Lewandowski", bench: "44. teetet\n55. seks" }
+    home: { 
+        main: "1. GK TEST\n2. DEF TEST\n3. DEF TEST\n4. FW TEST\n5. FW TEST", 
+        bench: "12. Zawodnik H1\n14. Zawodnik H2" 
+    },
+    away: { 
+        main: "1. Tyan\n2. Zaza\n6. Pogba\n8. Gówno\n9. Lewandowski", 
+        bench: "44. teetet\n55. seks" 
+    }
 };
 
 const isOverlay = window.location.pathname.includes('overlay.html');
@@ -114,7 +120,6 @@ function initControl() {
     document.getElementById('btn-swap').addEventListener('click', swapTeams);
     document.getElementById('btn-force-update').addEventListener('click', updateTeams);
     
-    // Obsługa zakładek składów
     document.getElementById('tab-home').addEventListener('click', () => switchLineupTab('home'));
     document.getElementById('tab-away').addEventListener('click', () => switchLineupTab('away'));
     document.getElementById('btn-save-lineups').addEventListener('click', saveActiveLineupTab);
@@ -127,7 +132,6 @@ function initControl() {
     document.getElementById('btn-show-lineup-away').addEventListener('click', () => triggerLineupVisual('away', true));
     document.getElementById('btn-hide-lineup').addEventListener('click', () => triggerLineupVisual('home', false));
 
-    // Wstrzyknięcie domyślnych danych do pól na starcie
     document.getElementById('lineup-main-input').value = localLineups[currentEditingTeam].main;
     document.getElementById('lineup-bench-input').value = localLineups[currentEditingTeam].bench;
 
@@ -146,42 +150,23 @@ function initControl() {
 }
 
 function switchLineupTab(team) {
-    // KROK 1: Zapisz to co użytkownik aktualnie edytował w polach tekstowych
     localLineups[currentEditingTeam].main = document.getElementById('lineup-main-input').value;
     localLineups[currentEditingTeam].bench = document.getElementById('lineup-bench-input').value;
 
-    // KROK 2: Przełącz aktywny stan drużyny
     currentEditingTeam = team;
 
-    // KROK 3: Zmień wygląd przycisków tabów
     document.getElementById('tab-home').classList.toggle('active', team === 'home');
     document.getElementById('tab-away').classList.toggle('active', team === 'away');
 
-    document.getElementById('main-players-label').innerText = team === 'home' ? "Skład Główny Gospodarzy (5 linii)" : "Skład Główny Gości (5 linii)";
-    document.getElementById('bench-players-label').innerText = team === 'home' ? "Zawodnicy Rezerwowi Gospodarzy" : "Zawodnicy Rezerwowi Gości";
-
-    // KROK 4: Wczytaj dane z pamięci podręcznej dla nowo wybranej drużyny
     document.getElementById('lineup-main-input').value = localLineups[team].main;
     document.getElementById('lineup-bench-input').value = localLineups[team].bench;
 }
 
 function saveActiveLineupTab() {
-    // Przypisz aktualny tekst z pól formularza do właściwej drużyny w pamięci lokalnej
     localLineups[currentEditingTeam].main = document.getElementById('lineup-main-input').value;
     localLineups[currentEditingTeam].bench = document.getElementById('lineup-bench-input').value;
     
-    // Wyślij pełną zaktualizowaną paczkę do OBS
     updateTeams();
-    alert("Skład zapisany w buforze i przesłany!");
-}
-
-function updateControlUI() {
-    if (document.getElementById('home-score-display')) document.getElementById('home-score-display').innerText = matchState.homeScore;
-    if (document.getElementById('away-score-display')) document.getElementById('away-score-display').innerText = matchState.awayScore;
-    if (document.getElementById('control-timer-display')) document.getElementById('control-timer-display').innerText = formatTime(matchState.timerSeconds);
-    
-    const btnTimer = document.getElementById('btn-timer-start');
-    if (btnTimer) btnTimer.innerText = matchState.timerRunning ? "PAUZA" : "START";
 }
 
 function changeScore(team, val) {
@@ -206,16 +191,15 @@ function updateTeams() {
     matchState.homeCoach = document.getElementById('home-coach-input').value.toUpperCase();
     matchState.awayCoach = document.getElementById('away-coach-input').value.toUpperCase();
     
-    // Zabezpieczenie przed utratą danych aktualnie otwartej zakładki przy wywołaniu updateTeams()
     localLineups[currentEditingTeam].main = document.getElementById('lineup-main-input').value;
     localLineups[currentEditingTeam].bench = document.getElementById('lineup-bench-input').value;
 
-    // Parsowanie składu Gospodarzy z pamięci podręcznej
+    // Parsowanie Gospodarzy
     const homeMain = localLineups.home.main.split('\n').map(p => p.trim()).filter(p => p !== "");
     const homeBench = localLineups.home.bench.split('\n').map(p => p.trim()).filter(p => p !== "");
     matchState.homePlayers = [...homeMain, ...homeBench];
 
-    // Parsowanie składu Gości z pamięci podręcznej
+    // Parsowanie Gości
     const awayMain = localLineups.away.main.split('\n').map(p => p.trim()).filter(p => p !== "");
     const awayBench = localLineups.away.bench.split('\n').map(p => p.trim()).filter(p => p !== "");
     matchState.awayPlayers = [...awayMain, ...awayBench];
@@ -336,14 +320,16 @@ function triggerPlayerStat() {
 }
 
 function triggerLineupVisual(side, show) {
-    // Wymuszenie aktualizacji danych bezpośrednio przed pokazaniem grafiki, by uniknąć pustych pól
+    // KLUCZOWE: Wymuszenie przetworzenia pól tekstowych przed nadaniem sygnału grafiki
     updateTeams();
     
-    sendToOBS('trigger_action', { 
-        id: `lineup_${side}_` + Date.now(), 
-        type: side === 'home' ? 'LINEUP_HOME' : 'LINEUP_AWAY', 
-        show: show 
-    });
+    setTimeout(() => {
+        sendToOBS('trigger_action', { 
+            id: `lineup_${side}_` + Date.now(), 
+            type: side === 'home' ? 'LINEUP_HOME' : 'LINEUP_AWAY', 
+            show: show 
+        });
+    }, 150);
 }
 
 function updateOverlayUI() {
@@ -451,7 +437,10 @@ function animateLineupCentral(side, show) {
         document.getElementById('lineup-team-title').style.color = mainColor;
         document.getElementById('pitch-border-line').style.borderColor = mainColor;
 
+        // Reset i przygotowanie kulek (zawodników wyjściowych) do staggeru
+        const targetNodes = [];
         const positions = ['.pos-gk', '.pos-df-l', '.pos-df-r', '.pos-fw-l', '.pos-fw-r'];
+        
         positions.forEach((selector, idx) => {
             const node = overlay.querySelector(selector);
             const shirt = node.querySelector('.player-shirt');
@@ -471,24 +460,33 @@ function animateLineupCentral(side, show) {
                 shirt.style.setProperty('background-color', mainColor, 'important');
                 shirt.style.setProperty('border-color', textColor, 'important');
                 numEl.style.setProperty('color', textColor, 'important');
+                
                 node.style.display = 'flex';
+                targetNodes.push(node);
             } else {
                 node.style.display = 'none';
             }
         });
 
+        // Wstrzykiwanie rezerwowych do listy z przypisaniem unikalnej klasy do animacji sekwencyjnej
         const benchUl = document.getElementById('lineup-bench-list');
         benchUl.innerHTML = "";
         const benchPlayers = playersList.slice(5);
+        
         if (benchPlayers.length > 0) {
             benchPlayers.forEach(player => {
                 const li = document.createElement('li');
                 li.innerText = player;
-                li.style.borderLeftColor = mainColor;
+                li.className = "bench-player-item"; // Klasa do przechwycenia przez GSAP
+                li.style.borderLeft = `3px solid ${mainColor}`;
+                li.style.paddingLeft = "8px";
+                li.style.margin = "6px 0";
+                li.style.color = "#ffffff";
+                li.style.listStyle = "none";
                 benchUl.appendChild(li);
             });
         } else {
-            benchUl.innerHTML = "<li style='opacity:0.5; border-left:none;'>BRAK REZERWOWYCH</li>";
+            benchUl.innerHTML = "<li style='opacity:0.5; border-left:none; list-style:none;'>BRAK REZERWOWYCH</li>";
         }
 
         const coachDiv = document.getElementById('lineup-coach-display');
@@ -497,12 +495,26 @@ function animateLineupCentral(side, show) {
             coachDiv.style.borderLeft = `4px solid ${mainColor}`;
         }
 
+        // CZĘŚĆ ANIMACYJNA (GSAP MOTION DESIGN STAGGER EFFECT)
         gsap.killTweensOf([overlay, centerBlock]);
+        const benchItems = overlay.querySelectorAll('.bench-player-item');
+        if(targetNodes.length > 0) gsap.set(targetNodes, { opacity: 0, scale: 0 });
+        if(benchItems.length > 0) gsap.set(benchItems, { opacity: 0, x: -30 });
+        
         gsap.set(overlay, { visibility: 'visible' });
         
         const tl = gsap.timeline();
-        tl.to(overlay, { opacity: 1, duration: 0.4 })
-          .fromTo(centerBlock, { scale: 0.7, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.6, ease: "back.out(1.1)" }, "-=0.2");
+        tl.to(overlay, { opacity: 1, duration: 0.3 })
+          .fromTo(centerBlock, { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "power2.out" }, "-=0.1");
+          
+        // 1. Sekwencyjne pojawianie się kulek zawodników (stagger)
+        if(targetNodes.length > 0) {
+            tl.to(targetNodes, { opacity: 1, scale: 1, duration: 0.5, stagger: 0.15, ease: "back.out(1.5)" }, "-=0.1");
+        }
+        // 2. Sekwencyjne wjeżdżanie rezerwowych od lewej strony (stagger)
+        if(benchItems.length > 0) {
+            tl.to(benchItems, { opacity: 1, x: 0, duration: 0.4, stagger: 0.12, ease: "power1.out" }, "-=0.2");
+        }
     } else {
         const tl = gsap.timeline();
         tl.to(centerBlock, { scale: 0.8, opacity: 0, duration: 0.4, ease: "power2.in" })
