@@ -179,5 +179,17 @@
     </div>
 
     <script src="control.js"></script>
+
+    <script>
+    const supabase = window.supabase.createClient("https://puhnsjqbqmojjouhsjnk.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1aG5zanFicW1vampvdWhzam5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyMjg4MDgsImV4cCI6MjA5NTgwNDgwOH0.fBFk7OyEeQ8T_v-tzXAffcDb1xfvgeVZfOvq2WqDC7k");
+    const channel = supabase.channel('scoreboard_room');
+    
+    // Podpinasz tutaj ręcznie zdarzenia do przycisków, np.:
+    document.getElementById('btn-swap').addEventListener('click', () => {
+        // Tu kopiujesz funkcję swapTeams ze swojego app.js
+    });
+    // Itd. dla każdego przycisku
+</script>
+
 </body>
 </html>
