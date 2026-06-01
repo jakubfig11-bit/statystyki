@@ -44,33 +44,34 @@ async function initOverlayView() {
 }
 
 function handleStateUpdate(data) {
-    if (data.show_goal_trigger && !currentMatchState.show_goal_trigger) {
+    // KLUCZOWA POPRAWKA: Animacja odpala się tylko gdy flaga zmienia się z false na true
+    if (data.show_goal_trigger === true && currentMatchState.show_goal_trigger === false) {
         runGSAPGoalAnimation(data.scorer_name, data.scorer_team === 'home' ? data.home_name : data.away_name, data.scorer_team === 'home' ? data.home_color : data.away_color);
     }
+    
     if (data.show_lineups !== currentMatchState.show_lineups) {
         toggleGSAPLineups(data.show_lineups);
     }
+    
     if (data.is_running !== currentMatchState.is_running) {
         if (data.is_running) startLocalTimer();
         else clearInterval(timerInterval);
     }
+    
     currentMatchState = data;
     updateHUDUI();
 }
 
 function updateHUDUI() {
-    // Teksty i wyniki
     document.getElementById('hud-home-name').innerText = currentMatchState.home_name;
     document.getElementById('hud-away-name').innerText = currentMatchState.away_name;
     document.getElementById('hud-home-score').innerText = currentMatchState.home_score;
     document.getElementById('hud-away-score').innerText = currentMatchState.away_score;
     document.getElementById('hud-timer').innerText = formatTime(currentMatchState.match_time);
 
-    // Dynamiczne Kolory klubów (paski akcentowe)
     document.getElementById('hud-home-accent').style.backgroundColor = currentMatchState.home_color || "#0052cc";
     document.getElementById('hud-away-accent').style.backgroundColor = currentMatchState.away_color || "#ff0044";
 
-    // Dynamiczne Herby (jeśli link jest podany)
     setupCrest('hud-home-logo', currentMatchState.home_logo);
     setupCrest('hud-away-logo', currentMatchState.away_logo);
 }
@@ -99,7 +100,6 @@ function renderLineupsStructures() {
     document.getElementById('away-players-list').innerHTML = defaultAwayPlayers.map(p => `<li><span>―</span>${p}</li>`).join('');
 }
 
-// PREMIUM 60FPS GSAP ANIMATION
 function runGSAPGoalAnimation(scorer, teamName, teamColor) {
     document.getElementById('goal-scorer').innerText = scorer || "ZAWODNIK";
     document.getElementById('goal-team').innerText = teamName;
@@ -219,6 +219,7 @@ function resetGoalTrigger() {
     supabaseClient.from('match_state').update({ show_goal_trigger: false }).eq('id', 'live_match');
 }
 
+// Helper
 function formatTime(totalSeconds) {
     const mins = Math.floor(totalSeconds / 60);
     const secs = totalSeconds % 60;
