@@ -107,7 +107,6 @@ function formatTime(seconds) {
 }
 
 function initControl() {
-    // Łączenie z elementami oryginalnymi sterownika
     if(document.getElementById('home-plus')) document.getElementById('home-plus').addEventListener('click', () => changeScore('home', 1));
     if(document.getElementById('home-minus')) document.getElementById('home-minus').addEventListener('click', () => changeScore('home', -1));
     if(document.getElementById('away-plus')) document.getElementById('away-plus').addEventListener('click', () => changeScore('away', 1));
@@ -145,17 +144,14 @@ function initControl() {
         if(el) el.addEventListener('input', updateTeams);
     });
 
-    // REJESTRACJA NOWEJ INTEGRACJI AUTOMATYCZNYCH GOLI
     window.triggerAutomatedGoalSystem = () => {
         const side = document.getElementById('automated-goal-side').value;
         const customScorer = document.getElementById('automated-goal-scorer').value.trim() || "ZAWODNIK";
         const teamName = side === 'home' ? matchState.homeName : matchState.awayName;
         const currentTimeString = formatTime(matchState.timerSeconds);
         
-        // Zmień wynik meczu w systemie
         changeScore(side, 1);
         
-        // Wyślij sygnał z automatycznym czasem do OBS
         sendToOBS('trigger_action', { 
             id: "goal_" + Date.now(), 
             type: 'GOAL', 
@@ -165,7 +161,6 @@ function initControl() {
             time: currentTimeString
         });
 
-        // Wyczyść okno wpisywania, by było gotowe na kolejnego gola
         document.getElementById('automated-goal-scorer').value = "";
     };
 
@@ -188,12 +183,9 @@ function updateControlUI() {
 function switchLineupTab(team) {
     localLineups[currentEditingTeam].main = document.getElementById('lineup-main-input').value;
     localLineups[currentEditingTeam].bench = document.getElementById('lineup-bench-input').value;
-
     currentEditingTeam = team;
-
     document.getElementById('tab-home').classList.toggle('active', team === 'home');
     document.getElementById('tab-away').classList.toggle('active', team === 'away');
-
     document.getElementById('lineup-main-input').value = localLineups[team].main;
     document.getElementById('lineup-bench-input').value = localLineups[team].bench;
 }
@@ -321,13 +313,10 @@ function resetTimer() {
     sendToOBS('state_update', matchState);
 }
 
-// STARA METODA (ZACHOWANA DLA KOMPATYBILNOŚCI OVERLAYU)
 function triggerGoalAnimation(side) {
     const teamName = side === 'home' ? matchState.homeName : matchState.awayName;
     const currentTimeString = formatTime(matchState.timerSeconds);
-    
     changeScore(side, 1);
-    
     sendToOBS('trigger_action', { 
         id: "goal_" + Date.now(), 
         type: 'GOAL', 
@@ -422,31 +411,62 @@ function animatePlayerStat(side, player, category, value) {
       }});
 }
 
+/* =========================================================================
+   SFINALIZOWANA I ZOPTYMALIZOWANA ANIMACJA EMISYJNA DLA STRZELONEJ BRAMKI
+   ========================================================================= */
 function animateGoal(side, team, scorer, timeString) {
     if (typeof gsap === 'undefined') return;
+    
+    // Wyciągamy kolory z dynamicznego stanu meczu
     const mainColor = side === 'home' ? matchState.homeColor : matchState.awayColor;
+    const teamLogoUrl = side === 'home' ? matchState.homeLogo : matchState.awayLogo;
+    
     const container = document.getElementById('goal-badge-container');
     const accentStripe = document.getElementById('goal-badge-accent');
+    const labelTeam = document.getElementById('goal-badge-team');
+    const logoImg = document.getElementById('goal-badge-logo-img');
     
+    // Wstrzyknięcie danych do drzewa DOM overlayu
     document.getElementById('goal-badge-team').innerText = team;
     document.getElementById('goal-badge-scorer').innerText = scorer;
     document.getElementById('goal-badge-time').innerText = timeString;
 
-    if (accentStripe) accentStripe.style.setProperty('background-color', mainColor, 'important');
-    document.getElementById('goal-badge-team').style.setProperty('color', mainColor, 'important');
+    // Obsługa logotypu klubu wewnątrz animacji
+    if (logoImg) {
+        if (teamLogoUrl && teamLogoUrl.length > 5) {
+            logoImg.src = teamLogoUrl;
+            logoImg.style.display = "block";
+        } else {
+            logoImg.style.display = "none";
+        }
+    }
 
+    // Dynamiczna adaptacja kolorów pod aktualne barwy klubowe pobrane z bazy
+    if (accentStripe) accentStripe.style.setProperty('background-color', mainColor, 'important');
+    if (labelTeam) labelTeam.style.setProperty('color', mainColor, 'important');
+
+    // Zabijamy ewentualne trwające nakładające się animacje (zabezpieczenie przed dublowaniem goli)
     gsap.killTweensOf(container);
 
-    container.style.visibility = "visible";
-    container.style.opacity = "0";
-
+    // Sekwencja Motion Design: Wejście z "Back.out" -> Pauza na odczyt 8s -> Zjazd w dół
     const tl = gsap.timeline();
     tl.set(container, { visibility: 'visible', y: 250, opacity: 0 })
-      .to(container, { y: 0, opacity: 1, duration: 0.6, ease: "back.out(1.1)" })
-      .to({}, { duration: 8.0 }) 
-      .to(container, { y: 250, opacity: 0, duration: 0.5, ease: "power2.in", onComplete: () => {
-          gsap.set(container, { visibility: 'hidden' });
-      }});
+      .to(container, { 
+          y: 0, 
+          opacity: 1, 
+          duration: 0.8, 
+          ease: "back.out(1.2)" 
+      })
+      .to({}, { duration: 8.0 }) // Czas zatrzymania belki na ekranie (8 sekund)
+      .to(container, { 
+          y: 250, 
+          opacity: 0, 
+          duration: 0.6, 
+          ease: "power3.in", 
+          onComplete: () => {
+              gsap.set(container, { visibility: 'hidden' });
+          }
+      });
 }
 
 function animateLineupCentral(side, show) {
