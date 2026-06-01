@@ -2,7 +2,7 @@
 <html lang="pl" style="background: #11141a !important; overflow-y: auto !important;">
 <head>
     <meta charset="UTF-8">
-    <title>Panel Kontrolny - Sterowanie Ręczne</title>
+    <title>Panel Kontrolny - Sterowanie Realtime</title>
     <style>
         html, body { background: #11141a !important; overflow-y: auto !important; font-family: 'Segoe UI', Arial, sans-serif; color: #fff; padding: 15px; margin: 0; }
         .control-container { max-width: 950px; margin: 0 auto; background: #1a1f29; padding: 20px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
@@ -38,29 +38,29 @@
     
     <div class="score-display-box">
         <div>
-            <div id="label-home" style="text-align:center; font-weight:bold; text-transform:uppercase;">GOSPODARZE</div>
-            <div class="score-num" id="dsp-home-score">0</div>
+            <div style="text-align:center; font-weight:bold; text-transform:uppercase;">GOSPODARZE</div>
+            <div class="score-num" id="home-score-display">0</div>
             <div class="flex-row">
-                <button onclick="changeScore('home', -1)" class="btn-secondary">-1</button>
-                <button onclick="changeScore('home', 1)">+1</button>
+                <button id="home-minus" class="btn-secondary">-1</button>
+                <button id="home-plus">+1</button>
             </div>
         </div>
         
         <div style="text-align: center;">
             <label>Aktualny Czas</label>
-            <div class="timer-large" id="dsp-timer">00:00</div>
+            <div class="timer-large" id="control-timer-display">00:00</div>
             <div class="flex-row" style="margin-top: 8px; justify-content: center;">
-                <button id="btn-start" onclick="toggleTimer()">START</button>
-                <button class="btn-danger" onclick="resetTimer()">RESET</button>
+                <button id="btn-timer-start">START</button>
+                <button id="btn-timer-reset" class="btn-danger">RESET</button>
             </div>
         </div>
 
         <div>
-            <div id="label-away" style="text-align:center; font-weight:bold; text-transform:uppercase;">GOŚCIE</div>
-            <div class="score-num" id="dsp-away-score">0</div>
+            <div style="text-align:center; font-weight:bold; text-transform:uppercase;">GOŚCIE</div>
+            <div class="score-num" id="away-score-display">0</div>
             <div class="flex-row">
-                <button onclick="changeScore('away', -1)" class="btn-secondary">-1</button>
-                <button onclick="changeScore('away', 1)">+1</button>
+                <button id="away-minus" class="btn-secondary">-1</button>
+                <button id="away-plus">+1</button>
             </div>
         </div>
     </div>
@@ -70,20 +70,24 @@
             <h3>Gospodarze (Personalizacja)</h3>
             <div class="form-group">
                 <label>Nazwa Drużyny</label>
-                <input type="text" id="inp-home-name" value="TORINO" oninput="syncData()">
+                <input type="text" id="home-name-input" value="TORINO">
             </div>
             <div class="form-group">
                 <label>Trener</label>
-                <input type="text" id="inp-home-coach" value="Trener Gospodarzy" oninput="syncData()">
+                <input type="text" id="home-coach-input" value="TRENER GOSPODARZY">
             </div>
-            <div class="grid-two" style="margin-bottom:0;">
+            <div class="grid-two" style="margin-bottom:0; grid-template-columns: 1fr 1fr 1fr;">
                 <div class="form-group">
-                    <label>Kolor Klubu</label>
-                    <input type="color" id="inp-home-color" value="#00f2fe" oninput="syncData()">
+                    <label>Kolor Główny</label>
+                    <input type="color" id="home-color-input" value="#00f2fe">
                 </div>
                 <div class="form-group">
+                    <label>Kolor Tekstu</label>
+                    <input type="color" id="home-textcolor-input" value="#ffffff">
+                </div>
+                <div class="form-group" style="grid-column: span 1;">
                     <label>Link do herbu (URL)</label>
-                    <input type="text" id="inp-home-logo" placeholder="https://link-do-grafiki.png" oninput="syncData()">
+                    <input type="text" id="home-logo-input" placeholder="https://link-do-grafiki.png">
                 </div>
             </div>
         </div>
@@ -92,47 +96,70 @@
             <h3>Goście (Personalizacja)</h3>
             <div class="form-group">
                 <label>Nazwa Drużyny</label>
-                <input type="text" id="inp-away-name" value="ELCHE" oninput="syncData()">
+                <input type="text" id="away-name-input" value="ELCHE">
             </div>
             <div class="form-group">
                 <label>Trener</label>
-                <input type="text" id="inp-away-coach" value="Trener Gości" oninput="syncData()">
+                <input type="text" id="away-coach-input" value="TRENER GOŚCI">
             </div>
-            <div class="grid-two" style="margin-bottom:0;">
+            <div class="grid-two" style="margin-bottom:0; grid-template-columns: 1fr 1fr 1fr;">
                 <div class="form-group">
-                    <label>Kolor Klubu</label>
-                    <input type="color" id="inp-away-color" value="#ff0055" oninput="syncData()">
+                    <label>Kolor Główny</label>
+                    <input type="color" id="away-color-input" value="#ff0055">
                 </div>
                 <div class="form-group">
+                    <label>Kolor Tekstu</label>
+                    <input type="color" id="away-textcolor-input" value="#ffffff">
+                </div>
+                <div class="form-group" style="grid-column: span 1;">
                     <label>Link do herbu (URL)</label>
-                    <input type="text" id="inp-away-logo" placeholder="https://link-do-grafiki.png" oninput="syncData()">
+                    <input type="text" id="away-logo-input" placeholder="https://link-do-grafiki.png">
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="section-box">
-        <label>Część meczu / Połowa</label>
-        <select id="inp-period" onchange="syncData()">
-            <option value="1H">1. Połowa</option>
-            <option value="2H">2. Połowa</option>
-            <option value="OT">Dogrywka</option>
-        </select>
+    <div class="grid-two">
+        <div class="section-box">
+            <label>Część meczu / Połowa</label>
+            <select id="period-select">
+                <option value="1H">1. Połowa</option>
+                <option value="2H">2. Połowa</option>
+                <option value="OT">Dogrywka</option>
+            </select>
+        </div>
+        <div class="section-box" style="display: flex; align-items: flex-end; justify-content: gap; gap: 10px;">
+            <button id="btn-swap" class="btn-secondary" style="width: 50%;">Zamień Strony (Swap)</button>
+            <button id="btn-force-update" class="btn-primary" style="width: 50%;">Wymuś synchronizację</button>
+        </div>
     </div>
 
     <div class="section-box">
         <h3>Składy i Rezerwowi</h3>
         <div class="tab-menu">
-            <button id="tab-h" class="tab-btn active" onclick="switchTab('home')">Gospodarze</button>
-            <button id="tab-a" class="tab-btn" onclick="switchTab('away')">Goście</button>
+            <button id="tab-home" class="tab-btn active">Gospodarze</button>
+            <button id="tab-away" class="tab-btn">Goście</button>
         </div>
         <div class="form-group">
-            <label>Skład na Boisko (Max 5 linii - Format: "Numer. Nazwisko")</label>
-            <textarea id="inp-lineup-text" rows="5" placeholder="1. Bramkarz&#10;2. Zawodnik" oninput="saveCurrentLineup()"></textarea>
+            <label>Skład na Boisko (Format: "Numer. Nazwisko" — Każdy w nowej linii)</label>
+            <textarea id="lineup-main-input" rows="5" placeholder="1. Bramkarz&#10;2. Zawodnik"></textarea>
         </div>
         <div class="form-group">
-            <label>Zawodnicy Rezerwowi</label>
-            <input type="text" id="inp-bench-text" placeholder="Wpisz po przecinku" oninput="saveCurrentLineup()">
+            <label>Zawodnicy Rezerwowi (Każdy w nowej linii)</label>
+            <textarea id="lineup-bench-input" rows="2" placeholder="12. Rezerwowy 1&#10;14. Rezerwowy 2"></textarea>
+        </div>
+        <button id="btn-save-lineups" class="btn-primary">Zapisz zmiany w składzie</button>
+    </div>
+
+    <div class="section-box" style="border: 2px solid #ffcc00;">
+        <h3>System Bramkowy (Dynamiczna Belka Animowana)</h3>
+        <div class="form-group">
+            <label>Nazwisko / Nick zawodnika, który strzelił bramkę</label>
+            <input type="text" id="goal-scorer-input" placeholder="np. 9. LEWANDOWSKI">
+        </div>
+        <div class="flex-row">
+            <button id="btn-goal-home" style="background: #4facfe; color: #fff; flex: 1;">Gol dla GOSPODARZY (+1 i Animacja)</button>
+            <button id="btn-goal-away" style="background: #ff0055; color: #fff; flex: 1;">Gol dla GOŚCI (+1 i Animacja)</button>
         </div>
     </div>
 
@@ -141,11 +168,11 @@
         <div class="grid-two" style="margin-bottom: 10px;">
             <div class="form-group">
                 <label>Nazwisko / Zawodnik</label>
-                <input type="text" id="stat-player-name" placeholder="np. 10. KOWALSKI">
+                <input type="text" id="stat-player-input" placeholder="np. 10. KOWALSKI">
             </div>
             <div class="form-group">
                 <label>Kategoria</label>
-                <select id="stat-category">
+                <select id="stat-category-select">
                     <option value="Strzały na bramkę">Strzały na bramkę</option>
                     <option value="Gol!">Gol!</option>
                     <option value="Asysta">Asysta</option>
@@ -157,187 +184,26 @@
         </div>
         <div class="form-group">
             <label>Wartość</label>
-            <input type="text" id="stat-value" value="1" style="width: 100px;">
+            <input type="text" id="stat-value-input" value="1" style="width: 100px;">
         </div>
         
         <div class="flex-row">
-            <button onclick="controlStatPanel('show')" style="background: #00ffaa; color: #000; flex: 2; padding: 12px;">Zastosuj i WYSUŃ panel</button>
-            <button onclick="controlStatPanel('hide')" class="btn-danger" style="flex: 1; padding: 12px;">SCHOWAJ panel</button>
+            <button id="btn-show-stat" style="background: #00ffaa; color: #000; flex: 1; padding: 12px;">Zastosuj i WYSUŃ panel statystyk</button>
         </div>
     </div>
 
     <div class="section-box">
         <h3>Sterowanie Widokiem Boiska w OBS</h3>
         <div class="flex-row">
-            <button onclick="togglePitch('home')" class="btn-primary">Pokaż Skład Gospodarzy</button>
-            <button onclick="togglePitch('away')" class="btn-primary">Pokaż Skład Gości</button>
-            <button onclick="togglePitch('hide')" class="btn-danger">Schowaj Boisko</button>
-        </div>
-    </div>
-
-    <!-- NOWOŚĆ: AUTOMATYCZNY PANEL REJESTRACJI BRAMEK Z TIMESTAMPEM -->
-    <div class="section-box" style="border: 2px solid #ff0055;">
-        <h3>Szybka automatyczna rejestracja strzelca bramki</h3>
-        <div class="grid-two" style="margin-bottom: 10px;">
-            <div class="form-group">
-                <label>Nick / Nazwisko zawodnika</label>
-                <input type="text" id="automated-goal-scorer" placeholder="np. 9. LEWANDOWSKI">
-            </div>
-            <div class="form-group">
-                <label>Drużyna strzelająca</label>
-                <select id="automated-goal-side">
-                    <option value="home">GOSPODARZE</option>
-                    <option value="away">GOŚCIE</option>
-                </select>
-            </div>
-        </div>
-        <div class="form-group">
-            <button onclick="submitAutomatedGoal()" style="background: #ff0055; color: #fff; width: 100%; padding: 14px; font-size: 14px; font-weight: bold;">
-                Zatwierdź bramkę (+1 punkt i wyślij animację na żywo z aktualnym czasem)
-            </button>
+            <button id="btn-show-lineup-home" class="btn-primary">Pokaż Skład Gospodarzy</button>
+            <button id="btn-show-lineup-away" class="btn-primary">Pokaż Skład Gości</button>
+            <button id="btn-hide-lineup" class="btn-danger">Schowaj Boisko</button>
         </div>
     </div>
 
 </div>
 
-<script>
-    let sHome = 0, sAway = 0, tSeconds = 0, tInterval = null;
-    let activeTab = 'home';
-
-    function syncData() {
-        const hName = document.getElementById('inp-home-name').value;
-        const aName = document.getElementById('inp-away-name').value;
-        const hCoach = document.getElementById('inp-home-coach').value;
-        const aCoach = document.getElementById('inp-away-coach').value;
-        const hColor = document.getElementById('inp-home-color').value;
-        const aColor = document.getElementById('inp-away-color').value;
-        const hLogo = document.getElementById('inp-home-logo').value;
-        const aLogo = document.getElementById('inp-away-logo').value;
-        
-        localStorage.setItem('teamHome', hName);
-        localStorage.setItem('teamAway', aName);
-        localStorage.setItem('coachHome', hCoach);
-        localStorage.setItem('coachAway', aCoach);
-        localStorage.setItem('colorHome', hColor);
-        localStorage.setItem('colorAway', aColor);
-        localStorage.setItem('logoHome', hLogo);
-        localStorage.setItem('logoAway', aLogo);
-        localStorage.setItem('match_period', document.getElementById('inp-period').value);
-        
-        document.getElementById('label-home').innerText = hName;
-        document.getElementById('label-away').innerText = aName;
-    }
-
-    function changeScore(team, val) {
-        if(team === 'home') {
-            sHome = Math.max(0, sHome + val);
-            document.getElementById('dsp-home-score').innerText = sHome;
-            localStorage.setItem('scoreHome', sHome);
-        } else {
-            sAway = Math.max(0, sAway + val);
-            document.getElementById('dsp-away-score').innerText = sAway;
-            localStorage.setItem('scoreAway', sAway);
-        }
-    }
-
-    function toggleTimer() {
-        const btn = document.getElementById('btn-start');
-        if(tInterval) {
-            clearInterval(tInterval); tInterval = null;
-            btn.innerText = "START"; btn.style.background = "#00ffaa";
-        } else {
-            btn.innerText = "STOP"; btn.style.background = "#ffcc00";
-            tInterval = setInterval(() => {
-                tSeconds++;
-                let m = Math.floor(tSeconds / 60).toString().padStart(2, '0');
-                let s = (tSeconds % 60).toString().padStart(2, '0');
-                let sStr = `${m}:${s}`;
-                document.getElementById('dsp-timer').innerText = sStr;
-                localStorage.setItem('match_timer_string', sStr);
-            }, 1000);
-        }
-    }
-
-    function resetTimer() {
-        clearInterval(tInterval); tInterval = null; tSeconds = 0;
-        document.getElementById('dsp-timer').innerText = "00:00";
-        localStorage.setItem('match_timer_string', "00:00");
-        document.getElementById('btn-start').innerText = "START";
-        document.getElementById('btn-start').style.background = "#00ffaa";
-    }
-
-    function switchTab(side) {
-        activeTab = side;
-        if(side === 'home') {
-            document.getElementById('tab-h').classList.add('active');
-            document.getElementById('tab-a').classList.remove('active');
-            document.getElementById('inp-lineup-text').value = localStorage.getItem('lineupHome') || '';
-            document.getElementById('inp-bench-text').value = localStorage.getItem('benchHome') || '';
-        } else {
-            document.getElementById('tab-a').classList.add('active');
-            document.getElementById('tab-h').classList.remove('active');
-            document.getElementById('inp-lineup-text').value = localStorage.getItem('lineupAway') || '';
-            document.getElementById('inp-bench-text').value = localStorage.getItem('benchAway') || '';
-        }
-    }
-
-    function saveCurrentLineup() {
-        const lVal = document.getElementById('inp-lineup-text').value;
-        const bVal = document.getElementById('inp-bench-text').value;
-        if(activeTab === 'home') {
-            localStorage.setItem('lineupHome', lVal);
-            localStorage.setItem('benchHome', bVal);
-        } else {
-            localStorage.setItem('lineupAway', lVal);
-            localStorage.setItem('benchAway', bVal);
-        }
-    }
-
-    function controlStatPanel(action) {
-        if(action === 'show') {
-            const pName = document.getElementById('stat-player-name').value || "ZAWODNIK";
-            const cat = document.getElementById('stat-category').value;
-            const val = document.getElementById('stat-value').value;
-
-            localStorage.setItem('stat_cur_player', pName);
-            localStorage.setItem('stat_cur_cat', cat);
-            localStorage.setItem('stat_cur_val', val);
-            localStorage.setItem('showStatPanel', 'true');
-        } else {
-            localStorage.setItem('showStatPanel', 'false');
-        }
-    }
-
-    function togglePitch(action) {
-        if(action === 'home') {
-            localStorage.setItem('showAwayLineup', 'false');
-            localStorage.setItem('showHomeLineup', 'true');
-        } else if(action === 'away') {
-            localStorage.setItem('showHomeHomeLineup', 'false');
-            localStorage.setItem('showAwayLineup', 'true');
-        } else {
-            localStorage.setItem('showHomeLineup', 'false');
-            localStorage.setItem('showAwayLineup', 'false');
-        }
-    }
-
-    // WYWOŁANIE PRZEZ NOWY PANEL AUTOMATYZACJI BRAMEK
-    function submitAutomatedGoal() {
-        if (typeof window.triggerAutomatedGoalSystem === 'function') {
-            window.triggerAutomatedGoalSystem();
-        } else {
-            // Rezerwowy fallback lokalny, gdyby skrypt Supabase się ładował dłużej
-            const side = document.getElementById('automated-goal-side').value;
-            const scorer = document.getElementById('automated-goal-scorer').value || "ZAWODNIK";
-            changeScore(side, 1);
-            document.getElementById('automated-goal-scorer').value = "";
-        }
-    }
-
-    window.onload = () => {
-        syncData();
-        saveCurrentLineup();
-    };
-</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js"></script>
 </body>
 </html>
