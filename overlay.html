@@ -2,23 +2,12 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>Overlay Meczowy - Boisko</title>
+    <title>Pełny Overlay Meczowy</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; overflow: hidden; background-color: transparent; }
 
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            overflow: hidden;
-            background-color: transparent;
-        }
-
-        /* ==========================================
-           TABLICA WYNIKÓW (SCOREBOARD)
-           ========================================== */
+        /* TABLICA WYNIKÓW */
         .hud-container {
             position: absolute;
             top: 30px;
@@ -32,228 +21,164 @@
             align-items: center;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
             z-index: 10;
-            overflow: hidden;
         }
-
-        .hud-home {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            padding: 0 20px;
-            height: 100%;
-            min-width: 200px;
-        }
-
-        .hud-away {
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            padding: 0 20px;
-            height: 100%;
-            min-width: 200px;
-        }
-
+        .hud-home, .hud-away { display: flex; align-items: center; padding: 0 20px; min-width: 200px; height: 100%; }
+        .hud-home { justify-content: flex-end; }
+        .hud-away { justify-content: flex-start; }
         .hud-center {
             background-color: #090915;
             border-left: 2px solid #252547;
             border-right: 2px solid #252547;
-            height: 100%;
-            width: 140px;
+            height: 100%; width: 140px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .hud-team-name { font-size: 18px; font-weight: 800; color: #ffffff; text-transform: uppercase; }
+        .hud-score { font-size: 24px; font-weight: 900; color: #ffffff; line-height: 1; }
+        .hud-time { font-family: monospace; font-size: 16px; font-weight: 700; color: #00f2fe; margin-top: 2px; }
+        .hud-part { font-size: 10px; font-weight: 800; color: #a0aec0; text-transform: uppercase; }
+
+        /* NOWY POP-UP STATYSTYK INDYWIDUALNYCH (DÓŁ EKRANU) */
+        .stat-popup {
+            position: absolute;
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #121224;
+            border: 2px solid #00ffaa;
+            border-radius: 8px;
+            padding: 10px 25px;
             display: flex;
-            flex-direction: column;
-            justify-content: center;
             align-items: center;
+            gap: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            transition: bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 20;
         }
+        .stat-popup.active { bottom: 40px; }
+        .stat-player { font-weight: 800; color: #fff; text-transform: uppercase; font-size: 18px; }
+        .stat-text { color: #a0aec0; text-transform: uppercase; font-size: 14px; font-weight: 600; }
+        .stat-value { font-size: 22px; font-weight: 900; color: #00ffaa; background: #090915; padding: 2px 12px; border-radius: 4px; }
 
-        .hud-team-name {
-            font-size: 18px;
-            font-weight: 800;
-            color: #ffffff;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .hud-score {
-            font-size: 24px;
-            font-weight: 900;
-            color: #ffffff;
-            line-height: 1;
-        }
-
-        .hud-time {
-            font-family: monospace;
-            font-size: 16px;
-            font-weight: 700;
-            color: #00f2fe;
-            margin-top: 2px;
-        }
-
-        .hud-part {
-            font-size: 10px;
-            font-weight: 800;
-            color: #a0aec0;
-            text-transform: uppercase;
-        }
-
-        /* ==========================================
-           GRAFICZNE BOISKO (SKŁAD)
-           ========================================== */
+        /* GRAFICZNE BOISKO (ŚRODEK EKRANU) */
         .pitch-container {
             position: absolute;
-            top: 50%;
-            left: 50%;
+            top: 50%; left: 50%;
             transform: translate(-50%, -50%) scale(0);
-            width: 700px;
-            height: 450px;
+            width: 700px; height: 480px;
             background: rgba(11, 11, 22, 0.96);
             border: 2px solid rgba(0, 242, 254, 0.3);
             border-radius: 16px;
             box-shadow: 0 20px 50px rgba(0,0,0,0.9);
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
             transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
-            opacity: 0;
-            z-index: 5;
+            opacity: 0; z-index: 5;
         }
-
-        .pitch-container.active {
-            transform: translate(-50%, -50%) scale(1);
-            opacity: 1;
-        }
-
+        .pitch-container.active { transform: translate(-50%, -50%) scale(1); opacity: 1; }
         .pitch {
             position: relative;
-            width: 640px;
-            height: 390px;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
+            width: 640px; height: 350px;
+            border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 8px;
             overflow: hidden;
             background: linear-gradient(135deg, rgba(20, 20, 35, 0.6) 0%, rgba(15, 15, 25, 0.8) 100%);
         }
-
-        /* Linie boiska */
         .center-line { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; background: rgba(255,255,255,0.2); }
-        .center-circle { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 100px; height: 100px; border: 2px solid rgba(255,255,255,0.2); border-radius: 50%; }
-        .penalty-area.home { position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 70px; height: 180px; border: 2px solid rgba(255,255,255,0.15); border-left: none; }
-        .penalty-area.away { position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 70px; height: 180px; border: 2px solid rgba(255,255,255,0.15); border-right: none; }
+        .center-circle { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 90px; height: 90px; border: 2px solid rgba(255,255,255,0.2); border-radius: 50%; }
+        .penalty-area.home { position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 60px; height: 160px; border: 2px solid rgba(255,255,255,0.15); border-left: none; }
+        .penalty-area.away { position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 60px; height: 160px; border: 2px solid rgba(255,255,255,0.15); border-right: none; }
 
-        .pitch-title {
-            position: absolute;
-            top: 15px;
-            width: 100%;
-            text-align: center;
-        }
-        .pitch-title h2 { margin: 0; font-size: 26px; letter-spacing: 2px; color: #fff; font-weight: 900; text-transform: uppercase; text-shadow: 0 0 10px rgba(0, 242, 254, 0.6); }
-        .pitch-title p { margin: 2px 0 0 0; font-size: 11px; color: #00f2fe; letter-spacing: 4px; font-weight: 700; }
+        .pitch-header { text-align: center; margin-bottom: 10px; width: 100%; }
+        .pitch-header h2 { margin: 0; font-size: 26px; color: #fff; font-weight: 900; text-transform: uppercase; text-shadow: 0 0 10px rgba(0, 242, 254, 0.6); }
+        .pitch-coach { font-size: 12px; color: #00ffaa; font-weight: bold; text-transform: uppercase; margin-top: 2px; }
+        
+        .pitch-footer { width: 640px; margin-top: 10px; padding: 6px; background: rgba(0,0,0,0.3); border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); font-size: 11px; color: #fff; }
+        .pitch-footer strong { color: #4facfe; text-transform: uppercase; }
 
-        /* Kulki zawodników */
-        .player-node {
-            position: absolute;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            transform: translate(-50%, -50%);
-        }
-
+        /* KULKI ZAWODNIKÓW */
+        .player-node { position: absolute; display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -50%); }
         .player-node .badge {
-            width: 38px;
-            height: 38px;
+            width: 36px; height: 36px;
             background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: #0b0b16;
-            font-weight: 900;
-            font-size: 16px;
-            box-shadow: 0 0 15px rgba(0, 242, 254, 0.5), 0 4px 8px rgba(0,0,0,0.4);
-            border: 2px solid #ffffff;
+            border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            color: #0b0b16; font-weight: 900; font-size: 15px;
+            box-shadow: 0 0 12px rgba(0, 242, 254, 0.5); border: 2px solid #ffffff;
         }
+        .player-node .p-name { margin-top: 4px; font-size: 12px; font-weight: 700; color: #fff; text-transform: uppercase; background: rgba(11, 11, 22, 0.85); padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
 
-        .player-node .p-name {
-            margin-top: 6px;
-            font-size: 13px;
-            font-weight: 700;
-            color: #fff;
-            text-transform: uppercase;
-            background: rgba(11, 11, 22, 0.85);
-            padding: 2px 8px;
-            border-radius: 4px;
-            border: 1px solid rgba(255,255,255,0.1);
-            white-space: nowrap;
-        }
-
-        /* Pozycje na boisku (Siatka 5 graczy) */
-        .pos-gk   { left: 12%; top: 50%; }
-        .pos-def1 { left: 34%; top: 25%; }
-        .pos-def2 { left: 34%; top: 75%; }
-        .pos-mid1 { left: 62%; top: 30%; }
+        /* FORMACJA */
+        .pos-gk   { left: 10%; top: 50%; }
+        .pos-def1 { left: 32%; top: 25%; }
+        .pos-def2 { left: 32%; top: 75%; }
+        .pos-mid1 { left: 60%; top: 30%; }
         .pos-mid2 { left: 78%; top: 58%; }
     </style>
 </head>
 <body>
 
-    <!-- SCOREBOARD -->
     <div class="hud-container">
-        <div class="hud-home">
-            <span id="score-home-name" class="hud-team-name">GOSPODARZE</span>
-        </div>
-        
+        <div class="hud-home"><span id="score-home-name" class="hud-team-name">GOSPODARZE</span></div>
         <div class="hud-center">
             <div class="hud-score"><span id="score-home-val">0</span> - <span id="score-away-val">0</span></div>
             <div id="hud-time" class="hud-time">00:00</div>
             <div id="hud-part" class="hud-part">1H</div>
         </div>
-        
-        <div class="hud-away">
-            <span id="score-away-name" class="hud-team-name">GOŚCIE</span>
-        </div>
+        <div class="hud-away"><span id="score-away-name" class="hud-team-name">GOŚCIE</span></div>
     </div>
 
-    <!-- BOISKO ZE SKŁADEM -->
     <div id="lineup-pitch-overlay" class="pitch-container">
+        <div class="pitch-header">
+            <h2 id="pitch-team-name">DRUŻYNA</h2>
+            <div id="pitch-coach-display" class="pitch-coach">TRENER: -</div>
+        </div>
         <div class="pitch">
             <div class="center-line"></div>
             <div class="center-circle"></div>
             <div class="penalty-area home"></div>
             <div class="penalty-area away"></div>
             
-            <div class="pitch-title">
-                <h2 id="pitch-team-name">DRUŻYNA</h2>
-                <p>SKŁAD WYJŚCIOWY</p>
-            </div>
-
             <div class="player-node pos-gk" id="p1"><div class="badge">1</div><span class="p-name">-</span></div>
             <div class="player-node pos-def1" id="p2"><div class="badge">2</div><span class="p-name">-</span></div>
             <div class="player-node pos-def2" id="p3"><div class="badge">3</div><span class="p-name">-</span></div>
             <div class="player-node pos-mid1" id="p4"><div class="badge">4</div><span class="p-name">-</span></div>
             <div class="player-node pos-mid2" id="p5"><div class="badge">5</div><span class="p-name">-</span></div>
         </div>
+        <div class="pitch-footer">
+            <strong>Rezerwowi:</strong> <span id="pitch-bench-display">-</span>
+        </div>
+    </div>
+
+    <div id="stat-alert" class="stat-popup">
+        <div id="stat-dsp-player" class="stat-player">ZAWODNIK</div>
+        <div id="stat-dsp-label" class="stat-text">STRZAŁY NA BRAMKĘ</div>
+        <div id="stat-dsp-val" class="stat-value">1</div>
     </div>
 
     <script>
+        let statTimeout = null;
+
         function updateOverlay() {
-            // Podstawowa tablica wyników
+            // Wyniki i czas
             if (localStorage.getItem('teamHome')) document.getElementById('score-home-name').innerText = localStorage.getItem('teamHome').toUpperCase();
             if (localStorage.getItem('teamAway')) document.getElementById('score-away-name').innerText = localStorage.getItem('teamAway').toUpperCase();
             if (localStorage.getItem('scoreHome')) document.getElementById('score-home-val').innerText = localStorage.getItem('scoreHome');
             if (localStorage.getItem('scoreAway')) document.getElementById('score-away-val').innerText = localStorage.getItem('scoreAway');
-            
             if (localStorage.getItem('match_timer_string')) document.getElementById('hud-time').innerText = localStorage.getItem('match_timer_string');
             if (localStorage.getItem('match_period')) document.getElementById('hud-part').innerText = localStorage.getItem('match_period');
 
-            // Logika obsługi wyświetlania boiska
+            // Pokazywanie boiska
             const pitchOverlay = document.getElementById('lineup-pitch-overlay');
             const showHome = localStorage.getItem('showHomeLineup') === 'true';
             const showAway = localStorage.getItem('showAwayLineup') === 'true';
 
             if (showHome) {
                 document.getElementById('pitch-team-name').innerText = (localStorage.getItem('teamHome') || "GOSPODARZE").toUpperCase();
+                document.getElementById('pitch-coach-display').innerText = "TRENER: " + (localStorage.getItem('coachHome') || "-").toUpperCase();
+                document.getElementById('pitch-bench-display').innerText = localStorage.getItem('benchHome') || "BRAK REZERWOWYCH";
                 fillPitchPlayers('lineupHome');
                 pitchOverlay.classList.add('active');
             } else if (showAway) {
                 document.getElementById('pitch-team-name').innerText = (localStorage.getItem('teamAway') || "GOŚCIE").toUpperCase();
+                document.getElementById('pitch-coach-display').innerText = "TRENER: " + (localStorage.getItem('coachAway') || "-").toUpperCase();
+                document.getElementById('pitch-bench-display').innerText = localStorage.getItem('benchAway') || "BRAK REZERWOWYCH";
                 fillPitchPlayers('lineupAway');
                 pitchOverlay.classList.add('active');
             } else {
@@ -264,7 +189,6 @@
         function fillPitchPlayers(storageKey) {
             const rawData = localStorage.getItem(storageKey) || "";
             const players = rawData.split('\n').map(p => p.trim()).filter(p => p.length > 0);
-            
             for (let i = 1; i <= 5; i++) {
                 const playerNode = document.getElementById(`p${i}`);
                 if (players[i - 1]) {
@@ -283,8 +207,27 @@
             }
         }
 
-        window.addEventListener('storage', updateOverlay);
-        setInterval(updateOverlay, 100);
+        // Wykrywanie akcji animacji statystyk
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'trigger_stat_anim' && e.newValue) {
+                const statData = JSON.parse(e.newValue);
+                
+                document.getElementById('stat-dsp-player').innerText = statData.player.toUpperCase();
+                document.getElementById('stat-dsp-label').innerText = statData.category.toUpperCase();
+                document.getElementById('stat-dsp-val').innerText = statData.value;
+
+                const alertBox = document.getElementById('stat-alert');
+                alertBox.classList.add('active');
+
+                clearTimeout(statTimeout);
+                statTimeout = setTimeout(() => {
+                    alertBox.classList.remove('active');
+                }, 5000); // Znika po 5 sekundach
+            }
+            updateOverlay();
+        });
+
+        setInterval(updateOverlay, 200);
         window.onload = updateOverlay;
     </script>
 </body>
