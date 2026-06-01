@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OBS Overlay HUD</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="overlay-body">
+
+    <div class="scoreboard-wrapper">
+        <div class="scoreboard">
+            <div class="badge-accent"></div>
+            <div class="team home"><span id="hud-home-name">HOME</span></div>
+            <div class="score"><span id="hud-home-score">0</span></div>
+            <div class="divider">:</div>
+            <div class="score"><span id="hud-away-score">0</span></div>
+            <div class="team away"><span id="hud-away-name">AWAY</span></div>
+            <div class="timer-box">
+                <span id="hud-timer">00:00</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="goal-overlay" class="goal-overlay-container">
+        <div class="goal-bg-flash"></div>
+        <div class="goal-ribbon">
+            <h1 class="goal-title">GOOOAL!</h1>
+            <div class="goal-details">
+                <span id="goal-scorer" class="scorer-anim">PLAYER NAME</span>
+                <span id="goal-team" class="team-anim">HOME</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="lineups-overlay" class="lineups-container">
+        <div class="lineup-col left-team">
+            <h2 id="lineup-home-title">HOME TEAM</h2>
+            <ul id="home-players-list"></ul>
+        </div>
+        <div class="lineup-col right-team">
+            <h2 id="lineup-away-title">AWAY TEAM</h2>
+            <ul id="away-players-list"></ul>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        // Inicjalizacja trybu nakładki w OBS
+        document.addEventListener("DOMContentLoaded", () => {
+            renderLineupsStructures();
+            initOverlayView();
+        });
+    </script>
+</body>
+</html>
