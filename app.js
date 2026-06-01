@@ -21,6 +21,13 @@ let matchState = {
     awayLogo: ""
 };
 
+// Lokalny stan managera składów w panelu sterowania
+let currentEditingTeam = 'home';
+let localLineups = {
+    home: { main: "", bench: "" },
+    away: { main: "", bench: "" }
+};
+
 const isOverlay = window.location.pathname.includes('overlay.html');
 const isControl = window.location.pathname.includes('control.html');
 
@@ -66,10 +73,13 @@ function initSystem() {
         });
 
     broadcastChannel.subscribe((status) => {
-        if (status === 'SUBSCRIBED' && isControl) {
-            console.log("Połączono z Supabase Realtime (Panel Kontrolny)");
-            // Pobierz aktualny stan z formularzy na start
-            setTimeout(() => { updateTeams(); }, 500);
+        if (status === 'SUBSCRIBED') {
+            console.log("Połączono z kanałem Supabase Realtime");
+            if (isControl) {
+                setTimeout(() => {
+                    updateTeams();
+                }, 1000);
+            }
         }
     });
 
@@ -92,7 +102,6 @@ function formatTime(seconds) {
 }
 
 function initControl() {
-    // Podpinanie zdarzeń pod przyciski z control.html
     document.getElementById('home-plus').addEventListener('click', () => changeScore('home', 1));
     document.getElementById('home-minus').addEventListener('click', () => changeScore('home', -1));
     document.getElementById('away-plus').addEventListener('click', () => changeScore('away', 1));
@@ -105,10 +114,8 @@ function initControl() {
     document.getElementById('btn-swap').addEventListener('click', swapTeams);
     document.getElementById('btn-force-update').addEventListener('click', updateTeams);
     
-    // Zapisywanie składów
-    document.getElementById('btn-save-lineups').addEventListener('click', updateTeams);
+    document.getElementById('btn-save-lineups').addEventListener('click', saveActiveLineupTab);
     
-    // Wyzwalacze akcji i animacji
     document.getElementById('btn-goal-home').addEventListener('click', () => triggerGoalAnimation('home'));
     document.getElementById('btn-goal-away').addEventListener('click', () => triggerGoalAnimation('away'));
     document.getElementById('btn-show-stat').addEventListener('click', triggerPlayerStat);
@@ -117,18 +124,43 @@ function initControl() {
     document.getElementById('btn-show-lineup-away').addEventListener('click', () => triggerLineupVisual('away', true));
     document.getElementById('btn-hide-lineup').addEventListener('click', () => triggerLineupVisual('home', false));
 
-    // Nasłuchiwanie zmian w inputach tekstowych na żywo
     const liveInputs = [
         'home-name-input', 'away-name-input', 
         'home-color-input', 'home-textcolor-input', 
         'away-color-input', 'away-textcolor-input',
-        'home-logo-input', 'away-logo-input'
+        'home-logo-input', 'away-logo-input',
+        'home-coach-input', 'away-coach-input'
     ];
     liveInputs.forEach(id => {
         document.getElementById(id).addEventListener('input', updateTeams);
     });
 
     updateControlUI();
+}
+
+function switchLineupTab(team) {
+    // Zapisz stary stan z formularzy przed zmianą karty
+    localLineups[currentEditingTeam].main = document.getElementById('lineup-main-input').value;
+    localLineups[currentEditingTeam].bench = document.getElementById('lineup-bench-input').value;
+
+    currentEditingTeam = team;
+
+    document.getElementById('tab-home').classList.toggle('active', team === 'home');
+    document.getElementById('tab-away').classList.toggle('active', team === 'away');
+
+    document.getElementById('main-players-label').innerText = team === 'home' ? "Skład Główny Gospodarzy (5 linii)" : "Skład Główny Gości (5 linii)";
+    document.getElementById('bench-players-label').innerText = team === 'home' ? "Zawodnicy Rezerwowi Gospodarzy" : "Zawodnicy Rezerwowi Gości";
+
+    // Przywróć dane dla wybranej drużyny
+    document.getElementById('lineup-main-input').value = localLineups[team].main;
+    document.getElementById('lineup-bench-input').value = localLineups[team].bench;
+}
+
+function saveActiveLineupTab() {
+    localLineups[currentEditingTeam].main = document.getElementById('lineup-main-input').value;
+    localLineups[currentEditingTeam].bench = document.getElementById('lineup-bench-input').value;
+    
+    updateTeams();
 }
 
 function updateControlUI() {
@@ -159,18 +191,20 @@ function updateTeams() {
     matchState.homeLogo = document.getElementById('home-logo-input').value.trim();
     matchState.awayLogo = document.getElementById('away-logo-input').value.trim();
     
-    // Przetwarzanie textarea ze składami ze względu na strukturę linii (Entery)
-    const mainPlayers = document.getElementById('lineup-main-input').value.split('\n').map(p => p.trim()).filter(p => p !== "");
-    const benchPlayers = document.getElementById('lineup-bench-input').value.split('\n').map(p => p.trim()).filter(p => p !== "");
+    matchState.homeCoach = document.getElementById('home-coach-input').value.toUpperCase();
+    matchState.awayCoach = document.getElementById('away-coach-input').value.toUpperCase();
     
-    // Łączymy je w jedną tablicę zawodników (pierwsze 5 to skład główny, reszta to rezerwa)
-    matchState.homePlayers = [...mainPlayers, ...benchPlayers];
-    // Dla uproszczenia (gdyż control ma jeden zestaw pól składu), traktujemy go jako skład aktualnie wybranej drużyny
-    // Aby obsłużyć obie drużyny, system zachowa przesłaną listę.
+    // Konwersja składów z pamięci lokalnej kart na tablice stanu globalnego
+    // Gospodarze
+    const homeMain = localLineups.home.main.split('\n').map(p => p.trim()).filter(p => p !== "");
+    const homeBench = localLineups.home.bench.split('\n').map(p => p.trim()).filter(p => p !== "");
+    matchState.homePlayers = [...homeMain, ...homeBench];
+
+    // Goście
+    const awayMain = localLineups.away.main.split('\n').map(p => p.trim()).filter(p => p !== "");
+    const awayBench = localLineups.away.bench.split('\n').map(p => p.trim()).filter(p => p !== "");
+    matchState.awayPlayers = [...awayMain, ...awayBench];
     
-    matchState.homeCoach = document.getElementById('lineup-coach-input').value;
-    
-    // Sprawdzamy, dla kogo aktualnie edytujemy skład na podstawie wybranego widoku lub domyślnie przypisujemy do gospodarza
     sendToOBS('state_update', matchState);
 }
 
@@ -185,6 +219,8 @@ function swapTeams() {
     const aText = document.getElementById('away-textcolor-input').value;
     const hLogo = document.getElementById('home-logo-input').value;
     const aLogo = document.getElementById('away-logo-input').value;
+    const hCoach = document.getElementById('home-coach-input').value;
+    const aCoach = document.getElementById('away-coach-input').value;
 
     document.getElementById('home-name-input').value = aName;
     document.getElementById('away-name-input').value = hName;
@@ -194,10 +230,21 @@ function swapTeams() {
     document.getElementById('away-textcolor-input').value = hText;
     document.getElementById('home-logo-input').value = aLogo;
     document.getElementById('away-logo-input').value = hLogo;
+    document.getElementById('home-coach-input').value = aCoach;
+    document.getElementById('away-coach-input').value = hCoach;
 
     const tempScore = matchState.homeScore;
     matchState.homeScore = matchState.awayScore;
     matchState.awayScore = tempScore;
+
+    // Zamiana składów w pamięci podręcznej panelu
+    const tempLineups = localLineups.home;
+    localLineups.home = localLineups.away;
+    localLineups.away = tempLineups;
+
+    // Odświeżenie pól tekstowych aktualnie otwartej zakładki
+    document.getElementById('lineup-main-input').value = localLineups[currentEditingTeam].main;
+    document.getElementById('lineup-bench-input').value = localLineups[currentEditingTeam].bench;
 
     updateTeams();
     updateControlUI();
@@ -245,8 +292,8 @@ function resetTimer() {
 function triggerGoalAnimation(side) {
     const teamName = side === 'home' ? matchState.homeName : matchState.awayName;
     const currentTimeString = formatTime(matchState.timerSeconds);
+    const customScorer = document.getElementById('goal-scorer-input').value.trim() || "ZAWODNIK";
     
-    // Zwiększamy też automatycznie wynik przy animacji gola!
     changeScore(side, 1);
     
     sendToOBS('trigger_action', { 
@@ -254,7 +301,7 @@ function triggerGoalAnimation(side) {
         type: 'GOAL', 
         side: side, 
         team: teamName, 
-        scorer: "ZAWODNIK",
+        scorer: customScorer.toUpperCase(),
         time: currentTimeString
     });
 }
@@ -276,8 +323,6 @@ function triggerPlayerStat() {
 }
 
 function triggerLineupVisual(side, show) {
-    // Przed pokazaniem składu upewniamy się, że zaciągnęliśmy najnowsze teksty z pól formularza
-    if(show) updateTeams(); 
     sendToOBS('trigger_action', { 
         id: `lineup_${side}_` + Date.now(), 
         type: side === 'home' ? 'LINEUP_HOME' : 'LINEUP_AWAY', 
@@ -302,7 +347,6 @@ function updateOverlayUI() {
             homeHudImg.style.display = "block";
         } else {
             homeHudImg.style.display = "none";
-            homeHudImg.src = "";
         }
     }
     if (awayHudImg) {
@@ -311,7 +355,6 @@ function updateOverlayUI() {
             awayHudImg.style.display = "block";
         } else {
             awayHudImg.style.display = "none";
-            awayHudImg.src = "";
         }
     }
 }
@@ -335,7 +378,7 @@ function animatePlayerStat(side, player, category, value) {
     const tl = gsap.timeline();
     tl.set(container, { visibility: 'visible', y: 250, opacity: 0 })
       .to(container, { y: 0, opacity: 1, duration: 0.7, ease: "back.out(1.2)" })
-      .to({}, { duration: 8.5 })
+      .to({}, { duration: 8.0 })
       .to(container, { y: 250, opacity: 0, duration: 0.5, ease: "power2.in", onComplete: () => {
           gsap.set(container, { visibility: 'hidden' });
       }});
@@ -354,10 +397,13 @@ function animateGoal(side, team, scorer, timeString) {
     accentStripe.style.setProperty('background-color', mainColor, 'important');
     document.getElementById('goal-badge-team').style.setProperty('color', mainColor, 'important');
 
+    gsap.killTweensOf(container);
+
+    // KONTROLA CZASU ANIMACJI: równe 8 sekund wyświetlania belki na ekranie
     const tl = gsap.timeline();
     tl.set(container, { visibility: 'visible', y: 250, opacity: 0 })
-      .to(container, { y: 0, opacity: 1, duration: 0.7, ease: "back.out(1.2)" })
-      .to({}, { duration: 8.0 })
+      .to(container, { y: 0, opacity: 1, duration: 0.6, ease: "back.out(1.1)" })
+      .to({}, { duration: 8.0 }) 
       .to(container, { y: 250, opacity: 0, duration: 0.5, ease: "power2.in", onComplete: () => {
           gsap.set(container, { visibility: 'hidden' });
       }});
@@ -372,8 +418,8 @@ function animateLineupCentral(side, show) {
         const teamName = side === 'home' ? matchState.homeName : matchState.awayName;
         const mainColor = side === 'home' ? matchState.homeColor : matchState.awayColor;
         const textColor = side === 'home' ? matchState.homeTextColor : matchState.awayTextColor;
-        const playersList = matchState.homePlayers; // Uproszczone pobieranie listy
-        const coachName = matchState.homeCoach;
+        const playersList = side === 'home' ? matchState.homePlayers : matchState.awayPlayers;
+        const coachName = side === 'home' ? matchState.homeCoach : matchState.awayCoach;
         const teamLogoUrl = side === 'home' ? matchState.homeLogo : matchState.awayLogo;
 
         const lineupLogoImg = document.getElementById('lineup-team-logo');
@@ -383,7 +429,6 @@ function animateLineupCentral(side, show) {
                 lineupLogoImg.style.display = "block";
             } else {
                 lineupLogoImg.style.display = "none";
-                lineupLogoImg.src = "";
             }
         }
 
@@ -433,7 +478,7 @@ function animateLineupCentral(side, show) {
 
         const coachDiv = document.getElementById('lineup-coach-display');
         if (coachDiv) {
-            coachDiv.innerText = coachName || "BRAK";
+            coachDiv.innerText = coachName || "BRAK TRENERA";
             coachDiv.style.borderLeft = `4px solid ${mainColor}`;
         }
 
