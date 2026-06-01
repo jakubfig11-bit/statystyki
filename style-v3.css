@@ -693,78 +693,107 @@ input[type="color"]::-webkit-color-swatch {
 }
 
 /* ==========================================
-   7. DYNAMICZNA BELKA STATYSTYK (TV PREMIUM REDESIGN)
+   CAŁKOWICIE NOWA, CZYTELNA ANIMACJA STATYSTYK
    ========================================== */
-.tv-stat-wrapper {
-    position: absolute;
-    bottom: 50px;
-    left: 50%;
-    transform: translateX(-50%) translateY(150px);
-    width: 560px;
-    height: 80px;
-    background: linear-gradient(135deg, rgba(8, 8, 22, 0.98) 0%, rgba(18, 18, 38, 0.95) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 8px;
-    display: flex;
-    overflow: hidden;
-    box-shadow: 0 20px 45 rgba(0, 0, 0, 0.85);
-    z-index: 99;
-    visibility: hidden;
-    opacity: 0;
+
+/* Główny kontener belki statystyk */
+.tv-stat-wrapper, 
+div[class*="stat-badge"], 
+div[class*="stat-wrapper"] {
+    position: absolute !important;
+    bottom: 60px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 650px !important; /* Odpowiednia szerokość na długie nazwy */
+    height: 80px !important; /* Wyższa belka, żeby nic się nie ucinało */
+    background: linear-gradient(135deg, #111125 0%, #070714 100%) !important; /* Głęboka, czytelna ciemna barwa */
+    border: 2px solid #252547 !important;
+    border-radius: 10px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    overflow: hidden !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8) !important;
+    padding: 0 !important;
 }
 
-.tv-stat-stripe {
-    width: 10px;
-    height: 100%;
-    background-color: #00f2fe;
-    transition: background-color 0.3s ease;
+/* Kolorowy pasek ozdobny po lewej stronie (pociągnięty z Twojego panelu) */
+.tv-stat-stripe,
+div[class*="stripe"] {
+    width: 12px !important;
+    height: 100% !important;
+    background: linear-gradient(to bottom, #00f2fe, #4facfe) !important; /* Ładny neonowy gradient */
+    flex-shrink: 0 !important;
 }
 
-.tv-stat-content {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 24px;
+/* Główna zawartość wewnątrz belki */
+.tv-stat-content,
+div[class*="content"] {
+    flex: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    height: 100% !important;
+    padding: 0 25px !important;
 }
 
-.tv-stat-info {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
+/* Blok z tekstami (Nazwisko / Nazwa statystyki) */
+.tv-stat-info,
+div[class*="info"],
+div[class*="left"] {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    gap: 4px !important;
 }
 
-.tv-stat-label {
-    font-size: 10px;
-    font-weight: 800;
-    color: #718096;
-    letter-spacing: 3px;
-    text-transform: uppercase;
+/* Mały napis pomocniczy nad główną statystyką (np. STATYSTYKI MECZU / ZAWODNIK) */
+.tv-stat-label,
+div[class*="label"],
+div[class*="title"] {
+    font-family: 'Arial', sans-serif !important;
+    font-size: 11px !important;
+    font-weight: 800 !important;
+    color: #718096 !important; /* Jasnoszary, wyraźny kolor */
+    text-transform: uppercase !important;
+    letter-spacing: 2px !important;
 }
 
-.tv-stat-name {
-    font-size: 22px;
-    font-weight: 900;
-    color: #ffffff;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+/* Główny tekst statystyki - DUŻY, BIAŁY I CZYTELNY */
+.tv-stat-name,
+div[class*="stat-name"],
+div[class*="player"] {
+    font-family: 'Arial Black', 'Impact', sans-serif !important;
+    font-size: 22px !important; /* Duża czcionka */
+    font-weight: 900 !important;
+    color: #ffffff !important; /* Czysta biel – idealna widoczność na ciemnym tle */
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
 }
 
-.tv-stat-value-box {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
+/* Kontener na dużą cyfrę (wartość statystyki) po prawej stronie */
+.tv-stat-value-box,
+div[class*="value-box"],
+div[class*="right"] {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: rgba(255, 255, 255, 0.05) !important; /* Delikatne wyróżnienie tła pod cyfrą */
+    height: 100% !important;
+    padding: 0 25px !important;
+    border-left: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
-.tv-stat-value {
-    font-size: 44px;
-    font-weight: 950;
-    color: #00f2fe;
-    text-shadow: 0 0 15px rgba(0, 242, 254, 0.5);
-    line-height: 1;
-    transition: color 0.3s ease;
+/* Styl dla samej cyfry - NIE NAKŁADA SIĘ I NIE UCINA */
+.tv-stat-value,
+div[class*="stat-value"],
+div[class*="val"] {
+    font-family: 'Arial Black', sans-serif !important;
+    font-size: 38px !important; /* Potężna, czytelna cyfra telewizyjna */
+    font-weight: 950 !important;
+    color: #00f2fe !important; /* Neonowy błękit – świetnie kontrastuje */
+    line-height: 1 !important;
+    text-shadow: 0 0 15px rgba(0, 242, 254, 0.4) !important;
 }
 
 /* ==========================================
