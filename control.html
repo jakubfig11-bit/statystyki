@@ -1,47 +1,37 @@
 <!DOCTYPE html>
-<html lang="pl" style="background: #11141a !important; overflow-y: auto !important; height: auto !important;">
+<html lang="pl" style="background: #11141a !important; overflow-y: auto !important;">
 <head>
     <meta charset="UTF-8">
-    <title>PANEL KONTROLNY - Scoreboard v3</title>
+    <title>PANEL KONTROLNY - Boisko z Kulkami</title>
     <style>
         html, body {
             background: #11141a !important;
             overflow-y: auto !important;
-            overflow-x: hidden !important;
-            height: auto !important;
             font-family: 'Segoe UI', Arial, sans-serif;
             color: #fff;
-        }
-        #scroll-force-container {
-            display: block !important;
-            width: 100% !important;
-            height: auto !important;
-            min-height: 100vh !important;
-            overflow-y: auto !important;
-            padding: 20px !important;
-            box-sizing: border-box !important;
+            padding: 15px;
+            margin: 0;
         }
         .control-container {
-            max-width: 1100px;
+            max-width: 900px;
             margin: 0 auto;
             background: #1a1f29;
-            padding: 25px;
+            padding: 20px;
             border-radius: 12px;
             box-shadow: 0 8px 24px rgba(0,0,0,0.5);
         }
         h2, h3 {
             margin-top: 0;
             text-transform: uppercase;
-            letter-spacing: 1px;
             color: #00ffaa;
             border-bottom: 1px solid #2d3748;
-            padding-bottom: 8px;
+            padding-bottom: 6px;
         }
         .grid-two {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         .section-box {
             background: #242b38;
@@ -68,16 +58,6 @@
             color: #fff;
             border-radius: 4px;
             box-sizing: border-box;
-            font-family: inherit;
-        }
-        input[type="color"] {
-            width: 100%;
-            height: 34px;
-            background: none;
-            border: 1px solid #3f4e66;
-            cursor: pointer;
-            border-radius: 4px;
-            padding: 2px;
         }
         .flex-row {
             display: flex;
@@ -88,457 +68,258 @@
             background: #00ffaa;
             color: #000;
             border: none;
-            padding: 10px 16px;
+            padding: 10px 14px;
             font-weight: bold;
             text-transform: uppercase;
             border-radius: 4px;
             cursor: pointer;
-            transition: all 0.2s;
         }
-        button:hover {
-            background: #00cc88;
-            box-shadow: 0 0 10px rgba(0,255,170,0.3);
-        }
+        button:hover { background: #00cc88; }
         .btn-danger { background: #ff4d4d; color: white; }
         .btn-danger:hover { background: #cc3333; }
         .btn-secondary { background: #4a5568; color: white; }
-        .btn-secondary:hover { background: #313b4e; }
         
-        .score-panel-display {
+        .score-display-box {
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 30px;
+            gap: 40px;
             background: #11141a;
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 20px;
         }
-        .score-box {
-            text-align: center;
-        }
         .score-num {
-            font-size: 48px;
+            font-size: 42px;
             font-weight: bold;
             color: #00ffaa;
             font-family: monospace;
             margin: 5px 0;
+            text-align: center;
         }
-        .timer-display-large {
-            font-size: 36px;
+        .timer-large {
+            font-size: 32px;
             font-weight: bold;
-            color: #fff;
             font-family: monospace;
             background: #242b38;
             padding: 5px 15px;
             border-radius: 4px;
-            letter-spacing: 2px;
         }
-        
-        .lineup-tabs {
+        .tab-menu {
             display: flex;
             gap: 5px;
-            margin-bottom: 15px;
             background: #11141a;
             padding: 5px;
             border-radius: 6px;
+            margin-bottom: 10px;
         }
         .tab-btn {
             flex: 1;
             background: transparent;
             color: #a0aec0;
-            padding: 8px;
-            font-size: 12px;
+            padding: 6px;
             border: none;
             cursor: pointer;
-            text-transform: uppercase;
             font-weight: bold;
         }
         .tab-btn.active {
             background: #4facfe;
-            color: #fff;
+            color: white;
         }
     </style>
 </head>
 <body>
 
-<div id="scroll-force-container">
-    <div class="control-container">
-        <h2>Meczowy Panel Sterowania Realtime</h2>
+<div class="control-container">
+    <h2>Panel Kontrolny Meczu</h2>
+    
+    <!-- WYNIKI I CZAS -->
+    <div class="score-display-box">
+        <div>
+            <div id="label-home" style="text-align:center; font-weight:bold;">GOSPODARZE</div>
+            <div class="score-num" id="dsp-home-score">0</div>
+            <div class="flex-row">
+                <button onclick="changeScore('home', -1)" class="btn-secondary">-1</button>
+                <button onclick="changeScore('home', 1)">+1</button>
+            </div>
+        </div>
         
-        <div class="score-panel-display">
-            <div class="score-box">
-                <label id="label-home-score">Gospodarze</label>
-                <div class="score-num" id="home-score-display">0</div>
-                <div class="flex-row">
-                    <button id="home-minus" class="btn-secondary">-1</button>
-                    <button id="home-plus">+1</button>
-                </div>
-            </div>
-            
-            <div style="text-align: center;">
-                <label>Aktualny Czas</label>
-                <div class="timer-display-large" id="control-timer-display">00:00</div>
-                <div class="flex-row" style="margin-top: 10px; justify-content: center;">
-                    <button id="btn-timer-start">START</button>
-                    <button id="btn-timer-reset" class="btn-danger">RESET</button>
-                </div>
-            </div>
-
-            <div class="score-box">
-                <label id="label-away-score">Goście</label>
-                <div class="score-num" id="away-score-display">0</div>
-                <div class="flex-row">
-                    <button id="away-minus" class="btn-secondary">-1</button>
-                    <button id="away-plus">+1</button>
-                </div>
+        <div style="text-align: center;">
+            <label>Stoper</label>
+            <div class="timer-large" id="dsp-timer">00:00</div>
+            <div class="flex-row" style="margin-top: 8px; justify-content: center;">
+                <button id="btn-start" onclick="toggleTimer()">START</button>
+                <button class="btn-danger" onclick="resetTimer()">RESET</button>
             </div>
         </div>
 
-        <div class="grid-two">
-            <div class="section-box">
-                <h3>Gospodarze (Ustawienia)</h3>
-                <div class="form-group">
-                    <label>Nazwa Drużyny</label>
-                    <input type="text" id="home-name-input" value="TORINO">
-                </div>
-                <div class="grid-two" style="margin-bottom:0;">
-                    <div class="form-group">
-                        <label>Kolor Główny</label>
-                        <input type="color" id="home-color-input" value="#ff0055">
-                    </div>
-                    <div class="form-group">
-                        <label>Kolor Tekstu</label>
-                        <input type="color" id="home-textcolor-input" value="#ffffff">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Link do Logo URL</label>
-                    <input type="text" id="home-logo-input" placeholder="https://link.png">
-                </div>
-                <div class="form-group">
-                    <label>Trener Gospodarzy</label>
-                    <input type="text" id="home-coach-input">
-                </div>
-            </div>
-
-            <div class="section-box">
-                <h3>Goście (Ustawienia)</h3>
-                <div class="form-group">
-                    <label>Nazwa Drużyny</label>
-                    <input type="text" id="away-name-input" value="ELCHE">
-                </div>
-                <div class="grid-two" style="margin-bottom:0;">
-                    <div class="form-group">
-                        <label>Kolor Główny</label>
-                        <input type="color" id="away-color-input" value="#ffff00">
-                    </div>
-                    <div class="form-group">
-                        <label>Kolor Tekstu</label>
-                        <input type="color" id="away-textcolor-input" value="#000000">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Link do Logo URL</label>
-                    <input type="text" id="away-logo-input" placeholder="https://link.png">
-                </div>
-                <div class="form-group">
-                    <label>Trener Gości</label>
-                    <input type="text" id="away-coach-input">
-                </div>
+        <div>
+            <div id="label-away" style="text-align:center; font-weight:bold;">GOŚCIE</div>
+            <div class="score-num" id="dsp-away-score">0</div>
+            <div class="flex-row">
+                <button onclick="changeScore('away', -1)" class="btn-secondary">-1</button>
+                <button onclick="changeScore('away', 1)">+1</button>
             </div>
         </div>
-
-        <div class="section-box" style="margin-bottom: 20px; display: flex; gap: 15px; align-items: center;">
-            <div style="flex: 1;">
-                <label>Część Meczu (Połowa/Kwarta)</label>
-                <select id="period-select">
-                    <option value="1H">1. POŁOWA</option>
-                    <option value="2H">2. POŁOWA</option>
-                    <option value="OT">DOGRYWKA</option>
-                </select>
-            </div>
-            <button id="btn-swap" class="btn-secondary" style="margin-top: 15px;">Zamień Strony (SWAP)</button>
-            <button id="btn-force-update" style="margin-top: 15px;">Wymuś synchronizację</button>
-        </div>
-
-        <div class="section-box" style="margin-bottom: 20px;">
-            <h3>Zarządzanie Składami</h3>
-            <div class="lineup-tabs">
-                <button type="button" id="tab-home" class="tab-btn active">EDYCJA: GOSPODARZE</button>
-                <button type="button" id="tab-away" class="tab-btn">EDYCJA: GOŚCIE</button>
-            </div>
-            <div class="grid-two">
-                <div class="form-group">
-                    <label id="main-players-label">Skład Główny (5 linii): GOSPODARZE</label>
-                    <textarea id="lineup-main-input" rows="6" placeholder="1. Bramkarz&#10;2. Obrońca&#10;3. Pomocnik"></textarea>
-                </div>
-                <div class="form-group">
-                    <label id="bench-players-label">Zawodnicy Rezerwowi</label>
-                    <textarea id="lineup-bench-input" rows="6" placeholder="12. Rezerwowy A&#10;14. Rezerwowy B"></textarea>
-                </div>
-            </div>
-            <div class="flex-row" style="justify-content: flex-end;">
-                <button id="btn-save-lineups" style="background: #4facfe; color: #fff;">ZAPISZ AKTUALNY SKŁAD</button>
-            </div>
-        </div>
-
-        <div class="grid-two">
-            <div class="section-box">
-                <h3>Wizualizacja Składów (Mecz)</h3>
-                <div class="flex-row" style="flex-wrap: wrap; margin-bottom: 15px;">
-                    <button id="btn-show-lineup-home">Pokaż Skład Gospodarzy</button>
-                    <button id="btn-show-lineup-away">Pokaż Skład Gości</button>
-                    <button id="btn-hide-lineup" class="btn-danger">Ukryj Grafiki Składu</button>
-                </div>
-                
-                <h3>Strzelcy i Animacja Goli</h3>
-                <div class="form-group">
-                    <label>Nazwisko strzelca bramki</label>
-                    <input type="text" id="goal-scorer-input" placeholder="np. 9. LEWANDOWSKI">
-                </div>
-                <div class="flex-row">
-                    <button id="btn-goal-home">GOL Gospodarze! (+1)</button>
-                    <button id="btn-goal-away">GOL Goście! (+1)</button>
-                </div>
-            </div>
-
-            <div class="section-box">
-                <h3>Statystyki Indywidualne Zawodnika</h3>
-                <div class="form-group">
-                    <label>Drużyna</label>
-                    <select id="stat-team-select">
-                        <option value="home">Gospodarze</option>
-                        <option value="away">Goście</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Nazwisko / Zawodnik</label>
-                    <input type="text" id="stat-player-input" placeholder="np. 10. ZAWODNIK">
-                </div>
-                <div class="grid-two" style="margin-bottom:0;">
-                    <div class="form-group">
-                        <label>Kategoria statystyki</label>
-                        <select id="stat-category-select">
-                            <option value="Strzały na bramke">STRZAŁY NA BRAMKĘ</option>
-                            <option value="Podania">PODANIA</option>
-                            <option value="Kopnięcia">KOPNIĘCIA</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Wartość</label>
-                        <input type="text" id="stat-value-input" value="1">
-                    </div>
-                </div>
-                <button id="btn-show-stat" style="width: 100%; margin-top: 10px;">Wyślij i animuj statystykę</button>
-            </div>
-        </div>
-
     </div>
+
+    <!-- NAZWY DRUŻYN -->
+    <div class="grid-two">
+        <div class="section-box">
+            <h3>Gospodarze</h3>
+            <div class="form-group">
+                <label>Nazwa</label>
+                <input type="text" id="inp-home-name" value="TORINO" oninput="syncTeams()">
+            </div>
+        </div>
+        <div class="section-box">
+            <h3>Goście</h3>
+            <div class="form-group">
+                <label>Nazwa</label>
+                <input type="text" id="inp-away-name" value="ELCHE" oninput="syncTeams()">
+            </div>
+        </div>
+    </div>
+
+    <!-- CZĘŚĆ MECZU -->
+    <div class="section-box" style="margin-bottom: 20px;">
+        <label>Połowa / Część meczu</label>
+        <select id="inp-period" onchange="syncTeams()">
+            <option value="1H">1. POŁOWA</option>
+            <option value="2H">2. POŁOWA</option>
+            <option value="OT">DOGRYWKA</option>
+        </select>
+    </div>
+
+    <!-- EDYTOR SKŁADÓW (KULKI BOISKA) -->
+    <div class="section-box" style="margin-bottom: 20px;">
+        <h3>Wprowadzanie Składów na Boisko</h3>
+        <div class="tab-menu">
+            <button id="tab-h" class="tab-btn active" onclick="switchTab('home')">SKŁAD: GOSPODARZE</button>
+            <button id="tab-a" class="tab-btn" onclick="switchTab('away')">SKŁAD: GOŚCIE</button>
+        </div>
+        <div class="form-group">
+            <label id="textarea-label">Wpisz maksymalnie 5 zawodników (każdy w nowej linii):</label>
+            <textarea id="inp-lineup-text" rows="6" placeholder="1. Bramkarz&#10;2. Obrońca&#10;3. Pomocnik" oninput="saveCurrentLineup()"></textarea>
+        </div>
+    </div>
+
+    <!-- KONTROLA WIZUALIZACJI -->
+    <div class="section-box">
+        <h3>Sterowanie boiskiem w OBS</h3>
+        <div class="flex-row">
+            <button onclick="togglePitch('home')" style="background: #4facfe; color: #fff;">Pokaż Boisko Gospodarzy</button>
+            <button onclick="togglePitch('away')" style="background: #4facfe; color: #fff;">Pokaż Boisko Gości</button>
+            <button onclick="togglePitch('hide')" class="btn-danger">Schowaj Boisko</button>
+        </div>
+    </div>
+
 </div>
 
 <script>
-    // System zmiennych Realtime przez localStorage
-    let homeScore = 0;
-    let awayScore = 0;
-    let timerSeconds = 0;
-    let timerInterval = null;
-    let currentLinupsTab = 'home'; // 'home' lub 'away'
+    let sHome = 0, sAway = 0, tSeconds = 0, tInterval = null;
+    let activeTab = 'home';
 
-    // Elementy DOM
-    const homeScoreDisplay = document.getElementById('home-score-display');
-    const awayScoreDisplay = document.getElementById('away-score-display');
-    const controlTimerDisplay = document.getElementById('control-timer-display');
-    const btnTimerStart = document.getElementById('btn-timer-start');
-
-    function syncAll() {
-        localStorage.setItem('match_home_name', document.getElementById('home-name-input').value);
-        localStorage.setItem('match_away_name', document.getElementById('away-name-input').value);
-        localStorage.setItem('match_home_color', document.getElementById('home-color-input').value);
-        localStorage.setItem('match_away_color', document.getElementById('away-color-input').value);
-        localStorage.setItem('match_home_logo', document.getElementById('home-logo-input').value);
-        localStorage.setItem('match_away_logo', document.getElementById('away-logo-input').value);
-        localStorage.setItem('match_period', document.getElementById('period-select').value);
+    function syncTeams() {
+        const hName = document.getElementById('inp-home-name').value;
+        const aName = document.getElementById('inp-away-name').value;
         
-        localStorage.setItem('match_home_score', homeScore);
-        localStorage.setItem('match_away_score', awayScore);
+        localStorage.setItem('teamHome', hName);
+        localStorage.setItem('teamAway', aName);
+        localStorage.setItem('match_period', document.getElementById('inp-period').value);
         
-        // Zegar string
-        let mins = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
-        let secs = (timerSeconds % 60).toString().padStart(2, '0');
-        let timeStr = `${mins}:${secs}`;
-        controlTimerDisplay.innerText = timeStr;
-        localStorage.setItem('match_timer_string', timeStr);
-        localStorage.setItem('match_timer_seconds', timerSeconds);
-        
-        // Labele pomocnicze w panelu
-        document.getElementById('label-home-score').innerText = document.getElementById('home-name-input').value;
-        document.getElementById('label-away-score').innerText = document.getElementById('away-name-input').value;
+        document.getElementById('label-home').innerText = hName.toUpperCase();
+        document.getElementById('label-away').innerText = aName.toUpperCase();
     }
 
-    // Podpięcie nasłuchiwania na wpisywanie tekstu z pól
-    const inputs = ['home-name-input', 'away-name-input', 'home-color-input', 'away-color-input', 'home-logo-input', 'away-logo-input', 'period-select'];
-    inputs.forEach(id => document.getElementById(id).addEventListener('input', syncAll));
-    document.getElementById('period-select').addEventListener('change', syncAll);
-
-    // Wyniki operacje BUTTONS
-    document.getElementById('home-plus').addEventListener('click', () => { homeScore++; homeScoreDisplay.innerText = homeScore; syncAll(); });
-    document.getElementById('home-minus').addEventListener('click', () => { if(homeScore > 0) homeScore--; homeScoreDisplay.innerText = homeScore; syncAll(); });
-    document.getElementById('away-plus').addEventListener('click', () => { awayScore++; awayScoreDisplay.innerText = awayScore; syncAll(); });
-    document.getElementById('away-minus').addEventListener('click', () => { if(awayScore > 0) awayScore--; awayScoreDisplay.innerText = awayScore; syncAll(); });
-
-    // Obsługa Zegara meczu
-    btnTimerStart.addEventListener('click', () => {
-        if (timerInterval) {
-            clearInterval(timerInterval);
-            timerInterval = null;
-            btnTimerStart.innerText = "START";
-            btnTimerStart.style.background = "#00ffaa";
+    function changeScore(team, val) {
+        if(team === 'home') {
+            sHome = Math.max(0, sHome + val);
+            document.getElementById('dsp-home-score').innerText = sHome;
+            localStorage.setItem('scoreHome', sHome);
         } else {
-            btnTimerStart.innerText = "STOP";
-            btnTimerStart.style.background = "#ffcc00";
-            timerInterval = setInterval(() => {
-                timerSeconds++;
-                syncAll();
+            sAway = Math.max(0, sAway + val);
+            document.getElementById('dsp-away-score').innerText = sAway;
+            localStorage.setItem('scoreAway', sAway);
+        }
+    }
+
+    function toggleTimer() {
+        const btn = document.getElementById('btn-start');
+        if(tInterval) {
+            clearInterval(tInterval);
+            tInterval = null;
+            btn.innerText = "START";
+            btn.style.background = "#00ffaa";
+        } else {
+            btn.innerText = "STOP";
+            btn.style.background = "#ffcc00";
+            tInterval = setInterval(() => {
+                tSeconds++;
+                let m = Math.floor(tSeconds / 60).toString().padStart(2, '0');
+                let s = (tSeconds % 60).toString().padStart(2, '0');
+                let sStr = `${m}:${s}`;
+                document.getElementById('dsp-timer').innerText = sStr;
+                localStorage.setItem('match_timer_string', sStr);
             }, 1000);
         }
-    });
-
-    document.getElementById('btn-timer-reset').addEventListener('click', () => {
-        clearInterval(timerInterval);
-        timerInterval = null;
-        timerSeconds = 0;
-        btnTimerStart.innerText = "START";
-        btnTimerStart.style.background = "#00ffaa";
-        syncAll();
-    });
-
-    // Funkcja Bramki (Animacja gola)
-    function triggerGoalAnimation(teamSide) {
-        let scorer = document.getElementById('goal-scorer-input').value || "ZAWODNIK";
-        let currentMins = Math.floor(timerSeconds / 60).toString();
-        let teamName = teamSide === 'home' ? document.getElementById('home-name-input').value : document.getElementById('away-name-input').value;
-        let teamColor = teamSide === 'home' ? document.getElementById('home-color-input').value : document.getElementById('away-color-input').value;
-
-        localStorage.setItem('match_goal_time', currentMins);
-        localStorage.setItem('match_goal_team_name', teamName);
-        localStorage.setItem('match_goal_player', scorer);
-        localStorage.setItem('match_goal_color', teamColor);
-        localStorage.setItem('match_goal_visible', 'true');
-
-        setTimeout(() => {
-            localStorage.setItem('match_goal_visible', 'false');
-        }, 7000);
     }
 
-    document.getElementById('btn-goal-home').addEventListener('click', () => {
-        homeScore++;
-        homeScoreDisplay.innerText = homeScore;
-        syncAll();
-        triggerGoalAnimation('home');
-    });
-
-    document.getElementById('btn-goal-away').addEventListener('click', () => {
-        awayScore++;
-        awayScoreDisplay.innerText = awayScore;
-        syncAll();
-        triggerGoalAnimation('away');
-    });
-
-    // System statystyk indywidualnych
-    document.getElementById('btn-show-stat').addEventListener('click', () => {
-        localStorage.setItem('match_stat_team', document.getElementById('stat-team-select').value);
-        localStorage.setItem('match_stat_player', document.getElementById('stat-player-input').value);
-        localStorage.setItem('match_stat_category', document.getElementById('stat-category-select').value);
-        localStorage.setItem('match_stat_value', document.getElementById('stat-value-input').value);
-        localStorage.setItem('match_stat_visible', 'true');
-
-        setTimeout(() => {
-            localStorage.setItem('match_stat_visible', 'false');
-        }, 6000);
-    });
-
-    // AKCJE DLA PRZYCISKÓW WIZUALIZACJI SKŁADÓW (OŻYWIONE!)
-    document.getElementById('btn-show-lineup-home').addEventListener('click', () => {
-        localStorage.setItem('match_lineup_side', 'home');
-        localStorage.setItem('match_lineup_visible', 'true');
-    });
-
-    document.getElementById('btn-show-lineup-away').addEventListener('click', () => {
-        localStorage.setItem('match_lineup_side', 'away');
-        localStorage.setItem('match_lineup_visible', 'true');
-    });
-
-    document.getElementById('btn-hide-lineup').addEventListener('click', () => {
-        localStorage.setItem('match_lineup_visible', 'false');
-    });
-
-    // SWAP (zamiana stron)
-    document.getElementById('btn-swap').addEventListener('click', () => {
-        const hName = document.getElementById('home-name-input').value;
-        const aName = document.getElementById('away-name-input').value;
-        const hColor = document.getElementById('home-color-input').value;
-        const aColor = document.getElementById('away-color-input').value;
-        const hTxt = document.getElementById('home-textcolor-input').value;
-        const aTxt = document.getElementById('away-textcolor-input').value;
-        const hLogo = document.getElementById('home-logo-input').value;
-        const aLogo = document.getElementById('away-logo-input').value;
-
-        document.getElementById('home-name-input').value = aName;
-        document.getElementById('away-name-input').value = hName;
-        document.getElementById('home-color-input').value = aColor;
-        document.getElementById('away-color-input').value = hColor;
-        document.getElementById('home-textcolor-input').value = aTxt;
-        document.getElementById('away-textcolor-input').value = hTxt;
-        document.getElementById('home-logo-input').value = aLogo;
-        document.getElementById('away-logo-input').value = hLogo;
-
-        let tempScore = homeScore;
-        homeScore = awayScore;
-        awayScore = tempScore;
-
-        homeScoreDisplay.innerText = homeScore;
-        awayScoreDisplay.innerText = awayScore;
-        syncAll();
-    });
-
-    document.getElementById('btn-force-update').addEventListener('click', syncAll);
-
-    // Składy - Przełączanie Tabów local
-    const tabHome = document.getElementById('tab-home');
-    const tabAway = document.getElementById('tab-away');
-    
-    tabHome.addEventListener('click', () => {
-        tabHome.classList.add('active');
-        tabAway.classList.remove('active');
-        currentLinupsTab = 'home';
-        document.getElementById('main-players-label').innerText = "Skład Główny: GOSPODARZE";
-        loadLineupInputs();
-    });
-    tabAway.addEventListener('click', () => {
-        tabAway.classList.add('active');
-        tabHome.classList.remove('active');
-        currentLinupsTab = 'away';
-        document.getElementById('main-players-label').innerText = "Skład Główny: GOŚCIE";
-        loadLineupInputs();
-    });
-
-    function loadLineupInputs() {
-        document.getElementById('lineup-main-input').value = localStorage.getItem(`lineup_${currentLinupsTab}_main`) || '';
-        document.getElementById('lineup-bench-input').value = localStorage.getItem(`lineup_${currentLinupsTab}_bench`) || '';
+    function resetTimer() {
+        clearInterval(tInterval);
+        tInterval = null;
+        tSeconds = 0;
+        document.getElementById('dsp-timer').innerText = "00:00";
+        localStorage.setItem('match_timer_string', "00:00");
+        document.getElementById('btn-start').innerText = "START";
+        document.getElementById('btn-start').style.background = "#00ffaa";
     }
-    
-    document.getElementById('btn-save-lineups').addEventListener('click', () => {
-        localStorage.setItem(`lineup_${currentLinupsTab}_main`, document.getElementById('lineup-main-input').value);
-        localStorage.setItem(`lineup_${currentLinupsTab}_bench`, document.getElementById('lineup-bench-input').value);
-        syncAll(); // Wymuś odświeżenie danych jeśli grafika jest na ekranie
-        alert('Skład zapisany w pamięci panelu!');
-    });
 
-    // Inicjalizacja startowa
+    function switchTab(side) {
+        activeTab = side;
+        if(side === 'home') {
+            document.getElementById('tab-h').classList.add('active');
+            document.getElementById('tab-a').classList.remove('active');
+            document.getElementById('textarea-label').innerText = "Skład: GOSPODARZE (max 5 linii):";
+            document.getElementById('inp-lineup-text').value = localStorage.getItem('lineupHome') || '';
+        } else {
+            document.getElementById('tab-a').classList.add('active');
+            document.getElementById('tab-h').classList.remove('active');
+            document.getElementById('textarea-label').innerText = "Skład: GOŚCIE (max 5 linii):";
+            document.getElementById('inp-lineup-text').value = localStorage.getItem('lineupAway') || '';
+        }
+    }
+
+    function saveCurrentLineup() {
+        const val = document.getElementById('inp-lineup-text').value;
+        if(activeTab === 'home') {
+            localStorage.setItem('lineupHome', val);
+        } else {
+            localStorage.setItem('lineupAway', val);
+        }
+    }
+
+    function togglePitch(action) {
+        if(action === 'home') {
+            localStorage.setItem('showAwayLineup', 'false');
+            localStorage.setItem('showHomeLineup', 'true');
+        } else if(action === 'away') {
+            localStorage.setItem('showHomeLineup', 'false');
+            localStorage.setItem('showAwayLineup', 'true');
+        } else {
+            localStorage.setItem('showHomeLineup', 'false');
+            localStorage.setItem('showAwayLineup', 'false');
+        }
+    }
+
     window.onload = () => {
-        syncAll();
-        loadLineupInputs();
+        localStorage.clear();
+        syncTeams();
+        localStorage.setItem('scoreHome', 0);
+        localStorage.setItem('scoreAway', 0);
+        localStorage.setItem('match_timer_string', "00:00");
+        localStorage.setItem('showHomeLineup', 'false');
+        localStorage.setItem('showAwayLineup', 'false');
     };
 </script>
 </body>
