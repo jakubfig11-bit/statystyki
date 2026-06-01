@@ -10,15 +10,18 @@ let currentMatchState = {
     home_name: "HOME", away_name: "AWAY", home_score: 0, away_score: 0, match_time: 0, is_running: false,
     scorer_name: "", scorer_team: "home", show_goal_trigger: false, show_lineups: false,
     home_logo: "", away_logo: "", home_color: "#0052cc", away_color: "#ff0044",
-    lineups_team: "home", // Wybór drużyny do prezentacji składu
+    lineups_team: "home",
     home_coach: "", home_subs: "", home_p1: "", home_p2: "", home_p3: "", home_p4: "", home_p5: "",
-    away_coach: "", away_subs: "", away_p1: "", away_p2: "", away_p3: "", away_p4: "", away_p5: ""
+    away_coach: "", away_subs: "", away_p1: "", away_p2: "", away_p3: "", away_p4: "", away_p5: "",
+    // NOWE POLA DLA STATYSTYK INDYWIDUALNYCH
+    stat_player_name: "ZAWODNIK", stat_player_team: "home", show_player_stats: false,
+    stat_shots: 0, stat_passes: 0, stat_goals: 0, stat_assists: 0
 };
 
 let timerInterval = null; let realtimeChannel = null; let isAnimationPlaying = false; 
 
 async function initOverlayView() {
-    await fetchInitialState(); updateHUDUI(); updateTacticalLineupsUI();
+    await fetchInitialState(); updateHUDUI(); updateTacticalLineupsUI(); updatePlayerStatsUI();
     if (currentMatchState.is_running) startLocalTimer();
     realtimeChannel = supabaseClient.channel('match-broadcast', { config: { broadcast: { ack: false, self: false } } });
     realtimeChannel.on('broadcast', { event: 'state-change' }, ({ payload }) => handleStateUpdate(payload)).subscribe();
@@ -32,8 +35,9 @@ function handleStateUpdate(data) {
         runGSAPGoalAnimation(data.scorer_name, teamName, teamColor, teamLogo);
     }
     if (data.show_lineups !== currentMatchState.show_lineups) toggleGSAPTacticalLineups(data.show_lineups);
+    if (data.show_player_stats !== currentMatchState.show_player_stats) toggleGSAPPlayerStats(data.show_player_stats);
     if (data.is_running !== currentMatchState.is_running) { if (data.is_running) startLocalTimer(); else clearInterval(timerInterval); }
-    currentMatchState = data; updateHUDUI(); updateTacticalLineupsUI();
+    currentMatchState = data; updateHUDUI(); updateTacticalLineupsUI(); updatePlayerStatsUI();
 }
 
 function updateHUDUI() {
@@ -54,7 +58,6 @@ function updateTacticalLineupsUI() {
     const subsEl = document.getElementById('tactical-subs-list');
     const topLogo = document.getElementById('tactical-top-logo');
     const bgLogo = document.getElementById('tactical-bg-logo');
-
     const prefix = activeTeam === "home" ? "home" : "away";
 
     if (titleEl) titleEl.innerText = currentMatchState[`${prefix}_name`].toUpperCase();
@@ -68,9 +71,19 @@ function updateTacticalLineupsUI() {
     } else {
         if (topLogo) topLogo.classList.add('hidden'); if (bgLogo) bgLogo.classList.add('hidden');
     }
+    for (let i = 1; i <= 5; i++) { parseAndSetPlayer(`tactical-p${i}`, currentMatchState[`${prefix}_p${i}`]); }
+}
 
-    for (let i = 1; i <= 5; i++) {
-        parseAndSetPlayer(`tactical-p${i}`, currentMatchState[`${prefix}_p${i}`]);
+function updatePlayerStatsUI() {
+    if(document.getElementById('stats-player-name')) document.getElementById('stats-player-name').innerText = (currentMatchState.stat_player_name || "ZAWODNIK").toUpperCase();
+    if(document.getElementById('stat-val-shots')) document.getElementById('stat-val-shots').innerText = currentMatchState.stat_shots ?? 0;
+    if(document.getElementById('stat-val-passes')) document.getElementById('stat-val-passes').innerText = currentMatchState.stat_passes ?? 0;
+    if(document.getElementById('stat-val-goals')) document.getElementById('stat-val-goals').innerText = currentMatchState.stat_goals ?? 0;
+    if(document.getElementById('stat-val-assists')) document.getElementById('stat-val-assists').innerText = currentMatchState.stat_assists ?? 0;
+    
+    const accent = document.getElementById('stats-player-accent');
+    if(accent) {
+        accent.style.backgroundColor = currentMatchState.stat_player_team === 'home' ? currentMatchState.home_color : currentMatchState.away_color;
     }
 }
 
@@ -91,7 +104,7 @@ function setupCrest(elementId, url) {
 
 function startLocalTimer() {
     clearInterval(timerInterval);
-    timerInterval = setInterval(() => { currentMatchState.match_time++; if(document.getElementById('hud-timer')) document.getElementById('hud-timer').innerText = formatTime(currentMatchState.match_time); }, 1000);
+    timerInterval = setInterval(() => { currentMatchState.match_time++; if(document.getElementById('hud-timer')) document.getElementById('hud-timer').innerText = formatTime(currentMatchState.match_time); sendBroadcastState(); }, 1000);
 }
 
 function runGSAPGoalAnimation(scorer, teamName, teamColor, teamLogo) {
@@ -116,22 +129,32 @@ function toggleGSAPTacticalLineups(show) {
     else { gsap.to(container, { opacity: 0, duration: 0.4, ease: "power2.in", onComplete: () => { gsap.set(container, { visibility: 'hidden' }); }}); }
 }
 
+function toggleGSAPPlayerStats(show) {
+    const container = document.getElementById('player-stats-overlay'); if (!container) return;
+    if (show) {
+        gsap.set(container, { visibility: 'visible', x: -400, opacity: 0 });
+        gsap.to(container, { x: 0, opacity: 1, duration: 0.6, ease: "power3.out" });
+    } else {
+        gsap.to(container, { x: -400, opacity: 0, duration: 0.5, ease: "power3.in", onComplete: () => { gsap.set(container, { visibility: 'hidden' }); }});
+    }
+}
+
 // PANEL LOGIC
 async function initControlPanel() {
     await fetchInitialState(); updateControlPanelUI();
     const statusBadge = document.getElementById('db-status'); if (statusBadge) { statusBadge.innerText = "POŁĄCZONO"; statusBadge.classList.add('connected'); }
     realtimeChannel = supabaseClient.channel('match-broadcast', { config: { broadcast: { ack: false, self: false } } }); realtimeChannel.subscribe();
-    setInterval(() => { if (currentMatchState.is_running) { currentMatchState.match_time++; if(document.getElementById('ctrl-timer')) document.getElementById('ctrl-timer').innerText = formatTime(currentMatchState.match_time); sendBroadcastState(); } }, 1000);
 }
 
 function updateControlPanelUI() {
     const fields = [
         'ctrl-home-name', 'ctrl-away-name', 'ctrl-home-logo', 'ctrl-away-logo', 'ctrl-home-color', 'ctrl-away-color', 'ctrl-lineups-team',
         'ctrl-home-coach', 'ctrl-home-subs', 'ctrl-home-p1', 'ctrl-home-p2', 'ctrl-home-p3', 'ctrl-home-p4', 'ctrl-home-p5',
-        'ctrl-away-coach', 'ctrl-away-subs', 'ctrl-away-p1', 'ctrl-away-p2', 'ctrl-away-p3', 'ctrl-away-p4', 'ctrl-away-p5'
+        'ctrl-away-coach', 'ctrl-away-subs', 'ctrl-away-p1', 'ctrl-away-p2', 'ctrl-away-p3', 'ctrl-away-p4', 'ctrl-away-p5',
+        'ctrl-stat-player-name', 'ctrl-stat-player-team', 'ctrl-stat-shots', 'ctrl-stat-passes', 'ctrl-stat-goals', 'ctrl-stat-assists'
     ];
     fields.forEach(field => {
-        const el = document.getElementById(field); if (el) { const key = field.replace('ctrl-', '').replace(/-/g, '_'); el.value = currentMatchState[key] || ""; }
+        const el = document.getElementById(field); if (el) { const key = field.replace('ctrl-', '').replace(/-/g, '_'); el.value = currentMatchState[key] || (el.type === 'number' ? 0 : ""); }
     });
     if(document.getElementById('ctrl-home-score')) document.getElementById('ctrl-home-score').innerText = currentMatchState.home_score;
     if(document.getElementById('ctrl-away-score')) document.getElementById('ctrl-away-score').innerText = currentMatchState.away_score;
@@ -163,9 +186,20 @@ function updateMatchNames() {
     saveStateToSupabase();
 }
 
+function updatePlayerStatsData() {
+    currentMatchState.stat_player_name = document.getElementById('ctrl-stat-player-name').value;
+    currentMatchState.stat_player_team = document.getElementById('ctrl-stat-player-team').value;
+    currentMatchState.stat_shots = parseInt(document.getElementById('ctrl-stat-shots').value) || 0;
+    currentMatchState.stat_passes = parseInt(document.getElementById('ctrl-stat-passes').value) || 0;
+    currentMatchState.stat_goals = parseInt(document.getElementById('ctrl-stat-goals').value) || 0;
+    currentMatchState.stat_assists = parseInt(document.getElementById('ctrl-stat-assists').value) || 0;
+    saveStateToSupabase();
+}
+
 function toggleTimer() { currentMatchState.is_running = !currentMatchState.is_running; saveStateToSupabase(); }
 function resetTimer() { currentMatchState.is_running = false; currentMatchState.match_time = 0; if(document.getElementById('ctrl-timer')) document.getElementById('ctrl-timer').innerText = "00:00"; saveStateToSupabase(); }
 function toggleLineups() { currentMatchState.show_lineups = !currentMatchState.show_lineups; saveStateToSupabase(); }
+function togglePlayerStatsOverlay() { currentMatchState.show_player_stats = !currentMatchState.show_player_stats; saveStateToSupabase(); }
 
 async function triggerGoalAnimation() {
     if (currentMatchState.show_goal_trigger || isAnimationPlaying) return;
