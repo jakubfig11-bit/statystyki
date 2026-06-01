@@ -1,609 +1,250 @@
-/* ==========================================
-   1. RESET BAZOWY I ZMIENNE GLOBALNE
-   ========================================== */
-* {
+body {
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+    background: transparent !important;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     overflow: hidden;
-    background-color: transparent;
-}
-
-/* ==========================================
-   2. STYLIZACJA PANELU STEROWANIA (control.html)
-   ========================================== */
-.control-body {
-    background-color: #0d0d1a;
-    color: #e2e8f0;
-    overflow-y: auto;
-    padding: 30px;
-}
-
-.control-panel {
-    max-width: 1300px;
-    margin: 0 auto;
-}
-
-.control-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 2px solid #1e1e38;
-    padding-bottom: 20px;
-    margin-bottom: 30px;
-}
-
-.control-header h2 {
-    font-size: 24px;
-    font-weight: 800;
-    letter-spacing: 1px;
-    color: #00f2fe;
-    text-transform: uppercase;
-}
-
-.control-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-    gap: 25px;
-}
-
-.control-card {
-    background: #16162d;
-    border: 1px solid #252547;
-    border-radius: 12px;
-    padding: 25px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-}
-
-.control-card h3 {
-    font-size: 14px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    color: #a0aec0;
-    text-transform: uppercase;
-    border-bottom: 1px solid #252547;
-    padding-bottom: 10px;
-    margin-bottom: 15px;
-}
-
-.wide-card {
-    grid-column: 1 / -1;
-}
-
-label {
-    display: block;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    color: #718096;
-    margin-bottom: 6px;
-    letter-spacing: 0.5px;
-}
-
-input[type="text"],
-input[type="number"],
-select,
-textarea {
-    width: 100%;
-    background-color: #090915;
-    border: 1px solid #2d2d54;
-    border-radius: 6px;
     color: #fff;
-    padding: 10px 12px;
-    font-size: 14px;
-    transition: all 0.2s ease;
+    -webkit-font-smoothing: antialiased;
 }
 
-input[type="text"]:focus,
-select:focus,
-textarea:focus {
-    outline: none;
-    border-color: #00f2fe;
-    box-shadow: 0 0 8px rgba(0, 242, 254, 0.2);
-}
-
-input[type="color"] {
-    -webkit-appearance: none;
-    border: none;
-    width: 100%;
-    height: 40px;
-    border-radius: 6px;
-    cursor: pointer;
-    background: none;
-}
-
-input[type="color"]::-webkit-color-swatch-wrapper {
-    padding: 0;
-}
-
-input[type="color"]::-webkit-color-swatch {
-    border: 1px solid #2d2d54;
-    border-radius: 6px;
-}
-
-.form-group-row {
-    display: flex;
-    gap: 15px;
-}
-
-.form-group-row > div {
-    flex: 1;
-}
-
-.btn-group {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-}
-
-.btn {
-    padding: 10px 18px;
-    font-size: 13px;
-    font-weight: 700;
-    text-transform: uppercase;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    letter-spacing: 0.5px;
-}
-
-.btn-neon {
-    background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
-    color: #000;
-}
-
-.btn-neon:hover {
-    box-shadow: 0 0 15px rgba(0, 242, 254, 0.6);
-    transform: translateY(-1px);
-}
-
-.btn-red {
-    background: linear-gradient(135deg, #ff0844 0%, #ffb199 100%);
-    color: #fff;
-}
-
-.btn-red:hover {
-    box-shadow: 0 0 15px rgba(255, 8, 68, 0.5);
-    transform: translateY(-1px);
-}
-
-.btn-block {
-    width: 100%;
-}
-
-.score-actions {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #090915;
-    padding: 10px 15px;
-    border-radius: 8px;
-    border: 1px solid #1e1e38;
-}
-
-.score-actions span {
-    font-weight: 700;
-    font-size: 13px;
-}
-
-.score-display {
-    font-size: 28px !important;
-    font-weight: 900 !important;
-    color: #fff;
-    min-width: 40px;
-    text-align: center;
-}
-
-.timer-control-display {
-    font-size: 46px;
-    font-weight: 900;
-    text-align: center;
-    color: #fff;
-    font-family: monospace;
-    margin: 15px 0;
-    background: #090915;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid #1e1e38;
-    letter-spacing: 2px;
-}
-
-/* ==========================================
-   3. GŁÓWNA BELKA MECZOWA (SCOREBOARD)
-   ========================================== */
+/* TV SCOREBOARD (HUD) */
 .hud-container {
     position: absolute;
-    top: 30px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(13, 13, 26, 0.95) !important;
-    border: 2px solid #252547 !important;
-    border-radius: 8px !important;
-    height: 55px !important;
-    display: flex !important;
-    align-items: center !important;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7) !important;
-    padding: 0 15px !important;
-    z-index: 10;
+    top: 25px;
+    left: 40px;
+    display: flex;
+    align-items: center;
+    background: rgba(11, 14, 23, 0.88);
+    border: 1.5px solid rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    padding: 4px 14px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(10px);
+    z-index: 1000;
 }
 
-.hud-home {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    width: 40% !important;
-    height: 100% !important;
-}
-
-.hud-away {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    flex-direction: row-reverse !important;
-    width: 40% !important;
-    height: 100% !important;
-}
-
-.hud-center {
-    background: #090915 !important;
-    border-left: 2px solid #252547 !important;
-    border-right: 2px solid #252547 !important;
-    height: 100% !important;
-    width: 20% !important;
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: center !important;
-    align-items: center !important;
+.hud-home, .hud-away {
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .hud-team-name {
-    font-family: 'Arial Black', 'Impact', sans-serif !important;
-    font-size: 20px !important;
-    font-weight: 900 !important;
-    color: #ffffff !important;
-    text-transform: uppercase !important;
-    letter-spacing: 1px !important;
-    white-space: nowrap !important;
-    margin: 0 15px !important;
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
 }
 
-.hud-team-logo {
-    width: 36px !important;
-    height: 36px !important;
-    object-fit: contain !important;
-    flex-shrink: 0 !important;
+.hud-logo {
+    width: 26px;
+    height: 26px;
+    object-fit: contain;
+}
+
+.hud-center {
+    display: flex;
+    align-items: center;
+    margin: 0 20px;
+    gap: 15px;
+    border-left: 1px solid rgba(255, 255, 255, 0.15);
+    border-right: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 0 15px;
 }
 
 .hud-score {
-    font-family: 'Arial Black', sans-serif !important;
-    font-size: 24px !important;
-    font-weight: 900 !important;
-    color: #ffffff !important;
-    line-height: 1 !important;
+    font-size: 20px;
+    font-weight: 900;
+    color: #fff;
+    font-family: monospace;
+    letter-spacing: 1px;
 }
 
-.hud-time {
-    font-family: 'Courier New', monospace !important;
-    font-size: 20px !important;
-    font-weight: 900 !important;
-    color: #00f2fe !important;
-    line-height: 1.1 !important;
-}
-
-.hud-part {
-    font-family: sans-serif !important;
-    font-size: 11px !important;
-    font-weight: 800 !important;
-    color: #a0aec0 !important;
-    text-transform: uppercase !important;
-    letter-spacing: 1px !important;
-}
-
-/* ==========================================
-   4. SYSTEM STATYSTYK TV XL
-   ========================================== */
-.stat-badge-xl-wrapper {
-    position: absolute !important;
-    bottom: 50px !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-    width: 680px !important; 
-    height: 85px !important;
-    background: linear-gradient(135deg, #121229 0%, #080816 100%) !important;
-    border: 2px solid #252547 !important;
-    border-radius: 8px !important;
-    display: flex !important;
-    overflow: hidden !important;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8) !important;
-    z-index: 100 !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    visibility: hidden;
-    opacity: 0;
-}
-
-.stat-badge-xl-stripe {
-    width: 12px !important;
-    height: 100% !important;
-    background: linear-gradient(to bottom, #00f2fe, #4facfe) !important;
-    flex-shrink: 0 !important;
-}
-
-.stat-badge-xl-content {
-    flex: 1 !important;
-    display: flex !important;
-    padding: 0 0 0 25px !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    height: 100% !important;
-}
-
-.stat-badge-xl-left {
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: center !important;
-    gap: 4px !important;
-}
-
-.stat-badge-xl-title {
-    font-family: 'Arial Black', sans-serif !important;
-    font-weight: 900 !important;
-    font-size: 11px !important;
-    color: #00f2fe !important; 
-    letter-spacing: 2px !important;
-    text-transform: uppercase !important;
-}
-
-.stat-badge-xl-player {
-    font-family: 'Arial Black', 'Impact', sans-serif !important;
-    font-weight: 900 !important;
-    font-size: 24px !important;
-    color: #ffffff !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.5px !important;
-}
-
-.stat-badge-xl-right {
-    display: flex !important;
-    align-items: center !important;
-    height: 100% !important;
-}
-
-.stat-badge-xl-val {
-    font-family: 'Arial Black', sans-serif !important;
-    font-weight: 900 !important;
-    font-size: 44px !important;
-    color: #ffffff !important;
-    background: rgba(255, 255, 255, 0.07) !important;
-    height: 100% !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    padding: 0 30px !important;
-    min-width: 90px !important;
-    border-left: 2px solid #252547 !important;
-}
-
-/* ==========================================
-   5. DOLNA BELKA GOLA (BRAMKA TV STYLE)
-   ========================================== */
-.goal-badge-wrapper {
-    position: absolute;
-    bottom: 50px;
-    left: 50%;
-    transform: translateX(-50%) translateY(150px);
-    width: 620px;
-    height: 100px;
-    background: linear-gradient(135deg, rgba(6, 6, 15, 0.98) 0%, rgba(18, 18, 32, 0.95) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 8px;
-    display: flex;
-    overflow: hidden;
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8);
-    z-index: 101;
-    visibility: hidden;
-    opacity: 0;
-}
-
-.goal-badge-club-stripe {
-    width: 12px;
-    height: 100%;
-    background-color: #ff0055;
-    transition: background-color 0.2s ease;
-}
-
-.goal-badge-main-content {
-    flex: 1;
+.hud-mid-info {
     display: flex;
     flex-direction: column;
-    padding: 14px 24px;
-    justify-content: center;
-}
-
-.goal-badge-top-row {
-    display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 4px;
 }
 
-.goal-badge-alert-text {
-    font-size: 12px;
-    font-weight: 800;
-    color: #ff0055;
-    letter-spacing: 3px;
-}
-
-.goal-badge-match-time {
+.hud-timer {
     font-size: 14px;
-    font-weight: 800;
-    color: #a0aec0;
+    font-weight: 700;
+    color: #00ffaa;
     font-family: monospace;
 }
 
-.goal-badge-bottom-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
+.hud-period {
+    font-size: 9px;
+    font-weight: 800;
+    color: #a0aec0;
 }
 
-.goal-badge-team-name {
-    font-size: 26px;
-    font-weight: 900;
-    color: #ff0055;
-    letter-spacing: 0.5px;
-    transition: color 0.2s ease;
-}
-
-.goal-badge-player-info {
-    font-size: 22px;
-    font-weight: 700;
-    color: #ffffff;
-}
-
-/* ==========================================
-   6. CENTRALNA PREZENTACJA SKŁADU (LINEUPS)
-   ========================================== */
-.lineup-tv-fullscreen {
+/* STATS POPUP (KWADRAT) */
+.stat-badge-container {
     position: absolute;
+    top: 30px;
+    right: 40px;
+    width: 280px;
+    background: rgba(14, 18, 28, 0.93);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    transform: translateX(400px);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 2000;
+    overflow: hidden;
+}
+
+.stat-badge-container.active {
+    transform: translateX(0);
+}
+
+.stat-badge-accent {
+    width: 5px;
+    height: 52px;
+    background: #00ffaa;
+    flex-shrink: 0;
+}
+
+.stat-main {
+    flex: 1;
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.stat-badge-player-name {
+    font-size: 13px;
+    font-weight: 800;
+    color: #fff;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.stat-badge-category {
+    font-size: 10px;
+    font-weight: 700;
+    color: #a0aec0;
+    text-transform: uppercase;
+    margin-top: 1px;
+}
+
+.stat-badge-value {
+    font-size: 22px;
+    font-weight: 900;
+    color: #00ffaa;
+    padding: 0 16px;
+    font-family: monospace;
+}
+
+/* BOISKO TAKTYCZNE I SKŁADY */
+.lineups-overlay {
+    position: fixed;
     top: 0;
     left: 0;
-    width: 1920px;
-    height: 1080px;
-    background: rgba(4, 4, 10, 0.85);
+    width: 100vw;
+    height: 100vh;
+    background: rgba(7, 9, 15, 0.75);
+    backdrop-filter: blur(8px);
     display: flex;
-    justify-content: center;
     align-items: center;
-    z-index: 5;
-    visibility: hidden;
+    justify-content: center;
     opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+    z-index: 500;
+}
+
+.lineups-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
 }
 
 .lineup-tv-center-block {
     display: flex;
-    background: linear-gradient(160deg, #0f0f23 0%, #070712 100%);
-    width: 1200px;
-    height: 750px;
-    border-radius: 16px;
+    width: 1150px;
+    height: 650px;
+    background: #111520;
     border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.9);
+    border-radius: 12px;
+    box-shadow: 0 30px 70px rgba(0,0,0,0.8);
     overflow: hidden;
 }
 
-.tactical-pitch-container {
+.pitch-visualizer {
     flex: 1.2;
-    padding: 40px;
+    background: #161b29;
+    position: relative;
+    padding: 30px;
     display: flex;
-    justify-content: center;
     align-items: center;
-    background: radial-gradient(circle at center, rgba(20, 40, 30, 0.4) 0%, transparent 80%);
+    justify-content: center;
 }
 
-.pitch-field {
+.pitch-mock {
     width: 100%;
     height: 100%;
-    border: 3px solid rgba(255, 255, 255, 0.15);
-    border-radius: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
     position: relative;
-    overflow: hidden;
+    box-sizing: border-box;
+    background: radial-gradient(circle, rgba(255,255,255,0.02) 1px, transparent 1px) repeat;
+    background-size: 20px 20px;
 }
 
-.pitch-penalty-box {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 50%;
-    height: 18%;
-    border: 3px solid rgba(255, 255, 255, 0.15);
-}
-
-.top-box { top: -3px; border-top: none; }
-.bottom-box { bottom: -3px; border-bottom: none; }
-
-.pitch-center-line {
-    position: absolute;
-    top: 50%;
-    left: 0;
-    width: 100%;
-    height: 3px;
-    background-color: rgba(255, 255, 255, 0.15);
-}
-
-.pitch-center-circle {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 160px;
-    height: 160px;
-    border: 3px solid rgba(255, 255, 255, 0.15);
-    border-radius: 50%;
-}
-
+/* OKRĄGŁE KOSZULKI */
 .player-node {
     position: absolute;
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 120px;
-    z-index: 2;
+    transform: translate(-50%, -50%);
 }
 
-.pos-gk   { bottom: 5%;  left: 50%; transform: translateX(-50%); }
-.pos-df-l { bottom: 32%; left: 20%; }
-.pos-df-r { bottom: 32%; left: 62%; }
-.pos-fw-l { bottom: 70%; left: 20%; }
-.pos-fw-r { bottom: 70%; left: 62%; }
-
-.player-shirt {
-    width: 48px !important;
-    height: 48px !important;
-    min-width: 48px !important;
-    min-height: 48px !important;
-    max-width: 48px !important;
-    max-height: 48px !important;
-    aspect-ratio: 1 / 1 !important;
-    border-radius: 50% !important;
-    background-color: #ff0055;
-    border: 3px solid #fff !important;
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.4);
-    margin-bottom: 8px;
-    flex-shrink: 0 !important;
-}
-
-.player-shirt .p-num {
-    font-size: 18px;
-    font-weight: 900;
+.player-node .badge {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #3f4e66;
     color: #fff;
-    line-height: 1;
-    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 16px;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.4);
+    border: 2px solid #fff;
 }
 
 .player-node .p-name {
-    font-size: 14px;
-    font-weight: 800;
-    color: #fff;
+    margin-top: 6px;
+    font-size: 12px;
+    font-weight: 700;
     text-transform: uppercase;
-    text-align: center;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-    background: rgba(0,0,0,0.6);
+    background: rgba(0,0,0,0.75);
     padding: 2px 8px;
     border-radius: 4px;
     white-space: nowrap;
 }
 
+/* Pozycje na boisku */
+.pos-gk   { top: 50%;  left: 10%; }
+.pos-df-l { top: 25%;  left: 35%; }
+.pos-df-r { top: 75%;  left: 35%; }
+.pos-fw-l { top: 30%;  left: 75%; }
+.pos-fw-r { top: 70%;  left: 75%; }
+
+/* Panel boczny */
 .tactical-sidebar {
-    flex: 1;
-    background: rgba(5, 5, 12, 0.5);
-    border-left: 1px solid rgba(255, 255, 255, 0.05);
-    padding: 40px;
+    flex: 0.8;
+    background: #0d1018;
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 30px;
     display: flex;
     flex-direction: column;
 }
@@ -611,70 +252,37 @@ input[type="color"]::-webkit-color-swatch {
 .sidebar-header {
     display: flex;
     align-items: center;
-    gap: 20px;
-    margin-bottom: 35px;
+    gap: 15px;
+    margin-bottom: 25px;
 }
 
 .sidebar-team-logo {
-    width: 64px;
-    height: 64px;
+    width: 55px;
+    height: 55px;
     object-fit: contain;
 }
 
-.sidebar-header h1 {
-    font-size: 32px;
+.tactical-sidebar h1 {
+    margin: 0;
+    font-size: 28px;
     font-weight: 900;
-    color: #ff0055;
-    line-height: 1.1;
-    text-transform: uppercase;
-    transition: color 0.2s ease;
+    letter-spacing: 1px;
 }
 
 .sidebar-sub {
     font-size: 11px;
+    color: #a0aec0;
     font-weight: 700;
-    color: #718096;
-    letter-spacing: 3px;
+    letter-spacing: 2px;
 }
 
 .sidebar-section {
-    margin-bottom: 30px;
+    margin-top: 20px;
 }
 
 .sidebar-section h3 {
-    font-size: 11px;
-    font-weight: 800;
+    font-size: 12px;
     color: #4a5568;
-    letter-spacing: 2px;
-    margin-bottom: 12px;
-}
-
-.bench-list {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.bench-list li {
-    font-size: 16px;
-    font-weight: 700;
-    color: #e2e8f0;
-    padding-left: 12px;
-    border-left: 3px solid #ff0055;
-    transition: border-left-color 0.2s ease;
-}
-
-.coach-section {
-    margin-top: auto;
-}
-
-.coach-box {
-    font-size: 18px;
-    font-weight: 800;
-    color: #fff;
-    padding-left: 12px;
-    border-left: 4px solid #ff0055;
-    text-transform: uppercase;
-    transition: border-left-color 0.2s ease;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
 }
