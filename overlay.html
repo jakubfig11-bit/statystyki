@@ -2,116 +2,432 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scoreboard Overlay</title>
-    <link rel="stylesheet" href="style-v3.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <title>OVERLAY SCOREBOARD v3</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <link rel="stylesheet" href="style-v3.css">
+    <style>
+        /* Reset i przygotowanie przezroczystego tła pod OBS */
+        html, body {
+            margin: 0;
+            padding: 0;
+            background: transparent !important;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            width: 1920px;
+            height: 1080px;
+        }
+
+        /* GŁÓWNY HUD (GÓRNY PASEK WYNIKU) */
+        .hud-container {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            background: rgba(20, 24, 33, 0.9);
+            border: 2px solid #2d3748;
+            border-radius: 6px;
+            padding: 5px 15px;
+            min-width: 450px;
+            justify-content: space-between;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        .hud-team {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: bold;
+            color: #fff;
+            font-size: 16px;
+        }
+        .hud-logo {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+            display: none; /* Pokazywane przez JS gdy jest URL */
+        }
+        .hud-score-center {
+            display: flex;
+            align-items: center;
+            background: #11141a;
+            padding: 4px 12px;
+            border-radius: 4px;
+            gap: 10px;
+            font-family: monospace;
+            font-size: 20px;
+            font-weight: bold;
+            border: 1px solid #2d3748;
+        }
+        #hud-home-score { color: #fff; }
+        #hud-away-score { color: #fff; }
+        .hud-divider { color: #4a5568; }
+        #hud-timer { color: #00ffaa; }
+        #hud-period {
+            font-size: 11px;
+            color: #a0aec0;
+            background: #2d3748;
+            padding: 1px 4px;
+            border-radius: 2px;
+            margin-left: 5px;
+        }
+
+        /* EKRAN PREZENTACJI SKŁADÓW (CENTRALNY PANEL TV) */
+        #lineups-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 1920px;
+            height: 1080px;
+            background: rgba(10, 14, 23, 0.75);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+        }
+        .lineup-tv-center-block {
+            width: 1100px;
+            height: 650px;
+            background: #161a24;
+            border: 3px solid #2d3748;
+            border-radius: 16px;
+            display: flex;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+            overflow: hidden;
+        }
+        
+        /* Lewa strona - Boisko */
+        .lineup-pitch-side {
+            flex: 1.2;
+            background: #1a1f2c;
+            position: relative;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .pitch-outline {
+            width: 100%;
+            height: 100%;
+            border: 2px solid #3f4e66;
+            border-radius: 8px;
+            position: relative;
+            box-sizing: border-box;
+        }
+        .pitch-center-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 140px;
+            height: 140px;
+            border: 2px solid #3f4e66;
+            border-radius: 50%;
+        }
+        .pitch-center-line {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #3f4e66;
+        }
+        .pitch-penalty-box-top {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 260px;
+            height: 100px;
+            border: 2px solid #3f4e66;
+            border-top: none;
+        }
+        .pitch-penalty-box-bottom {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 260px;
+            height: 100px;
+            border: 2px solid #3f4e66;
+            border-bottom: none;
+        }
+
+        /* Kulki zawodników na boisku */
+        .player-node {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transform: translate(-50%, -50%);
+            z-index: 5;
+        }
+        .player-shirt {
+            width: 45px;
+            height: 45px;
+            background: #ff0055;
+            border: 3px solid #fff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+        }
+        .p-num {
+            font-size: 18px;
+            font-weight: 900;
+            color: #fff;
+            font-family: Arial, sans-serif;
+        }
+        .p-name {
+            background: rgba(10, 14, 23, 0.9);
+            color: #fff;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 6px;
+            text-transform: uppercase;
+            border: 1px solid #2d3748;
+            white-space: nowrap;
+        }
+
+        /* Pozycje kulek w formacji 1-2-2 (Futsal / Orlik) */
+        .pos-gk    { top: 85%; left: 50%; }
+        .pos-df-l  { top: 58%; left: 25%; }
+        .pos-df-r  { top: 58%; left: 75%; }
+        .pos-fw-l  { top: 25%; left: 25%; }
+        .pos-fw-r  { top: 25%; left: 75%; }
+
+        /* Prawa strona - Lista rezerwowych i trener */
+        .lineup-info-side {
+            flex: 1;
+            background: #11141a;
+            border-left: 2px solid #2d3748;
+            padding: 35px;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+        }
+        .lineup-team-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .lineup-logo-large {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+            display: none;
+        }
+        #lineup-team-title {
+            font-size: 32px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            margin: 0;
+            text-transform: uppercase;
+        }
+        .lineup-sub-title {
+            font-size: 11px;
+            color: #a0aec0;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-top: -2px;
+        }
+        .bench-section {
+            margin-top: 10px;
+            flex: 1;
+        }
+        .bench-section h4 {
+            color: #a0aec0;
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #2d3748;
+            padding-bottom: 4px;
+        }
+        #lineup-bench-list {
+            padding: 0;
+            margin: 0;
+        }
+        .coach-section {
+            margin-top: auto;
+            background: #161a24;
+            padding: 12px 15px;
+            border-radius: 6px;
+        }
+        .coach-section label {
+            display: block;
+            font-size: 10px;
+            color: #a0aec0;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 3px;
+        }
+        #lineup-coach-display {
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+            text-transform: uppercase;
+            padding-left: 8px;
+        }
+
+        /* POPIERŚNICZE STATYSTYKI INDYWIDUALNE (BOTTOM BADGE) */
+        #stat-badge-container {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            background: rgba(18, 22, 33, 0.95);
+            border: 2px solid #2d3748;
+            border-radius: 8px;
+            padding: 12px 25px;
+            min-width: 450px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            z-index: 90;
+            visibility: hidden;
+        }
+        #stat-badge-accent {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 6px;
+            border-top-left-radius: 6px;
+            border-bottom-left-radius: 6px;
+        }
+        .stat-text-block {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+        #stat-badge-player-name {
+            font-size: 20px;
+            font-weight: 800;
+            color: #fff;
+            text-transform: uppercase;
+        }
+        #stat-badge-category {
+            font-size: 12px;
+            color: #a0aec0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 2px;
+        }
+        #stat-badge-value {
+            font-size: 36px;
+            font-weight: 900;
+            font-family: monospace;
+            padding-left: 20px;
+        }
+    </style>
 </head>
-<body class="overlay-body">
-    
-    <div id="scoreboard" class="hud-container">
-        <div class="hud-side hud-home">
-            <img id="hud-home-logo" class="hud-team-logo" style="display: none;" src="" alt="">
-            <span id="hud-home-name" class="hud-team-name">GOSPODARZE</span>
-            <span id="hud-home-score" class="hud-score">0</span>
+<body>
+
+    <div class="hud-container">
+        <div class="hud-team">
+            <img id="hud-home-logo" class="hud-logo" src="" alt="L">
+            <span id="hud-home-name">TORINO</span>
         </div>
         
-        <div class="hud-center">
-            <span id="hud-timer" class="hud-time">00:00</span>
-            <span id="hud-period" class="hud-part">1H</span>
+        <div class="hud-score-center">
+            <span id="hud-home-score">0</span>
+            <span class="hud-divider">:</span>
+            <span id="hud-away-score">0</span>
+            <span id="hud-timer">00:00</span>
+            <span id="hud-period">1H</span>
         </div>
-        
-        <div class="hud-side hud-away">
-            <span id="hud-away-score" class="hud-score">0</span>
-            <span id="hud-away-name" class="hud-team-name">GOŚCIE</span>
-            <img id="hud-away-logo" class="hud-team-logo" style="display: none;" src="" alt="">
+
+        <div class="hud-team" style="justify-content: flex-end;">
+            <span id="hud-away-name">ELCHE</span>
+            <img id="hud-away-logo" class="hud-logo" src="" alt="R">
         </div>
     </div>
 
-    <div id="stat-badge-container" class="stat-badge-xl-wrapper" style="visibility: hidden;">
-        <div id="stat-badge-accent" class="stat-badge-xl-stripe"></div>
-        <div class="stat-badge-xl-content">
-            <div class="stat-badge-xl-left">
-                <span class="stat-badge-xl-title">STATYSTYKI INDYWIDUALNE</span>
-                <span id="stat-badge-player-name" class="stat-badge-xl-player">10. ZAWODNIK</span>
-            </div>
-            <div class="stat-badge-xl-right">
-                <span id="stat-badge-category" class="stat-badge-xl-cat">CELNE PODANIA</span>
-                <span id="stat-badge-value" class="stat-badge-xl-val">0</span>
-            </div>
-        </div>
-    </div>
-
-    <div id="goal-badge-container" class="goal-badge-wrapper" style="visibility: hidden;">
-        <div id="goal-badge-accent" class="goal-badge-club-stripe"></div>
-        <div class="goal-badge-main-content">
-            <div class="goal-badge-top-row">
-                <span class="goal-badge-alert-text">STRZELONY GOL! ⚽</span>
-                <span id="goal-badge-time" class="goal-badge-match-time">00:00</span>
-            </div>
-            <div class="goal-badge-bottom-row">
-                <span id="goal-badge-team" class="goal-badge-team-name">DRUŻYNA</span>
-                <span id="goal-badge-scorer" class="goal-badge-player-info">ZAWODNIK</span>
-            </div>
-        </div>
-    </div>
-
-    <div id="lineups-overlay" class="lineup-tv-fullscreen" style="visibility: hidden; opacity: 0;">
+    <div id="lineups-overlay">
         <div class="lineup-tv-center-block">
-            
-            <div class="tactical-pitch-container">
-                <div id="pitch-border-line" class="pitch-field">
-                    <div class="pitch-penalty-box top-box"></div>
-                    <div class="pitch-center-line">
-                        <div class="pitch-center-circle"></div>
-                    </div>
-                    <div class="pitch-penalty-box bottom-box"></div>
+            <div class="lineup-pitch-side">
+                <div class="pitch-outline" id="pitch-border-line">
+                    <div class="pitch-center-line"></div>
+                    <div class="pitch-center-circle"></div>
+                    <div class="pitch-penalty-box-top"></div>
+                    <div class="pitch-penalty-box-bottom"></div>
                     
                     <div class="player-node pos-gk">
                         <div class="player-shirt"><span class="p-num">-</span></div>
-                        <span class="p-name">Bramkarz</span>
+                        <div class="p-name">-</div>
                     </div>
                     <div class="player-node pos-df-l">
                         <div class="player-shirt"><span class="p-num">-</span></div>
-                        <span class="p-name">Obrońca L</span>
+                        <div class="p-name">-</div>
                     </div>
                     <div class="player-node pos-df-r">
                         <div class="player-shirt"><span class="p-num">-</span></div>
-                        <span class="p-name">Obrońca P</span>
+                        <div class="p-name">-</div>
                     </div>
                     <div class="player-node pos-fw-l">
                         <div class="player-shirt"><span class="p-num">-</span></div>
-                        <span class="p-name">Napastnik L</span>
+                        <div class="p-name">-</div>
                     </div>
                     <div class="player-node pos-fw-r">
                         <div class="player-shirt"><span class="p-num">-</span></div>
-                        <span class="p-name">Napastnik P</span>
+                        <div class="p-name">-</div>
                     </div>
                 </div>
             </div>
-
-            <div class="tactical-sidebar">
-                <div class="sidebar-header">
-                    <img id="lineup-team-logo" class="sidebar-team-logo" style="display: none;" src="" alt="">
+            
+            <div class="lineup-info-side">
+                <div class="lineup-team-header">
+                    <img id="lineup-team-logo" class="lineup-logo-large" src="" alt="Logo">
                     <div>
-                        <h1 id="lineup-team-title">NAZWA DRUŻYNY</h1>
-                        <p class="sidebar-sub">SKŁAD WYJŚCIOWY</p>
+                        <h3 id="lineup-team-title">DRUŻYNA</h3>
+                        <div class="lineup-sub-title">SKŁAD WYJŚCIOWY</div>
                     </div>
                 </div>
                 
-                <div class="sidebar-section">
-                    <h3>ŁAWKA REZERWOWYCH</h3>
-                    <ul id="lineup-bench-list" class="bench-list"></ul>
+                <div class="bench-section">
+                    <h4>ŁAWKA REZERWOWYCH</h4>
+                    <ul id="lineup-bench-list">
+                        </ul>
                 </div>
                 
-                <div class="sidebar-section coach-section">
-                    <h3>TRENER</h3>
-                    <div id="lineup-coach-display" class="coach-box">BRAK</div>
+                <div class="coach-section">
+                    <label>TRENER</label>
+                    <div id="lineup-coach-display">-</div>
                 </div>
             </div>
-
         </div>
+    </div>
+
+    <div id="goal-badge-container" style="visibility: hidden; position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; background: rgba(18, 22, 33, 0.95); border: 2px solid #2d3748; border-radius: 8px; padding: 12px 25px; min-width: 500px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); z-index: 999; font-family: 'Segoe UI', sans-serif;">
+        <div id="goal-badge-accent" style="position: absolute; left: 0; top: 0; bottom: 0; width: 6px; border-top-left-radius: 6px; border-bottom-left-radius: 6px; background-color: #ff0055;"></div>
+        
+        <div style="display: flex; flex-direction: column; flex: 1;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
+                <span style="color: #ffffff !important; font-size: 11px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; opacity: 1;">STRZELONY GOL!</span>
+                <span style="color: #ffffff; font-size: 12px;">⚽</span>
+            </div>
+            
+            <div id="goal-badge-team" style="font-size: 15px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase;">GOSPODARZE</div>
+            
+            <div id="goal-badge-scorer" style="font-size: 26px; font-weight: 900; color: #ffffff !important; text-transform: uppercase; margin-top: 2px; letter-spacing: 0.5px;">ZAWODNIK</div>
+        </div>
+        
+        <div id="goal-badge-time" style="font-size: 20px; font-weight: bold; color: #a0aec0; font-family: monospace; padding-left: 20px; border-left: 1px solid #2d3748;">00:00</div>
+    </div>
+
+    <div id="stat-badge-container">
+        <div id="stat-badge-accent"></div>
+        <div class="stat-text-block">
+            <div id="stat-badge-player-name">ZAWODNIK</div>
+            <div id="stat-badge-category">STRZAŁY NA BRAMKĘ</div>
+        </div>
+        <div id="stat-badge-value">0</div>
     </div>
 
     <script src="app.js"></script>
