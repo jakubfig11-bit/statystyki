@@ -270,12 +270,12 @@
             </div>
             <div class="grid-two">
                 <div class="form-group">
-                    <label id="main-players-label">Skład Główny (5 linii)</label>
-                    <textarea id="lineup-main-input" rows="6"></textarea>
+                    <label id="main-players-label">Skład Główny (5 linii): GOSPODARZE</label>
+                    <textarea id="lineup-main-input" rows="6" placeholder="1. Bramkarz&#10;2. Obrońca&#10;3. Pomocnik"></textarea>
                 </div>
                 <div class="form-group">
                     <label id="bench-players-label">Zawodnicy Rezerwowi</label>
-                    <textarea id="lineup-bench-input" rows="6"></textarea>
+                    <textarea id="lineup-bench-input" rows="6" placeholder="12. Rezerwowy A&#10;14. Rezerwowy B"></textarea>
                 </div>
             </div>
             <div class="flex-row" style="justify-content: flex-end;">
@@ -426,7 +426,6 @@
         localStorage.setItem('match_goal_color', teamColor);
         localStorage.setItem('match_goal_visible', 'true');
 
-        // Automatyczne wygaszenie popupu po 7 sekundach
         setTimeout(() => {
             localStorage.setItem('match_goal_visible', 'false');
         }, 7000);
@@ -454,10 +453,24 @@
         localStorage.setItem('match_stat_value', document.getElementById('stat-value-input').value);
         localStorage.setItem('match_stat_visible', 'true');
 
-        // Znika po 6 sekundach
         setTimeout(() => {
             localStorage.setItem('match_stat_visible', 'false');
         }, 6000);
+    });
+
+    // AKCJE DLA PRZYCISKÓW WIZUALIZACJI SKŁADÓW (OŻYWIONE!)
+    document.getElementById('btn-show-lineup-home').addEventListener('click', () => {
+        localStorage.setItem('match_lineup_side', 'home');
+        localStorage.setItem('match_lineup_visible', 'true');
+    });
+
+    document.getElementById('btn-show-lineup-away').addEventListener('click', () => {
+        localStorage.setItem('match_lineup_side', 'away');
+        localStorage.setItem('match_lineup_visible', 'true');
+    });
+
+    document.getElementById('btn-hide-lineup').addEventListener('click', () => {
+        localStorage.setItem('match_lineup_visible', 'false');
     });
 
     // SWAP (zamiana stron)
@@ -491,7 +504,7 @@
 
     document.getElementById('btn-force-update').addEventListener('click', syncAll);
 
-    // Składy - Przełączanie TAbów local
+    // Składy - Przełączanie Tabów local
     const tabHome = document.getElementById('tab-home');
     const tabAway = document.getElementById('tab-away');
     
@@ -518,7 +531,8 @@
     document.getElementById('btn-save-lineups').addEventListener('click', () => {
         localStorage.setItem(`lineup_${currentLinupsTab}_main`, document.getElementById('lineup-main-input').value);
         localStorage.setItem(`lineup_${currentLinupsTab}_bench`, document.getElementById('lineup-bench-input').value);
-        alert('Skład zapisany w pamięci lokalnej!');
+        syncAll(); // Wymuś odświeżenie danych jeśli grafika jest na ekranie
+        alert('Skład zapisany w pamięci panelu!');
     });
 
     // Inicjalizacja startowa
