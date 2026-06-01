@@ -249,13 +249,10 @@ input[type="color"]::-webkit-color-swatch {
 
 .hud-home { 
     justify-content: flex-end; 
-    text-align: right;
 }
 
 .hud-away { 
-    justify-content: flex-start; 
-    text-align: left;
-    flex-direction: row-reverse;
+    justify-content: flex-start;
 }
 
 .hud-team-name {
@@ -271,6 +268,7 @@ input[type="color"]::-webkit-color-swatch {
     object-fit: contain;
 }
 
+/* Kontrola odstępów logo od tekstu niezależnie od przeglądarki */
 .hud-home .hud-team-logo { margin-right: 12px; }
 .hud-away .hud-team-logo { margin-left: 12px; }
 
