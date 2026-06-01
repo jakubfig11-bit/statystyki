@@ -44,8 +44,13 @@ async function initOverlayView() {
 }
 
 function handleStateUpdate(data) {
+    // Sprawdzamy czy trigger gola zmienił się z false na true
     if (data.show_goal_trigger === true && currentMatchState.show_goal_trigger === false) {
-        runGSAPGoalAnimation(data.scorer_name, data.scorer_team === 'home' ? data.home_name : data.away_name, data.scorer_team === 'home' ? data.home_color : data.away_color);
+        const teamColor = data.scorer_team === 'home' ? data.home_color : data.away_color;
+        const teamName = data.scorer_team === 'home' ? data.home_name : data.away_name;
+        const teamLogo = data.scorer_team === 'home' ? data.home_logo : data.away_logo;
+        
+        runGSAPGoalAnimation(data.scorer_name, teamName, teamColor, teamLogo);
     }
     
     if (data.show_lineups !== currentMatchState.show_lineups) {
@@ -99,9 +104,8 @@ function renderLineupsStructures() {
     document.getElementById('away-players-list').innerHTML = defaultAwayPlayers.map(p => `<li><span>―</span>${p}</li>`).join('');
 }
 
-// ZMODYFIKOWANA ANIMACJA GOLA (DÓŁ EKRANU, 8 SEKUND, AUTOMATYCZNY CZAS)
-function runGSAPGoalAnimation(scorer, teamName, teamColor) {
-    // Pobranie i sformatowanie dokładnego czasu z licznika w momencie strzału
+// ANIMACJA GOLA Z LOGIEM W TLE (8 SEKUND)
+function runGSAPGoalAnimation(scorer, teamName, teamColor, teamLogo) {
     const exactGoalTime = formatTime(currentMatchState.match_time);
     
     document.getElementById('goal-scorer').innerText = scorer || "ZAWODNIK";
@@ -109,14 +113,22 @@ function runGSAPGoalAnimation(scorer, teamName, teamColor) {
     document.getElementById('goal-time').innerText = exactGoalTime;
     document.getElementById('goal-card-accent').style.borderBottom = `6px solid ${teamColor}`;
 
+    // Obsługa logotypu w tle cieszynki
+    const bgLogoImg = document.getElementById('goal-bg-logo');
+    if (teamLogo && teamLogo.trim() !== "") {
+        bgLogoImg.src = teamLogo;
+        bgLogoImg.classList.remove('hidden');
+    } else {
+        bgLogoImg.classList.add('hidden');
+    }
+
     const overlay = document.getElementById('goal-overlay');
     const card = overlay.querySelector('.goal-tv-card');
 
     let tl = gsap.timeline({ onStart: () => { gsap.set(overlay, { visibility: 'visible', opacity: 1 }); } });
 
-    // Animacja wysunięcia od dołu (y: 150 -> y: 0)
     tl.fromTo(card, { y: 150, opacity: 0, scale: 0.95 }, { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: "power4.out" })
-      .to({}, { duration: 8.0 }) // Trzymanie grafiki na ekranie przez równe 8 sekund
+      .to({}, { duration: 8.0 }) 
       .to(card, { y: 150, opacity: 0, scale: 0.95, duration: 0.5, ease: "power4.in", onComplete: () => {
           gsap.set(overlay, { visibility: 'hidden' });
           resetGoalTrigger();
@@ -203,9 +215,23 @@ function updateMatchNames() {
     saveStateToSupabase();
 }
 
-function toggleTimer() { currentMatchState.is_running = !currentMatchState.is_running; saveStateToSupabase(); }
-function resetTimer() { currentMatchState.is_running = false; currentMatchState.match_time = 0; document.getElementById('ctrl-timer').innerText = "00:00"; saveStateToSupabase(); }
-function toggleLineups() { currentMatchState.show_lineups = !currentMatchState.show_lineups; saveStateToSupabase(); }
+// Te funkcje muszą być prawidłowo spięte pod przyciskami w HTML panelu!
+function toggleTimer() { 
+    currentMatchState.is_running = !currentMatchState.is_running; 
+    saveStateToSupabase(); 
+}
+
+function resetTimer() { 
+    currentMatchState.is_running = false; 
+    currentMatchState.match_time = 0; 
+    document.getElementById('ctrl-timer').innerText = "00:00"; 
+    saveStateToSupabase(); 
+}
+
+function toggleLineups() { 
+    currentMatchState.show_lineups = !currentMatchState.show_lineups; 
+    saveStateToSupabase(); 
+}
 
 function triggerGoalAnimation() {
     currentMatchState.scorer_name = document.getElementById('ctrl-scorer-name').value;
