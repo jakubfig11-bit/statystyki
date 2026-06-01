@@ -214,191 +214,195 @@ input[type="color"]::-webkit-color-swatch {
 }
 
 /* ==========================================
-   3. NOWA PRZEBUDOWANA BELKA MECZOWA (overlay.html)
+   3. GŁÓWNA BELKA MECZOWA (SCOREBOARD)
    ========================================== */
 .hud-container {
     position: absolute;
     top: 30px;
     left: 50%;
     transform: translateX(-50%);
-    height: 52px;
-    background: rgba(10, 10, 20, 0.95);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.7);
+    background: rgba(13, 13, 26, 0.95) !important;
+    border: 2px solid #252547 !important;
+    border-radius: 8px !important;
+    height: 55px !important;
+    display: flex !important;
+    align-items: center !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7) !important;
+    padding: 0 15px !important;
     z-index: 10;
 }
 
-.hud-side {
-    display: flex;
-    align-items: center;
-    height: 100%;
-    padding: 0 18px;
-    min-width: 250px;
-    gap: 14px;
+.hud-home {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 40% !important;
+    height: 100% !important;
 }
 
-/* Gospodarze: Logo po lewej stronie brzegu, tekst przysunięty do wyniku */
-.hud-home { 
-    justify-content: flex-start;
+.hud-away {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-direction: row-reverse !important;
+    width: 40% !important;
+    height: 100% !important;
 }
 
-/* Goście: Odwrócenie kolejności (Nazwa po lewej przy wyniku, Logo po prawej na brzegu) */
-.hud-away { 
-    justify-content: flex-start;
-    flex-direction: row-reverse; 
+.hud-center {
+    background: #090915 !important;
+    border-left: 2px solid #252547 !important;
+    border-right: 2px solid #252547 !important;
+    height: 100% !important;
+    width: 20% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
 }
 
 .hud-team-name {
-    font-size: 18px;
-    font-weight: 800;
-    color: #ffffff;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    transition: color 0.2s ease;
-    white-space: nowrap;
+    font-family: 'Arial Black', 'Impact', sans-serif !important;
+    font-size: 20px !important;
+    font-weight: 900 !important;
+    color: #ffffff !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    white-space: nowrap !important;
+    margin: 0 15px !important;
 }
 
 .hud-team-logo {
-    width: 32px;
-    height: 32px;
-    object-fit: contain;
-    flex-shrink: 0;
+    width: 36px !important;
+    height: 36px !important;
+    object-fit: contain !important;
+    flex-shrink: 0 !important;
 }
 
 .hud-score {
-    font-size: 26px;
-    font-weight: 900;
-    color: #ffffff;
-    background: rgba(255, 255, 255, 0.08);
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 22px;
-    min-width: 65px;
-}
-
-/* Automatyczne wypchnięcie bloków bocznych od wyniku */
-.hud-home .hud-team-name { margin-left: auto; }
-.hud-away .hud-team-name { margin-right: auto; }
-
-.hud-center {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    background: #000000;
-    height: 100%;
-    padding: 0 22px;
-    min-width: 100px;
-    border-left: 1px solid rgba(255, 255, 255, 0.2);
-    border-right: 1px solid rgba(255, 255, 255, 0.2);
+    font-family: 'Arial Black', sans-serif !important;
+    font-size: 24px !important;
+    font-weight: 900 !important;
+    color: #ffffff !important;
+    line-height: 1 !important;
 }
 
 .hud-time {
-    font-size: 20px;
-    font-weight: 800;
-    color: #00f2fe;
-    font-family: 'Courier New', monospace;
-    line-height: 1;
+    font-family: 'Courier New', monospace !important;
+    font-size: 20px !important;
+    font-weight: 900 !important;
+    color: #00f2fe !important;
+    line-height: 1.1 !important;
 }
 
 .hud-part {
-    font-size: 10px;
-    font-weight: 800;
-    color: #a0aec0;
-    margin-top: 2px;
-    letter-spacing: 0.5px;
+    font-family: sans-serif !important;
+    font-size: 11px !important;
+    font-weight: 800 !important;
+    color: #a0aec0 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
 }
 
 /* ==========================================
-   4. DUŻE STATYSTYKI ZAWODNIKA (STYL TV XL)
+   4. DUŻE STATYSTYKI ZAWODNIKA (STYL TV XL) - NOWY UKŁAD
    ========================================== */
 .stat-badge-xl-wrapper {
-    position: absolute;
-    bottom: 50px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 580px;
-    height: 90px;
-    background: linear-gradient(135deg, rgba(10, 10, 22, 0.98) 0%, rgba(20, 20, 38, 0.95) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 8px;
-    display: flex;
-    overflow: hidden;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
-    z-index: 100;
-    visibility: hidden;
-    opacity: 0;
+    position: absolute !important;
+    bottom: 50px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 680px !important; /* Bezpieczna szerokość na długie nazwy */
+    height: 90px !important;
+    background: linear-gradient(135deg, #111125 0%, #070714 100%) !important; /* Głębokie, eleganckie ciemne tło */
+    border: 2px solid #252547 !important;
+    border-radius: 8px !important;
+    display: flex !important;
+    overflow: hidden !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8) !important;
+    z-index: 100 !important;
 }
 
+/* Nowy, błękitny pasek ozdobny dopasowany do stylistyki panelu */
 .stat-badge-xl-stripe {
-    width: 10px;
-    height: 100%;
-    background-color: #ff0055;
-    transition: background-color 0.2s ease;
+    width: 12px !important;
+    height: 100% !important;
+    background: linear-gradient(to bottom, #00f2fe, #4facfe) !important;
+    flex-shrink: 0 !important;
 }
 
 .stat-badge-xl-content {
-    flex: 1;
-    display: flex;
-    padding: 0 25px;
-    align-items: center;
-    justify-content: space-between;
+    flex: 1 !important;
+    display: flex !important;
+    padding: 0 25px !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    height: 100% !important;
 }
 
+/* Lewy blok: Nazwisko i etykieta */
 .stat-badge-xl-left {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    gap: 4px !important;
 }
 
+/* Mały górny napis pomocniczy - teraz jasny i widoczny */
 .stat-badge-xl-title {
-    font-family: 'Arial', sans-serif;
-    font-weight: 700;
-    font-size: 11px;
-    color: #718096;
-    letter-spacing: 2px;
-    text-transform: uppercase;
+    font-family: 'Arial Black', sans-serif !important;
+    font-weight: 900 !important;
+    font-size: 11px !important;
+    color: #00f2fe !important;
+    letter-spacing: 2px !important;
+    text-transform: uppercase !important;
 }
 
+/* Imię i Nazwisko zawodnika - gruba, biała, czytelna czcionka */
 .stat-badge-xl-player {
-    font-family: 'Arial', sans-serif;
-    font-weight: 800;
-    font-size: 22px;
-    color: #ffffff;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    font-family: 'Arial Black', 'Impact', sans-serif !important;
+    font-weight: 900 !important;
+    font-size: 24px !important;
+    color: #ffffff !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
 }
 
+/* Prawy blok: Statystyka odizolowana od cyfry */
 .stat-badge-xl-right {
-    display: flex;
-    align-items: center;
-    gap: 20px;
+    display: flex !important;
+    align-items: center !important;
+    gap: 25px !important;
+    height: 100% !important;
 }
 
+/* Nazwa kategorii (np. STRZAŁY NA BRAMKĘ) - jasna, nie nachodzi na wynik */
 .stat-badge-xl-cat {
-    font-family: 'Arial', sans-serif;
-    font-weight: 700;
-    font-size: 13px;
-    color: #a0aec0;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    text-align: right;
-    max-width: 180px;
+    font-family: 'Arial Black', sans-serif !important;
+    font-weight: 900 !important;
+    font-size: 14px !important;
+    color: #e2e8f0 !important;
+    letter-spacing: 1px !important;
+    text-transform: uppercase !important;
+    text-align: right !important;
+    max-width: 220px !important;
+    line-height: 1.2 !important;
 }
 
+/* Duża cyfra wartości statystyki - dostała własną wydzieloną strefę */
 .stat-badge-xl-val {
-    font-family: 'Arial', sans-serif;
-    font-weight: 900;
-    font-size: 42px;
-    color: #ff0055;
-    text-shadow: 0 2px 8px rgba(0,0,0,0.6);
-    transition: color 0.2s ease;
+    font-family: 'Arial Black', sans-serif !important;
+    font-weight: 900 !important;
+    font-size: 46px !important;
+    color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.08) !important; /* Estetyczny boks pod cyfrą */
+    height: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 20px !important;
+    min-width: 70px !important;
+    border-left: 1px solid rgba(255, 255, 255, 0.15) !important;
 }
 
 /* ==========================================
@@ -690,206 +694,4 @@ input[type="color"]::-webkit-color-swatch {
     border-left: 4px solid #ff0055;
     text-transform: uppercase;
     transition: border-left-color 0.2s ease;
-}
-
-/* ==========================================
-   CAŁKOWICIE NOWA, CZYTELNA ANIMACJA STATYSTYK
-   ========================================== */
-
-/* Główny kontener belki statystyk */
-.tv-stat-wrapper, 
-div[class*="stat-badge"], 
-div[class*="stat-wrapper"] {
-    position: absolute !important;
-    bottom: 60px !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-    width: 650px !important; /* Odpowiednia szerokość na długie nazwy */
-    height: 80px !important; /* Wyższa belka, żeby nic się nie ucinało */
-    background: linear-gradient(135deg, #111125 0%, #070714 100%) !important; /* Głęboka, czytelna ciemna barwa */
-    border: 2px solid #252547 !important;
-    border-radius: 10px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    overflow: hidden !important;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8) !important;
-    padding: 0 !important;
-}
-
-/* Kolorowy pasek ozdobny po lewej stronie (pociągnięty z Twojego panelu) */
-.tv-stat-stripe,
-div[class*="stripe"] {
-    width: 12px !important;
-    height: 100% !important;
-    background: linear-gradient(to bottom, #00f2fe, #4facfe) !important; /* Ładny neonowy gradient */
-    flex-shrink: 0 !important;
-}
-
-/* Główna zawartość wewnątrz belki */
-.tv-stat-content,
-div[class*="content"] {
-    flex: 1 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    height: 100% !important;
-    padding: 0 25px !important;
-}
-
-/* Blok z tekstami (Nazwisko / Nazwa statystyki) */
-.tv-stat-info,
-div[class*="info"],
-div[class*="left"] {
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: center !important;
-    gap: 4px !important;
-}
-
-/* Mały napis pomocniczy nad główną statystyką (np. STATYSTYKI MECZU / ZAWODNIK) */
-.tv-stat-label,
-div[class*="label"],
-div[class*="title"] {
-    font-family: 'Arial', sans-serif !important;
-    font-size: 11px !important;
-    font-weight: 800 !important;
-    color: #718096 !important; /* Jasnoszary, wyraźny kolor */
-    text-transform: uppercase !important;
-    letter-spacing: 2px !important;
-}
-
-/* Główny tekst statystyki - DUŻY, BIAŁY I CZYTELNY */
-.tv-stat-name,
-div[class*="stat-name"],
-div[class*="player"] {
-    font-family: 'Arial Black', 'Impact', sans-serif !important;
-    font-size: 22px !important; /* Duża czcionka */
-    font-weight: 900 !important;
-    color: #ffffff !important; /* Czysta biel – idealna widoczność na ciemnym tle */
-    text-transform: uppercase !important;
-    letter-spacing: 1px !important;
-}
-
-/* Kontener na dużą cyfrę (wartość statystyki) po prawej stronie */
-.tv-stat-value-box,
-div[class*="value-box"],
-div[class*="right"] {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    background: rgba(255, 255, 255, 0.05) !important; /* Delikatne wyróżnienie tła pod cyfrą */
-    height: 100% !important;
-    padding: 0 25px !important;
-    border-left: 1px solid rgba(255, 255, 255, 0.1) !important;
-}
-
-/* Styl dla samej cyfry - NIE NAKŁADA SIĘ I NIE UCINA */
-.tv-stat-value,
-div[class*="stat-value"],
-div[class*="val"] {
-    font-family: 'Arial Black', sans-serif !important;
-    font-size: 38px !important; /* Potężna, czytelna cyfra telewizyjna */
-    font-weight: 950 !important;
-    color: #00f2fe !important; /* Neonowy błękit – świetnie kontrastuje */
-    line-height: 1 !important;
-    text-shadow: 0 0 15px rgba(0, 242, 254, 0.4) !important;
-}
-
-/* ==========================================
-   POPRAWKA DLA GŁÓWNEJ BELKI MECZOWEJ (SCOREBOARD)
-   ========================================== */
-
-/* Główny kontener całej belki */
-.hud-container {
-    background: rgba(13, 13, 26, 0.95) !important; /* Ciemne, eleganckie tło pasujące do panelu */
-    border: 2px solid #252547 !important;
-    border-radius: 8px !important;
-    height: 55px !important;
-    display: flex !important;
-    align-items: center !important;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7) !important;
-    padding: 0 15px !important;
-}
-
-/* Lewa strona - Gospodarze */
-.hud-home {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important; /* Rozpycha logo na brzeg, a napis do środka */
-    width: 40% !important; /* Idealne proporcje bocznych bloków */
-    height: 100% !important;
-}
-
-/* Prawa strona - Goście */
-.hud-away {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    flex-direction: row-reverse !important; /* Odwraca kolejność na prawej stronie: tekst przy wyniku, logo na brzegu */
-    width: 40% !important;
-    height: 100% !important;
-}
-
-/* Środkowy czarny blok z wynikiem i czasem */
-.hud-center {
-    background: #090915 !important;
-    border-left: 2px solid #252547 !important;
-    border-right: 2px solid #252547 !important;
-    height: 100% !important;
-    width: 20% !important;
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: center !important;
-    align-items: center !important;
-}
-
-/* STYLIZACJA TEKSTU I LOGO */
-
-/* Nazwy drużyn - pogrubione, czytelne, sportowy styl */
-.hud-team-name {
-    font-family: 'Arial Black', 'Impact', sans-serif !important;
-    font-size: 20px !important; /* Większa, bardzo czytelna czcionka */
-    font-weight: 900 !important;
-    color: #ffffff !important;
-    text-transform: uppercase !important;
-    letter-spacing: 1px !important;
-    white-space: nowrap !important;
-    margin: 0 15px !important; /* Odstęp od wyniku i od brzegu */
-}
-
-/* Logotypy na skrajach belki */
-.hud-team-logo {
-    width: 36px !important;
-    height: 36px !important;
-    object-fit: contain !important;
-    flex-shrink: 0 !important;
-}
-
-/* Wynik meczu */
-.hud-score {
-    font-family: 'Arial Black', sans-serif !important;
-    font-size: 24px !important;
-    font-weight: 900 !important;
-    color: #ffffff !important;
-    line-height: 1 !important;
-}
-
-/* Czas meczu */
-.hud-time {
-    font-family: 'Courier New', monospace !important;
-    font-size: 20px !important;
-    font-weight: 900 !important;
-    color: #00f2fe !important; /* Neonowy błękit z Twojego panelu */
-    line-height: 1.1 !important;
-}
-
-/* Część meczu (np. 1H, 2H) */
-.hud-part {
-    font-family: sans-serif !important;
-    font-size: 11px !important;
-    font-weight: 800 !important;
-    color: #a0aec0 !important;
-    text-transform: uppercase !important;
-    letter-spacing: 1px !important;
 }
