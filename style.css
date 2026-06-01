@@ -244,10 +244,19 @@ input[type="color"]::-webkit-color-swatch {
     align-items: center;
     height: 100%;
     padding: 0 20px;
+    flex: 1;
 }
 
-.hud-home { justify-content: flex-end; }
-.hud-away { justify-content: flex-start; }
+.hud-home { 
+    justify-content: flex-end; 
+    text-align: right;
+}
+
+.hud-away { 
+    justify-content: flex-start; 
+    text-align: left;
+    flex-direction: row-reverse;
+}
 
 .hud-team-name {
     font-size: 18px;
@@ -541,7 +550,6 @@ input[type="color"]::-webkit-color-swatch {
     border-radius: 50%;
 }
 
-/* --- FORMACJA USTAWIONA WEDŁUG SZKICU (GK NA SAMYM DOLE) --- */
 .player-node {
     position: absolute;
     display: flex;
@@ -551,14 +559,9 @@ input[type="color"]::-webkit-color-swatch {
     z-index: 2;
 }
 
-/* Bramkarz (1) na dole */
 .pos-gk   { bottom: 5%;  left: 50%; transform: translateX(-50%); }
-
-/* Obrońcy (11 i 2) wyżej bramkarza */
 .pos-df-l { bottom: 32%; left: 20%; }
 .pos-df-r { bottom: 32%; left: 62%; }
-
-/* Napastnicy (9 i 10) na samej górze połowy */
 .pos-fw-l { bottom: 70%; left: 20%; }
 .pos-fw-r { bottom: 70%; left: 62%; }
 
