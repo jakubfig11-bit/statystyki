@@ -10,7 +10,7 @@
         body { margin: 0; padding: 0; width: 1920px; height: 1080px; overflow: hidden; background: transparent; font-family: 'Montserrat', sans-serif; }
 
         /* ==========================================
-           1. SCOREBOARD (STYL TELEWIZYJNY) - BEZ ZMIAN
+           1. SCOREBOARD (BEZ ZMIAN)
            ========================================== */
         .hud-wrapper {
             position: absolute; top: 30px; left: 50%; transform: translateX(-50%);
@@ -79,36 +79,53 @@
         .subs-values { color: #c5cbd3; font-weight: 600; }
 
         /* ==========================================
-           4. NOWOŚĆ: MODUŁ STATYSTYK PO LEWEJ STRONIE
+           4. INDYWIDUALNA KARTA STATYSTYK (BEZ ZMIAN)
            ========================================== */
         #player-stats-overlay {
             position: absolute; top: 250px; left: 40px;
             width: 340px; background: #0d0f14; border: 2px solid #232731; border-radius: 14px;
             box-shadow: 0 15px 35px rgba(0,0,0,0.7); overflow: hidden; z-index: 50;
         }
-        .stats-player-header {
-            background: #1c2130; padding: 15px 18px; border-bottom: 1px solid #232731;
-            position: relative;
-        }
-        #stats-player-accent {
-            position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: #0052cc;
-        }
+        .stats-player-header { background: #1c2130; padding: 15px 18px; border-bottom: 1px solid #232731; position: relative; }
+        #stats-player-accent { position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: #0052cc; }
         .stats-player-title { color: #838996; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin: 0; }
         #stats-player-name { color: #ffffff; font-size: 20px; font-weight: 800; margin: 4px 0 0 0; letter-spacing: 0.5px; }
-        
         .stats-rows-container { padding: 10px 18px; }
-        .stat-item-row {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 11px 0; border-bottom: 1px solid rgba(35, 39, 49, 0.5);
-        }
+        .stat-item-row { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 1px solid rgba(35, 39, 49, 0.5); }
         .stat-item-row:last-child { border-bottom: none; }
         .stat-label { color: #c5cbd3; font-size: 14px; font-weight: 600; }
         .stat-value { color: #ffffff; font-size: 18px; font-weight: 800; }
+
+        /* ==========================================
+           5. NOWOŚĆ: MODUŁ ZMIAN ZAWODNIKÓW (TELEWIZYJNY BANER)
+           ========================================== */
+        #sub-overlay {
+            position: fixed; bottom: 80px; left: 0; width: 100vw;
+            display: flex; justify-content: center; z-index: 110; pointer-events: none;
+        }
+        .sub-tv-card {
+            width: 520px; background: #0d0f14; border: 2px solid #232731; border-radius: 14px;
+            overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.7); position: relative;
+        }
+        .sub-team-header {
+            background: #1c2130; padding: 10px 20px; border-bottom: 1px solid #232731;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .sub-team-title { color: #ffffff; font-size: 13px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; margin: 0; }
+        .sub-label-badge { color: #f5b041; background: rgba(245,176,65,0.1); font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; }
+        
+        .sub-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+        .sub-row { display: flex; align-items: center; gap: 15px; }
+        .sub-icon { font-size: 18px; font-weight: 900; width: 24px; text-align: center; }
+        .sub-icon.out { color: #ff4444; }
+        .sub-icon.in { color: #00c851; }
+        .sub-player-text { color: #ffffff; font-size: 16px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
+        #sub-card-accent { position: absolute; bottom: 0; left: 0; width: 100%; height: 5px; background: #e67e22; }
     </style>
 </head>
 <body>
 
-    <!-- SCOREBOARD (BEZ ZMIAN) -->
+    <!-- SCOREBOARD -->
     <div class="hud-wrapper">
         <div class="hud-main-scoreboard">
             <div class="hud-crest-box"><img id="hud-home-logo" class="hidden" src="" alt="L"></div>
@@ -126,7 +143,7 @@
         <div id="hud-timer" class="hud-timer-container">00:00</div>
     </div>
 
-    <!-- NOWOŚĆ: INDYWIDUALNA KARTA STATYSTYK (PO LEWEJ STRONIE) -->
+    <!-- INDYWIDUALNA KARTA STATYSTYK -->
     <div id="player-stats-overlay" style="visibility: hidden;">
         <div class="stats-player-header">
             <div id="stats-player-accent"></div>
@@ -153,7 +170,7 @@
         </div>
     </div>
 
-    <!-- ANIMACJA GOLA (BEZ ZMIAN) -->
+    <!-- ANIMACJA GOLA -->
     <div id="goal-overlay" style="visibility: hidden;">
         <div class="goal-tv-card">
             <img id="goal-bg-logo" class="hidden" src="" alt="BG">
@@ -165,7 +182,7 @@
         </div>
     </div>
 
-    <!-- PREZENTACJA SKŁADU (BEZ ZMIAN) -->
+    <!-- PREZENTACJA SKŁADU -->
     <div id="tactical-lineups-overlay" style="visibility: hidden;">
         <div class="tactical-card">
             <div class="tactical-header">
@@ -205,6 +222,27 @@
                 <span class="subs-label">REZERWOWI:</span>
                 <span id="tactical-subs-list" class="subs-values">-</span>
             </div>
+        </div>
+    </div>
+
+    <!-- NOWOŚĆ: PLANSZA ZMIANY ZAWODNIKA -->
+    <div id="sub-overlay" style="visibility: hidden;">
+        <div class="sub-tv-card">
+            <div class="sub-team-header">
+                <p id="sub-team-name" class="sub-team-title">DRUŻYNA</p>
+                <span class="sub-label-badge">ZMIANA MUK</span>
+            </div>
+            <div class="sub-body">
+                <div class="sub-row">
+                    <span class="sub-icon out">▼</span>
+                    <span id="sub-txt-out" class="sub-player-text">9. KOWALSKI</span>
+                </div>
+                <div class="sub-row">
+                    <span class="sub-icon in">▲</span>
+                    <span id="sub-txt-in" class="sub-player-text">14. NOWAK</span>
+                </div>
+            </div>
+            <div id="sub-card-accent"></div>
         </div>
     </div>
 
