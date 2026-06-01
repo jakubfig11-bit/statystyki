@@ -4,14 +4,21 @@
     <meta charset="UTF-8">
     <title>PANEL KONTROLNY - Scoreboard v3</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="style-v3.css">
     <style>
-        body {
+        html, body {
             background: #11141a;
             color: #f1f1f1;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
+            padding: 0;
+            /* KLUCZOWA POPRAWKA: Wymuszenie skrolowania, jeśli treść się nie mieści */
+            overflow-y: auto !important; 
+            overflow-x: hidden;
+            height: auto !important;
+        }
+        .control-wrapper {
             padding: 20px;
+            box-sizing: border-box;
         }
         .control-container {
             max-width: 1100px;
@@ -127,7 +134,6 @@
             letter-spacing: 2px;
         }
         
-        /* Styl przełącznika składów (Tabs) */
         .lineup-tabs {
             display: flex;
             gap: 5px;
@@ -142,6 +148,10 @@
             color: #a0aec0;
             padding: 8px;
             font-size: 12px;
+            border: none;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-weight: bold;
         }
         .tab-btn.active {
             background: #4facfe;
@@ -151,179 +161,186 @@
 </head>
 <body>
 
-<div class="control-container">
-    <h2>Meczowy Panel Sterowania Realtime</h2>
-    
-    <div class="score-panel-display">
-        <div class="score-box">
-            <label>Gospodarze</label>
-            <div class="score-num" id="home-score-display">0</div>
-            <div class="flex-row">
-                <button id="home-minus" class="btn-secondary">-1</button>
-                <button id="home-plus">+1</button>
-            </div>
-        </div>
+<div class="control-wrapper">
+    <div class="control-container">
+        <h2>Meczowy Panel Sterowania Realtime</h2>
         
-        <div style="text-align: center;">
-            <label>Aktualny Czas</label>
-            <div class="timer-display-large" id="control-timer-display">00:00</div>
-            <div class="flex-row" style="margin-top: 10px; justify-content: center;">
-                <button id="btn-timer-start">START</button>
-                <button id="btn-timer-reset" class="btn-danger">RESET</button>
-            </div>
-        </div>
-
-        <div class="score-box">
-            <label>Goście</label>
-            <div class="score-num" id="away-score-display">0</div>
-            <div class="flex-row">
-                <button id="away-minus" class="btn-secondary">-1</button>
-                <button id="away-plus">+1</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="grid-two">
-        <div class="section-box">
-            <h3>Gospodarze (Ustawienia)</h3>
-            <div class="form-group">
-                <label>Nazwa Drużyny</label>
-                <input type="text" id="home-name-input" value="GOSPODARZE">
-            </div>
-            <div class="grid-two" style="margin-bottom:0;">
-                <div class="form-group">
-                    <label>Kolor Główny</label>
-                    <input type="color" id="home-color-input" value="#ff0055">
+        <!-- 1. LIVE WYNIK I CZAS -->
+        <div class="score-panel-display">
+            <div class="score-box">
+                <label>Gospodarze</label>
+                <div class="score-num" id="home-score-display">0</div>
+                <div class="flex-row">
+                    <button id="home-minus" class="btn-secondary">-1</button>
+                    <button id="home-plus">+1</button>
                 </div>
-                <div class="form-group">
-                    <label>Kolor Tekstu</label>
-                    <input type="color" id="home-textcolor-input" value="#ffffff">
-                </div>
-            </div>
-            <div class="form-group">
-                <label>Link do Logo URL</label>
-                <input type="text" id="home-logo-input" placeholder="https://link-do-grafiki.png/logo.png">
-            </div>
-            <div class="form-group">
-                <label>Trener Gospodarzy</label>
-                <input type="text" id="home-coach-input" placeholder="Trener Gospodarzy">
-            </div>
-        </div>
-
-        <div class="section-box">
-            <h3>Goście (Ustawienia)</h3>
-            <div class="form-group">
-                <label>Nazwa Drużyny</label>
-                <input type="text" id="away-name-input" value="GOŚCIE">
-            </div>
-            <div class="grid-two" style="margin-bottom:0;">
-                <div class="form-group">
-                    <label>Kolor Główny</label>
-                    <input type="color" id="away-color-input" value="#ffff00">
-                </div>
-                <div class="form-group">
-                    <label>Kolor Tekstu</label>
-                    <input type="color" id="away-textcolor-input" value="#000000">
-                </div>
-            </div>
-            <div class="form-group">
-                <label>Link do Logo URL</label>
-                <input type="text" id="away-logo-input" placeholder="https://link-do-grafiki.png/logo.png">
-            </div>
-            <div class="form-group">
-                <label>Trener Gości</label>
-                <input type="text" id="away-coach-input" placeholder="Trener Gości">
-            </div>
-        </div>
-    </div>
-
-    <div class="section-box" style="margin-bottom: 20px; display: flex; gap: 15px; align-items: center;">
-        <div style="flex: 1;">
-            <label>Część Meczu (Połowa/Kwarta)</label>
-            <select id="period-select">
-                <option value="1H">1. POŁOWA</option>
-                <option value="2H">2. POŁOWA</option>
-                <option value="OT">DOGRYWKA</option>
-            </select>
-        </div>
-        <button id="btn-swap" class="btn-secondary" style="margin-top: 15px;">Zamień Strony (SWAP)</button>
-        <button id="btn-force-update" style="margin-top: 15px;">Wymuś synchronizację</button>
-    </div>
-
-    <div class="section-box" style="margin-bottom: 20px;">
-        <h3>Zarządzanie Składami</h3>
-        
-        <div class="lineup-tabs">
-            <button type="button" id="tab-home" class="tab-btn active" onclick="switchLineupTab('home')">EDYCJA: GOSPODARZE</button>
-            <button type="button" id="tab-away" class="tab-btn" onclick="switchLineupTab('away')">EDYCJA: GOŚCIE</button>
-        </div>
-        
-        <div class="grid-two">
-            <div class="form-group">
-                <label id="main-players-label">Skład Główny Gospodarzy (5 linii)</label>
-                <textarea id="lineup-main-input" rows="5" placeholder="1. Nazwisko GK&#10;2. Nazwisko DF L&#10;3. Nazwisko DF P&#10;4. Nazwisko FW L&#10;5. Nazwisko FW P"></textarea>
-            </div>
-            <div class="form-group">
-                <label id="bench-players-label">Zawodnicy Rezerwowi Gospodarzy</label>
-                <textarea id="lineup-bench-input" rows="5" placeholder="12. Zawodnik A&#10;14. Zawodnik B"></textarea>
-            </div>
-        </div>
-        <div class="flex-row" style="justify-content: flex-end;">
-            <button id="btn-save-lineups" class="btn-secondary">Zapisz aktualny skład</button>
-        </div>
-    </div>
-
-    <div class="grid-two">
-        <div class="section-box">
-            <h3>Wizualizacja Składów (Mecz)</h3>
-            <div class="flex-row" style="flex-wrap: wrap; margin-bottom: 15px;">
-                <button id="btn-show-lineup-home">Pokaż Skład Gospodarzy</button>
-                <button id="btn-show-lineup-away">Pokaż Skład Gości</button>
-                <button id="btn-hide-lineup" class="btn-danger">Ukryj Grafiki Składu</button>
             </div>
             
-            <h3>Strzelcy i Animacja Goli</h3>
-            <div class="form-group">
-                <label>Nazwisko strzelca bramki</label>
-                <input type="text" id="goal-scorer-input" placeholder="np. 9. LEWANDOWSKI">
+            <div style="text-align: center;">
+                <label>Aktualny Czas</label>
+                <div class="timer-display-large" id="control-timer-display">00:00</div>
+                <div class="flex-row" style="margin-top: 10px; justify-content: center;">
+                    <button id="btn-timer-start">START</button>
+                    <button id="btn-timer-reset" class="btn-danger">RESET</button>
+                </div>
             </div>
-            <div class="flex-row">
-                <button id="btn-goal-home">GOL Gospodarze! (+1)</button>
-                <button id="btn-goal-away">GOL Goście! (+1)</button>
+
+            <div class="score-box">
+                <label>Goście</label>
+                <div class="score-num" id="away-score-display">0</div>
+                <div class="flex-row">
+                    <button id="away-minus" class="btn-secondary">-1</button>
+                    <button id="away-plus">+1</button>
+                </div>
             </div>
         </div>
 
-        <div class="section-box">
-            <h3>Statystyki Indywidualne Zawodnika</h3>
-            <div class="form-group">
-                <label>Drużyna</label>
-                <select id="stat-team-select">
-                    <option value="home">Gospodarze</option>
-                    <option value="away">Goście</option>
+        <!-- 2. KONFIGURACJA DRUŻYN ORAZ BARW -->
+        <div class="grid-two">
+            <div class="section-box">
+                <h3>Gospodarze (Ustawienia)</h3>
+                <div class="form-group">
+                    <label>Nazwa Drużyny</label>
+                    <input type="text" id="home-name-input" value="TORINO">
+                </div>
+                <div class="grid-two" style="margin-bottom:0;">
+                    <div class="form-group">
+                        <label>Kolor Główny</label>
+                        <input type="color" id="home-color-input" value="#ff0055">
+                    </div>
+                    <div class="form-group">
+                        <label>Kolor Tekstu</label>
+                        <input type="color" id="home-textcolor-input" value="#ffffff">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Link do Logo URL</label>
+                    <input type="text" id="home-logo-input" placeholder="https://link-do-grafiki.png/logo.png">
+                </div>
+                <div class="form-group">
+                    <label>Trener Gospodarzy</label>
+                    <input type="text" id="home-coach-input" placeholder="Trener Gospodarzy">
+                </div>
+            </div>
+
+            <div class="section-box">
+                <h3>Goście (Ustawienia)</h3>
+                <div class="form-group">
+                    <label>Nazwa Drużyny</label>
+                    <input type="text" id="away-name-input" value="ELCHE">
+                </div>
+                <div class="grid-two" style="margin-bottom:0;">
+                    <div class="form-group">
+                        <label>Kolor Główny</label>
+                        <input type="color" id="away-color-input" value="#ffff00">
+                    </div>
+                    <div class="form-group">
+                        <label>Kolor Tekstu</label>
+                        <input type="color" id="away-textcolor-input" value="#000000">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Link do Logo URL</label>
+                    <input type="text" id="away-logo-input" placeholder="https://link-do-grafiki.png/logo.png">
+                </div>
+                <div class="form-group">
+                    <label>Trener Gości</label>
+                    <input type="text" id="away-coach-input" placeholder="Trener Gości">
+                </div>
+            </div>
+        </div>
+
+        <!-- POMOCNICZE OPERACJE GLOBALNE -->
+        <div class="section-box" style="margin-bottom: 20px; display: flex; gap: 15px; align-items: center;">
+            <div style="flex: 1;">
+                <label>Część Meczu (Połowa/Kwarta)</label>
+                <select id="period-select">
+                    <option value="1H">1. POŁOWA</option>
+                    <option value="2H">2. POŁOWA</option>
+                    <option value="OT">DOGRYWKA</option>
                 </select>
             </div>
-            <div class="form-group">
-                <label>Nazwisko / Zawodnik</label>
-                <input type="text" id="stat-player-input" placeholder="np. 10. ZAWODNIK">
+            <button id="btn-swap" class="btn-secondary" style="margin-top: 15px;">Zamień Strony (SWAP)</button>
+            <button id="btn-force-update" style="margin-top: 15px;">Wymuś synchronizację</button>
+        </div>
+
+        <!-- 3. ZARZĄDZANIE SKŁADAMI (LINEUPS) -->
+        <div class="section-box" style="margin-bottom: 20px;">
+            <h3>Zarządzanie Składami</h3>
+            
+            <div class="lineup-tabs">
+                <button type="button" id="tab-home" class="tab-btn active">EDYCJA: GOSPODARZE</button>
+                <button type="button" id="tab-away" class="tab-btn">EDYCJA: GOŚCIE</button>
             </div>
-            <div class="grid-two" style="margin-bottom:0;">
+            
+            <div class="grid-two">
                 <div class="form-group">
-                    <label>Kategoria statystyki</label>
-                    <select id="stat-category-select">
-                        <option value="Strzały na bramke">STRZAŁY NA BRAMKĘ</option>
-                        <option value="Podania">PODANIA</option>
-                        <option value="Kopnięcia">KOPNIĘCIA</option>
+                    <label id="main-players-label">Skład Główny (5 linii)</label>
+                    <textarea id="lineup-main-input" rows="6" placeholder="1. Nazwisko GK&#10;2. Nazwisko DF L&#10;3. Nazwisko DF P&#10;4. Nazwisko FW L&#10;5. Nazwisko FW P"></textarea>
+                </div>
+                <div class="form-group">
+                    <label id="bench-players-label">Zawodnicy Rezerwowi</label>
+                    <textarea id="lineup-bench-input" rows="6" placeholder="12. Zawodnik A&#10;14. Zawodnik B"></textarea>
+                </div>
+            </div>
+            <div class="flex-row" style="justify-content: flex-end;">
+                <button id="btn-save-lineups" style="background: #4facfe; color: #fff;">ZAPISZ AKTUALNY SKŁAD</button>
+            </div>
+        </div>
+
+        <!-- 4. WYZWALACZE ANIMACJI (TRIGGERS) -->
+        <div class="grid-two">
+            <div class="section-box">
+                <h3>Wizualizacja Składów (Mecz)</h3>
+                <div class="flex-row" style="flex-wrap: wrap; margin-bottom: 15px;">
+                    <button id="btn-show-lineup-home">Pokaż Skład Gospodarzy</button>
+                    <button id="btn-show-lineup-away">Pokaż Skład Gości</button>
+                    <button id="btn-hide-lineup" class="btn-danger">Ukryj Grafiki Składu</button>
+                </div>
+                
+                <h3>Strzelcy i Animacja Goli</h3>
+                <div class="form-group">
+                    <label>Nazwisko strzelca bramki</label>
+                    <input type="text" id="goal-scorer-input" placeholder="np. 9. LEWANDOWSKI">
+                </div>
+                <div class="flex-row">
+                    <button id="btn-goal-home">GOL Gospodarze! (+1)</button>
+                    <button id="btn-goal-away">GOL Goście! (+1)</button>
+                </div>
+            </div>
+
+            <div class="section-box">
+                <h3>Statystyki Indywidualne Zawodnika</h3>
+                <div class="form-group">
+                    <label>Drużyna</label>
+                    <select id="stat-team-select">
+                        <option value="home">Gospodarze</option>
+                        <option value="away">Goście</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Wartość</label>
-                    <input type="text" id="stat-value-input" value="1">
+                    <label>Nazwisko / Zawodnik</label>
+                    <input type="text" id="stat-player-input" placeholder="np. 10. ZAWODNIK">
                 </div>
+                <div class="grid-two" style="margin-bottom:0;">
+                    <div class="form-group">
+                        <label>Kategoria statystyki</label>
+                        <select id="stat-category-select">
+                            <option value="Strzały na bramke">STRZAŁY NA BRAMKĘ</option>
+                            <option value="Podania">PODANIA</option>
+                            <option value="Kopnięcia">KOPNIĘCIA</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Wartość</label>
+                        <input type="text" id="stat-value-input" value="1">
+                    </div>
+                </div>
+                <button id="btn-show-stat" style="width: 100%; margin-top: 10px;">Wyślij i animuj statystykę</button>
             </div>
-            <button id="btn-show-stat" style="width: 100%; margin-top: 10px;">Wyślij i animuj statystykę</button>
         </div>
-    </div>
 
+    </div>
 </div>
 
 <script src="app.js"></script>
