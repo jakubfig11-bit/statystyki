@@ -107,32 +107,31 @@ function formatTime(seconds) {
 }
 
 function initControl() {
-    document.getElementById('home-plus').addEventListener('click', () => changeScore('home', 1));
-    document.getElementById('home-minus').addEventListener('click', () => changeScore('home', -1));
-    document.getElementById('away-plus').addEventListener('click', () => changeScore('away', 1));
-    document.getElementById('away-minus').addEventListener('click', () => changeScore('away', -1));
+    // Łączenie z elementami oryginalnymi sterownika
+    if(document.getElementById('home-plus')) document.getElementById('home-plus').addEventListener('click', () => changeScore('home', 1));
+    if(document.getElementById('home-minus')) document.getElementById('home-minus').addEventListener('click', () => changeScore('home', -1));
+    if(document.getElementById('away-plus')) document.getElementById('away-plus').addEventListener('click', () => changeScore('away', 1));
+    if(document.getElementById('away-minus')) document.getElementById('away-minus').addEventListener('click', () => changeScore('away', -1));
     
-    document.getElementById('btn-timer-start').addEventListener('click', toggleTimer);
-    document.getElementById('btn-timer-reset').addEventListener('click', resetTimer);
-    document.getElementById('period-select').addEventListener('change', changePeriod);
+    if(document.getElementById('btn-timer-start')) document.getElementById('btn-timer-start').addEventListener('click', toggleTimer);
+    if(document.getElementById('btn-timer-reset')) document.getElementById('btn-timer-reset').addEventListener('click', resetTimer);
+    if(document.getElementById('period-select')) document.getElementById('period-select').addEventListener('change', changePeriod);
     
-    document.getElementById('btn-swap').addEventListener('click', swapTeams);
-    document.getElementById('btn-force-update').addEventListener('click', updateTeams);
+    if(document.getElementById('btn-swap')) document.getElementById('btn-swap').addEventListener('click', swapTeams);
+    if(document.getElementById('btn-force-update')) document.getElementById('btn-force-update').addEventListener('click', updateTeams);
     
-    document.getElementById('tab-home').addEventListener('click', () => switchLineupTab('home'));
-    document.getElementById('tab-away').addEventListener('click', () => switchLineupTab('away'));
-    document.getElementById('btn-save-lineups').addEventListener('click', saveActiveLineupTab);
+    if(document.getElementById('tab-home')) document.getElementById('tab-home').addEventListener('click', () => switchLineupTab('home'));
+    if(document.getElementById('tab-away')) document.getElementById('tab-away').addEventListener('click', () => switchLineupTab('away'));
+    if(document.getElementById('btn-save-lineups')) document.getElementById('btn-save-lineups').addEventListener('click', saveActiveLineupTab);
     
-    document.getElementById('btn-goal-home').addEventListener('click', () => triggerGoalAnimation('home'));
-    document.getElementById('btn-goal-away').addEventListener('click', () => triggerGoalAnimation('away'));
-    document.getElementById('btn-show-stat').addEventListener('click', triggerPlayerStat);
+    if(document.getElementById('btn-show-stat')) document.getElementById('btn-show-stat').addEventListener('click', triggerPlayerStat);
     
-    document.getElementById('btn-show-lineup-home').addEventListener('click', () => triggerLineupVisual('home', true));
-    document.getElementById('btn-show-lineup-away').addEventListener('click', () => triggerLineupVisual('away', true));
-    document.getElementById('btn-hide-lineup').addEventListener('click', () => triggerLineupVisual('home', false));
+    if(document.getElementById('btn-show-lineup-home')) document.getElementById('btn-show-lineup-home').addEventListener('click', () => triggerLineupVisual('home', true));
+    if(document.getElementById('btn-show-lineup-away')) document.getElementById('btn-show-lineup-away').addEventListener('click', () => triggerLineupVisual('away', true));
+    if(document.getElementById('btn-hide-lineup')) document.getElementById('btn-hide-lineup').addEventListener('click', () => triggerLineupVisual('home', false));
 
-    document.getElementById('lineup-main-input').value = localLineups[currentEditingTeam].main;
-    document.getElementById('lineup-bench-input').value = localLineups[currentEditingTeam].bench;
+    if(document.getElementById('lineup-main-input')) document.getElementById('lineup-main-input').value = localLineups[currentEditingTeam].main;
+    if(document.getElementById('lineup-bench-input')) document.getElementById('lineup-bench-input').value = localLineups[currentEditingTeam].bench;
 
     const liveInputs = [
         'home-name-input', 'away-name-input', 
@@ -142,20 +141,48 @@ function initControl() {
         'home-coach-input', 'away-coach-input'
     ];
     liveInputs.forEach(id => {
-        document.getElementById(id).addEventListener('input', updateTeams);
+        const el = document.getElementById(id);
+        if(el) el.addEventListener('input', updateTeams);
     });
+
+    // REJESTRACJA NOWEJ INTEGRACJI AUTOMATYCZNYCH GOLI
+    window.triggerAutomatedGoalSystem = () => {
+        const side = document.getElementById('automated-goal-side').value;
+        const customScorer = document.getElementById('automated-goal-scorer').value.trim() || "ZAWODNIK";
+        const teamName = side === 'home' ? matchState.homeName : matchState.awayName;
+        const currentTimeString = formatTime(matchState.timerSeconds);
+        
+        // Zmień wynik meczu w systemie
+        changeScore(side, 1);
+        
+        // Wyślij sygnał z automatycznym czasem do OBS
+        sendToOBS('trigger_action', { 
+            id: "goal_" + Date.now(), 
+            type: 'GOAL', 
+            side: side, 
+            team: teamName, 
+            scorer: customScorer.toUpperCase(),
+            time: currentTimeString
+        });
+
+        // Wyczyść okno wpisywania, by było gotowe na kolejnego gola
+        document.getElementById('automated-goal-scorer').value = "";
+    };
 
     updateControlUI();
 }
 
 function updateControlUI() {
     if (!isControl) return;
-    document.getElementById('home-score-display').innerText = matchState.homeScore;
-    document.getElementById('away-score-display').innerText = matchState.awayScore;
-    document.getElementById('control-timer-display').innerText = formatTime(matchState.timerSeconds);
-    document.getElementById('period-select').value = matchState.period;
-    document.getElementById('btn-timer-start').innerText = matchState.timerRunning ? "PAUZA" : "START";
-    document.getElementById('btn-timer-start').style.background = matchState.timerRunning ? "#ff4d4d" : "#00ffaa";
+    if(document.getElementById('home-score-display')) document.getElementById('home-score-display').innerText = matchState.homeScore;
+    if(document.getElementById('away-score-display')) document.getElementById('away-score-display').innerText = matchState.awayScore;
+    if(document.getElementById('control-timer-display')) document.getElementById('control-timer-display').innerText = formatTime(matchState.timerSeconds);
+    if(document.getElementById('period-select')) document.getElementById('period-select').value = matchState.period;
+    
+    if(document.getElementById('btn-timer-start')) {
+        document.getElementById('btn-timer-start').innerText = matchState.timerRunning ? "PAUZA" : "START";
+        document.getElementById('btn-timer-start').style.background = matchState.timerRunning ? "#ff4d4d" : "#00ffaa";
+    }
 }
 
 function switchLineupTab(team) {
@@ -187,28 +214,30 @@ function changeScore(team, val) {
 function updateTeams() {
     if (!isControl) return;
     
-    matchState.homeName = document.getElementById('home-name-input').value.toUpperCase();
-    matchState.awayName = document.getElementById('away-name-input').value.toUpperCase();
-    matchState.homeColor = document.getElementById('home-color-input').value;
-    matchState.homeTextColor = document.getElementById('home-textcolor-input').value;
-    matchState.awayColor = document.getElementById('away-color-input').value;
-    matchState.awayTextColor = document.getElementById('away-textcolor-input').value;
-    matchState.homeLogo = document.getElementById('home-logo-input').value.trim();
-    matchState.awayLogo = document.getElementById('away-logo-input').value.trim();
+    if(document.getElementById('home-name-input')) matchState.homeName = document.getElementById('home-name-input').value.toUpperCase();
+    if(document.getElementById('away-name-input')) matchState.awayName = document.getElementById('away-name-input').value.toUpperCase();
+    if(document.getElementById('home-color-input')) matchState.homeColor = document.getElementById('home-color-input').value;
+    if(document.getElementById('home-textcolor-input')) matchState.homeTextColor = document.getElementById('home-textcolor-input').value;
+    if(document.getElementById('away-color-input')) matchState.awayColor = document.getElementById('away-color-input').value;
+    if(document.getElementById('away-textcolor-input')) matchState.awayTextColor = document.getElementById('away-textcolor-input').value;
+    if(document.getElementById('home-logo-input')) matchState.homeLogo = document.getElementById('home-logo-input').value.trim();
+    if(document.getElementById('away-logo-input')) matchState.awayLogo = document.getElementById('away-logo-input').value.trim();
     
-    matchState.homeCoach = document.getElementById('home-coach-input').value.toUpperCase();
-    matchState.awayCoach = document.getElementById('away-coach-input').value.toUpperCase();
+    if(document.getElementById('home-coach-input')) matchState.homeCoach = document.getElementById('home-coach-input').value.toUpperCase();
+    if(document.getElementById('away-coach-input')) matchState.awayCoach = document.getElementById('away-coach-input').value.toUpperCase();
     
-    localLineups[currentEditingTeam].main = document.getElementById('lineup-main-input').value;
-    localLineups[currentEditingTeam].bench = document.getElementById('lineup-bench-input').value;
+    if(document.getElementById('lineup-main-input')) {
+        localLineups[currentEditingTeam].main = document.getElementById('lineup-main-input').value;
+        localLineups[currentEditingTeam].bench = document.getElementById('lineup-bench-input').value;
 
-    const homeMain = localLineups.home.main.split('\n').map(p => p.trim()).filter(p => p !== "");
-    const homeBench = localLineups.home.bench.split('\n').map(p => p.trim()).filter(p => p !== "");
-    matchState.homePlayers = [...homeMain, ...homeBench];
+        const homeMain = localLineups.home.main.split('\n').map(p => p.trim()).filter(p => p !== "");
+        const homeBench = localLineups.home.bench.split('\n').map(p => p.trim()).filter(p => p !== "");
+        matchState.homePlayers = [...homeMain, ...homeBench];
 
-    const awayMain = localLineups.away.main.split('\n').map(p => p.trim()).filter(p => p !== "");
-    const awayBench = localLineups.away.bench.split('\n').map(p => p.trim()).filter(p => p !== "");
-    matchState.awayPlayers = [...awayMain, ...awayBench];
+        const awayMain = localLineups.away.main.split('\n').map(p => p.trim()).filter(p => p !== "");
+        const awayBench = localLineups.away.bench.split('\n').map(p => p.trim()).filter(p => p !== "");
+        matchState.awayPlayers = [...awayMain, ...awayBench];
+    }
     
     sendToOBS('state_update', matchState);
 }
@@ -277,7 +306,6 @@ function startTimerInterval() {
             if (document.getElementById('control-timer-display')) {
                 document.getElementById('control-timer-display').innerText = formatTime(matchState.timerSeconds);
             }
-            // Optymalizacja przesyłania czasu - wysyłamy tylko niezbędne aktualizacje stanu
             sendToOBS('state_update', matchState);
         } else {
             clearInterval(timerInterval);
@@ -293,10 +321,10 @@ function resetTimer() {
     sendToOBS('state_update', matchState);
 }
 
+// STARA METODA (ZACHOWANA DLA KOMPATYBILNOŚCI OVERLAYU)
 function triggerGoalAnimation(side) {
     const teamName = side === 'home' ? matchState.homeName : matchState.awayName;
     const currentTimeString = formatTime(matchState.timerSeconds);
-    const customScorer = document.getElementById('goal-scorer-input').value.trim() || "ZAWODNIK";
     
     changeScore(side, 1);
     
@@ -305,7 +333,7 @@ function triggerGoalAnimation(side) {
         type: 'GOAL', 
         side: side, 
         team: teamName, 
-        scorer: customScorer.toUpperCase(),
+        scorer: "ZAWODNIK",
         time: currentTimeString
     });
 }
@@ -338,7 +366,6 @@ function triggerLineupVisual(side, show) {
 }
 
 function updateOverlayUI() {
-    // Dynamiczna aktualizacja tekstu i wartości
     if (document.getElementById('hud-home-name')) document.getElementById('hud-home-name').innerText = matchState.homeName;
     if (document.getElementById('hud-away-name')) document.getElementById('hud-away-name').innerText = matchState.awayName;
     if (document.getElementById('hud-home-score')) document.getElementById('hud-home-score').innerText = matchState.homeScore;
@@ -346,7 +373,6 @@ function updateOverlayUI() {
     if (document.getElementById('hud-timer')) document.getElementById('hud-timer').innerText = formatTime(matchState.timerSeconds);
     if (document.getElementById('hud-period')) document.getElementById('hud-period').innerText = matchState.period;
 
-    // Dynamiczne wymuszenie kolorów z panelu na HUD (Naprawa braku zmian kolorów na żywo)
     if (document.getElementById('hud-home-name')) document.getElementById('hud-home-name').style.color = matchState.homeTextColor;
     if (document.getElementById('hud-away-name')) document.getElementById('hud-away-name').style.color = matchState.awayTextColor;
 
@@ -411,7 +437,6 @@ function animateGoal(side, team, scorer, timeString) {
 
     gsap.killTweensOf(container);
 
-    // Wymuszenie czyszczenia stylów blokujących widoczność przed startem osi czasu GSAP
     container.style.visibility = "visible";
     container.style.opacity = "0";
 
@@ -471,7 +496,6 @@ function animateLineupCentral(side, show) {
                 numEl.innerText = pNum;
                 nameEl.innerText = pName;
                 
-                // BEZPOŚREDNIA BLOKADA PROPORCJI KULKI - usuwa spłaszczenia wywołane responsywnością OBS
                 shirt.style.setProperty('background-color', mainColor, 'important');
                 shirt.style.setProperty('border-color', textColor, 'important');
                 shirt.style.setProperty('width', '48px', 'important');
