@@ -33,17 +33,17 @@ async function initOverlayView() {
 
 async function initControlPanel() {
     await fetchInitialState(); updateControlPanelUI();
-    if (currentMatchState.is_running) startLocalTimer(); // Licznik w panelu też ruszy lokalnie
-    const statusBadge = document.getElementById('db-status'); if (statusBadge) { statusBadge.innerText = "POŁĄCZONO"; statusBadge.classList.add('connected'); }
+    if (currentMatchState.is_running) startLocalTimer();
+    
     realtimeChannel = supabaseClient.channel('match-broadcast', { config: { broadcast: { ack: false, self: false } } }); 
     realtimeChannel.on('broadcast', { event: 'state-change' }, ({ payload }) => {
-        // Synchronizuj czas w panelu, jeśli zmienił się w bazie (np. ktoś kliknął start na innym urządzeniu)
-        if (payload.match_time !== currentMatchState.match_time && !currentMatchState.is_running) {
-            currentMatchState.match_time = payload.match_time;
-            if(document.getElementById('ctrl-timer')) document.getElementById('ctrl-timer').innerText = formatTime(currentMatchState.match_time);
-        }
+        // Blokada zapętlania timera: reaguj na zmianę stanu is_running
         if (payload.is_running !== currentMatchState.is_running) {
             if (payload.is_running) startLocalTimer(); else clearInterval(timerInterval);
+        }
+        // Jeśli czas w bazie drastycznie się różni (np. reset), zsynchronizuj
+        if (!payload.is_running && payload.match_time !== currentMatchState.match_time) {
+            if(document.getElementById('ctrl-timer')) document.getElementById('ctrl-timer').innerText = formatTime(payload.match_time);
         }
         currentMatchState = payload; updateControlPanelUI();
     }).subscribe();
@@ -69,7 +69,7 @@ function handleStateUpdate(data) {
 }
 
 // ==========================================
-// OBSŁUGA TIMERA (POPRAWIONA I STABILNA)
+// KONTROLA CZASU
 // ==========================================
 
 function startLocalTimer() {
@@ -77,11 +77,9 @@ function startLocalTimer() {
     timerInterval = setInterval(() => { 
         currentMatchState.match_time++; 
         
-        // Aktualizacja w widoku OBS
         if(document.getElementById('hud-timer')) {
             document.getElementById('hud-timer').innerText = formatTime(currentMatchState.match_time);
         }
-        // Aktualizacja w Panelu Sterowania
         if(document.getElementById('ctrl-timer')) {
             document.getElementById('ctrl-timer').innerText = formatTime(currentMatchState.match_time);
         }
@@ -90,18 +88,20 @@ function startLocalTimer() {
 
 function toggleTimer() { 
     currentMatchState.is_running = !currentMatchState.is_running; 
+    if (!currentMatchState.is_running) {
+        clearInterval(timerInterval);
+    } else {
+        startLocalTimer();
+    }
     saveStateToSupabase(); 
 }
 
 function resetTimer() { 
+    clearInterval(timerInterval);
     currentMatchState.is_running = false; 
     currentMatchState.match_time = 0; 
-    if(document.getElementById('ctrl-timer')) {
-        document.getElementById('ctrl-timer').innerText = "00:00"; 
-    }
-    if(document.getElementById('hud-timer')) {
-        document.getElementById('hud-timer').innerText = "00:00"; 
-    }
+    if(document.getElementById('ctrl-timer')) document.getElementById('ctrl-timer').innerText = "00:00"; 
+    if(document.getElementById('hud-timer')) document.getElementById('hud-timer').innerText = "00:00"; 
     saveStateToSupabase(); 
 }
 
@@ -173,7 +173,7 @@ function updateControlPanelUI() {
 }
 
 // ==========================================
-// KOMUNIKACJA Z BAZĄ SUPABASE
+// SUPABASE REALTIME
 // ==========================================
 
 function sendBroadcastState() { if (realtimeChannel) realtimeChannel.send({ type: 'broadcast', event: 'state-change', payload: currentMatchState }); }
@@ -181,7 +181,7 @@ async function saveStateToSupabase() { sendBroadcastState(); await supabaseClien
 async function fetchInitialState() { let { data } = await supabaseClient.from('match_state').select('*').eq('id', 'live_match').single(); if (data) currentMatchState = data; }
 
 // ==========================================
-// FUNKCJE KONTROLNE PANELU
+// FUNKCJE PANELU
 // ==========================================
 
 function changeScore(team, val) {
@@ -226,7 +226,7 @@ function toggleLineups() { currentMatchState.show_lineups = !currentMatchState.s
 function togglePlayerStatsOverlay() { currentMatchState.show_player_stats = !currentMatchState.show_player_stats; saveStateToSupabase(); }
 
 // ==========================================
-// ANIMACJE EFEKTÓW WIZUALNYCH (GSAP)
+// WYWOŁYWANIE ANIMACJI
 // ==========================================
 
 async function triggerGoalAnimation() {
@@ -252,6 +252,10 @@ async function triggerSubAnimation() {
     await supabaseClient.from('match_state').update(dbState).eq('id', 'live_match');
     setTimeout(() => { currentMatchState.show_sub_trigger = false; }, 1000);
 }
+
+// ==========================================
+// LOGIKA WYŚWIETLANIA GSAP
+// ==========================================
 
 function runGSAPGoalAnimation(scorer, teamName, teamColor, teamLogo) {
     isAnimationPlaying = true; const exactGoalTime = formatTime(currentMatchState.match_time);
@@ -302,7 +306,7 @@ function toggleGSAPPlayerStats(show) {
 }
 
 // ==========================================
-// POMOCNICZE FUNKCJE METODOLOGICZNE
+// POMOCNIKI
 // ==========================================
 
 function parseAndSetPlayer(elementId, playerString) {
