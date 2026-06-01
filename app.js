@@ -13,7 +13,6 @@ let currentMatchState = {
     lineups_team: "home",
     home_coach: "", home_subs: "", home_p1: "", home_p2: "", home_p3: "", home_p4: "", home_p5: "",
     away_coach: "", away_subs: "", away_p1: "", away_p2: "", away_p3: "", away_p4: "", away_p5: "",
-    // NOWE POLA DLA STATYSTYK INDYWIDUALNYCH
     stat_player_name: "ZAWODNIK", stat_player_team: "home", show_player_stats: false,
     stat_shots: 0, stat_passes: 0, stat_goals: 0, stat_assists: 0
 };
@@ -169,6 +168,47 @@ function changeScore(team, val) {
     if (team === 'home') currentMatchState.home_score = Math.max(0, currentMatchState.home_score + val);
     else currentMatchState.away_score = Math.max(0, currentMatchState.away_score + val);
     if (document.getElementById(`ctrl-${team}-score`)) document.getElementById(`ctrl-${team}-score`).innerText = currentMatchState[`${team}_score`];
+    saveStateToSupabase();
+}
+
+// NOWA FUNKCJA: SWAP (ZAMIANA DRUŻYN)
+VOIDS = function(){}
+function swapTeams() {
+    const temp = {
+        name: currentMatchState.home_name, score: currentMatchState.home_score, logo: currentMatchState.home_logo, color: currentMatchState.home_color,
+        coach: currentMatchState.home_coach, subs: currentMatchState.home_subs,
+        p1: currentMatchState.home_p1, p2: currentMatchState.home_p2, p3: currentMatchState.home_p3, p4: currentMatchState.home_p4, p5: currentMatchState.home_p5
+    };
+
+    currentMatchState.home_name = currentMatchState.away_name;
+    currentMatchState.home_score = currentMatchState.away_score;
+    currentMatchState.home_logo = currentMatchState.away_logo;
+    currentMatchState.home_color = currentMatchState.away_color;
+    currentMatchState.home_coach = currentMatchState.away_coach;
+    currentMatchState.home_subs = currentMatchState.away_subs;
+    currentMatchState.home_p1 = currentMatchState.away_p1;
+    currentMatchState.home_p2 = currentMatchState.away_p2;
+    currentMatchState.home_p3 = currentMatchState.away_p3;
+    currentMatchState.home_p4 = currentMatchState.away_p4;
+    currentMatchState.home_p5 = currentMatchState.away_p5;
+
+    currentMatchState.away_name = temp.name;
+    currentMatchState.away_score = temp.score;
+    currentMatchState.away_logo = temp.logo;
+    currentMatchState.away_color = temp.color;
+    currentMatchState.away_coach = temp.coach;
+    currentMatchState.away_subs = temp.subs;
+    currentMatchState.away_p1 = temp.p1;
+    currentMatchState.away_p2 = temp.p2;
+    currentMatchState.away_p3 = temp.p3;
+    currentMatchState.away_p4 = temp.p4;
+    currentMatchState.away_p5 = temp.p5;
+
+    // Automatyczna korekta aktywnego składu na overlayu i przypisania drużyny w statystykach
+    currentMatchState.lineups_team = currentMatchState.lineups_team === 'home' ? 'away' : 'home';
+    currentMatchState.stat_player_team = currentMatchState.stat_player_team === 'home' ? 'away' : 'home';
+
+    updateControlPanelUI();
     saveStateToSupabase();
 }
 
