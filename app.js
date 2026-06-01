@@ -21,7 +21,6 @@ let matchState = {
     awayLogo: ""
 };
 
-// Sprawdzanie trybu na podstawie nazwy pliku w adresie URL
 const isOverlay = window.location.pathname.includes('overlay.html');
 const isControl = window.location.pathname.includes('control.html');
 
@@ -35,26 +34,18 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function initSystem() {
-    if (typeof supabase === 'undefined') {
-        console.error("Błąd: Supabase nie zostało załadowane z CDN!");
-        return;
-    }
-    
+    if (typeof supabase === 'undefined') return;
     supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     
-    // Konfiguracja kanału broadcast bez filtrowania self, aby wiadomości bezproblemowo przechodziły między oknami
     broadcastChannel = supabaseClient.channel('scoreboard_room', {
         config: { broadcast: { ack: false, self: true } }
     });
 
     broadcastChannel
         .on('broadcast', { event: 'state_update' }, ({ payload }) => {
-            console.log("Otrzymano nowy stan meczu:", payload);
             if (payload) {
                 matchState = payload;
-                if (isOverlay) {
-                    updateOverlayUI();
-                }
+                if (isOverlay) updateOverlayUI();
             }
         })
         .on('broadcast', { event: 'trigger_action' }, ({ payload }) => {
@@ -64,21 +55,18 @@ function initSystem() {
                     if (payload.type === 'GOAL') animateGoal(payload.side, payload.team, payload.scorer, payload.time);
                     if (payload.type === 'LINEUP_HOME') animateLineupCentral('home', payload.show);
                     if (payload.type === 'LINEUP_AWAY') animateLineupCentral('away', payload.show);
+                    if (payload.type === 'PLAYER_STAT') animatePlayerStat(payload.side, payload.player, payload.category, payload.value);
                 }
             }
         });
 
     broadcastChannel.subscribe((status) => {
-        console.log("Status połączenia Supabase:", status);
         if (status === 'SUBSCRIBED' && isControl) {
-            // Po skutecznym połączeniu panelu kontrolnego, od razu wysyłamy aktualne napisy startowe
             setTimeout(() => { updateTeams(); }, 500);
         }
     });
 
-    if (isControl) {
-        initControl();
-    }
+    if (isControl) initControl();
 }
 
 function sendToOBS(eventName, data) {
@@ -118,7 +106,6 @@ function changeScore(team, val) {
 
 function updateTeams() {
     if (!isControl) return;
-    
     matchState.homeName = document.getElementById('input-home-name').value.toUpperCase();
     matchState.awayName = document.getElementById('input-away-name').value.toUpperCase();
     matchState.homeColor = document.getElementById('input-home-color').value;
@@ -138,8 +125,6 @@ function updateTeams() {
 
 function swapTeams() {
     if (!isControl) return;
-
-    // Pobranie danych z formularza
     const homeName = document.getElementById('input-home-name').value;
     const awayName = document.getElementById('input-away-name').value;
     const homeColor = document.getElementById('input-home-color').value;
@@ -153,7 +138,6 @@ function swapTeams() {
     const homeCoach = document.getElementById('input-home-coach').value;
     const awayCoach = document.getElementById('input-away-coach').value;
 
-    // Zamiana miejscami pól wizualnych w panelu
     document.getElementById('input-home-name').value = awayName;
     document.getElementById('input-away-name').value = homeName;
     document.getElementById('input-home-color').value = awayColor;
@@ -167,12 +151,10 @@ function swapTeams() {
     document.getElementById('input-home-coach').value = awayCoach;
     document.getElementById('input-away-coach').value = homeCoach;
 
-    // Zamiana bramek w pamięci podręcznej
     const tempScore = matchState.homeScore;
     matchState.homeScore = matchState.awayScore;
     matchState.awayScore = tempScore;
 
-    // Zgrupowanie danych i wysłanie pełnej bomby aktualizacyjnej
     updateTeams();
     updateControlUI();
 }
@@ -187,11 +169,8 @@ function changePeriod() {
 
 function toggleTimer() {
     matchState.timerRunning = !matchState.timerRunning;
-    if (matchState.timerRunning) {
-        startTimerInterval();
-    } else {
-        clearInterval(timerInterval);
-    }
+    if (matchState.timerRunning) startTimerInterval();
+    else clearInterval(timerInterval);
     updateControlUI();
     sendToOBS('state_update', matchState);
 }
@@ -235,10 +214,24 @@ function triggerGoalAnimation() {
     });
 }
 
-function updateLineupsData() {
-    updateTeams();
+// NOWA FUNKCJA: Nadawanie sygnału o statystykach zawodnika z panelu sterowania
+function triggerPlayerStat() {
+    const side = document.getElementById('select-stat-team').value;
+    const player = document.getElementById('input-stat-player').value || "ZAWODNIK";
+    const category = document.getElementById('select-stat-category').value;
+    const value = document.getElementById('input-stat-value').value || "0";
+
+    sendToOBS('trigger_action', {
+        id: "stat_" + Date.now(),
+        type: 'PLAYER_STAT',
+        side: side,
+        player: player.toUpperCase(),
+        category: category.toUpperCase(),
+        value: value
+    });
 }
 
+function updateLineupsData() { updateTeams(); }
 function triggerLineupVisual(side, show) {
     sendToOBS('trigger_action', { id: `lineup_${side}_` + Date.now(), type: side === 'home' ? 'LINEUP_HOME' : 'LINEUP_AWAY', show: show });
 }
@@ -274,7 +267,39 @@ function updateOverlayUI() {
     }
 }
 
-// [Kod animacji gola i składu bez zmian, uproszczony dla czystości przesyłu danych]
+// NOWA FUNKCJA: Wykonanie animacji wjeżdżania statystyk na ekranie OBS (czas trwania: ok. 8.5 sekundy)
+function animatePlayerStat(side, player, category, value) {
+    if (typeof gsap === 'undefined') return;
+    
+    const container = document.getElementById('stat-badge-container');
+    const accentStripe = document.getElementById('stat-badge-accent');
+    const mainColor = side === 'home' ? matchState.homeColor : matchState.awayColor;
+
+    // Przypisanie tekstu
+    document.getElementById('stat-badge-player-name').innerText = player;
+    document.getElementById('stat-badge-category').innerText = category;
+    document.getElementById('stat-badge-value').innerText = value;
+
+    // Zmiana barw akcentu na dynamiczny kolor wybranej drużyny
+    accentStripe.style.setProperty('background-color', mainColor, 'important');
+    document.getElementById('stat-badge-value').style.setProperty('color', mainColor, 'important');
+
+    // Oczyszczenie poprzednich animacji na tym elemencie
+    gsap.killTweensOf(container);
+
+    const tl = gsap.timeline();
+    // Ustawienie startowe: niewidoczne, wysunięte w lewo o 350 pikseli
+    tl.set(container, { visibility: 'visible', x: -350, opacity: 0 })
+      // Wjazd z lewej strony na pozycję podstawową
+      .to(container, { x: 0, opacity: 1, duration: 0.6, ease: "back.out(1.1)" })
+      // Czas wyświetlania (Zatrzymanie na ekranie przez 8.5 sekundy)
+      .to({}, { duration: 8.5 })
+      // Odjazd z powrotem za lewą krawędź ekranu
+      .to(container, { x: -350, opacity: 0, duration: 0.5, ease: "power2.in", onComplete: () => {
+          gsap.set(container, { visibility: 'hidden' });
+      }});
+}
+
 function animateGoal(side, team, scorer, timeString) {
     if (typeof gsap === 'undefined') return;
     const mainColor = side === 'home' ? matchState.homeColor : matchState.awayColor;
