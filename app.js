@@ -2,8 +2,8 @@ const SUPABASE_URL = "https://puhnsjqbqmojjouhsjnk.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1aG5zanFicW1vampvdWhzam5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyMjg4MDgsImV4cCI6MjA5NTgwNDgwOH0.fBFk7OyEeQ8T_v-tzXAffcDb1xfvgeVZfOvq2WqDC7k";
 
 let matchState = {
-    homeName: "ATLETICO",
-    awayName: "BODO",
+    homeName: "GOSPODARZE",
+    awayName: "GOŚCIE",
     homeScore: 0,
     awayScore: 0,
     timerSeconds: 0,
@@ -15,8 +15,8 @@ let matchState = {
     homeTextColor: "#ffffff",
     awayColor: "#ffff00",
     awayTextColor: "#000000",
-    homeCoach: "Trener Gospodarzy",
-    awayCoach: "Trener Gości",
+    homeCoach: "",
+    awayCoach: "",
     homeLogo: "",
     awayLogo: ""
 };
@@ -28,6 +28,7 @@ const isControl = window.location.pathname.includes('control.html') || urlParams
 let timerInterval = null;
 let lastTriggerId = "";
 let supabaseClient = null;
+let broadcastChannel = null;
 
 document.addEventListener("DOMContentLoaded", () => {
     initSystem();
@@ -37,19 +38,21 @@ function initSystem() {
     if (typeof supabase === 'undefined') return;
     supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     
-    const myChannel = supabaseClient.channel('obs_broadcast', {
+    broadcastChannel = supabaseClient.channel('obs_broadcast', {
         config: { broadcast: { self: true } }
     });
 
     if (isOverlay) {
-        // Overlay oczekuje na pierwszy kompletny broadcast z aktualnym stanem logotypów i kolorów
-        myChannel
+        // OVERLAY TYLKO SŁUCHA - NIE NADPISUJE STANU STARTOWEGO
+        broadcastChannel
             .on('broadcast', { event: 'state_update' }, ({ payload }) => {
-                matchState = payload;
-                updateOverlayUI();
+                if (payload) {
+                    matchState = payload;
+                    updateOverlayUI();
+                }
             })
             .on('broadcast', { event: 'trigger_action' }, ({ payload }) => {
-                if (payload.id !== lastTriggerId) {
+                if (payload && payload.id !== lastTriggerId) {
                     lastTriggerId = payload.id;
                     if (payload.type === 'GOAL') animateGoal(payload.side, payload.team, payload.scorer, payload.time);
                     if (payload.type === 'LINEUP_HOME') animateLineupCentral('home', payload.show);
@@ -58,14 +61,20 @@ function initSystem() {
             })
             .subscribe();
     } else if (isControl) {
+        // PANEL STEROWANIA USTAWIA I ROZSYŁA STAN
+        broadcastChannel.subscribe((status) => {
+            if (status === 'SUBSCRIBED') {
+                // Gdy panel się połączy, od razu wymusza synchronizację wpisanych wartości domyślnych
+                updateTeams();
+            }
+        });
         initControl();
-        myChannel.subscribe();
     }
 }
 
 function sendToOBS(eventName, data) {
-    if (!supabaseClient) return;
-    supabaseClient.channel('obs_broadcast').send({
+    if (!broadcastChannel) return;
+    broadcastChannel.send({
         type: 'broadcast',
         event: eventName,
         payload: data
@@ -99,6 +108,8 @@ function changeScore(team, val) {
 }
 
 function updateTeams() {
+    if (!isControl) return;
+    
     matchState.homeName = document.getElementById('input-home-name').value.toUpperCase();
     matchState.awayName = document.getElementById('input-away-name').value.toUpperCase();
     matchState.homeColor = document.getElementById('input-home-color').value;
@@ -108,50 +119,52 @@ function updateTeams() {
     matchState.homeLogo = document.getElementById('input-home-logo').value.trim();
     matchState.awayLogo = document.getElementById('input-away-logo').value.trim();
     
+    matchState.homePlayers = document.getElementById('txt-home-players').value.split(',').map(p => p.trim()).filter(p => p !== "");
+    matchState.awayPlayers = document.getElementById('txt-away-players').value.split(',').map(p => p.trim()).filter(p => p !== "");
+    matchState.homeCoach = document.getElementById('input-home-coach').value;
+    matchState.awayCoach = document.getElementById('input-away-coach').value;
+
     sendToOBS('state_update', matchState);
 }
 
-// 🔄 GŁÓWNA FUNKCJA SWAP - ZAMIANA STRON DRUŻYN
 function swapTeams() {
-    // 1. Zamiana wartości w elementach HTML formularza panela sterowania
-    const hName = document.getElementById('input-home-name').value;
-    const aName = document.getElementById('input-away-name').value;
-    document.getElementById('input-home-name').value = aName;
-    document.getElementById('input-away-name').value = hName;
+    if (!isControl) return;
 
-    const hColor = document.getElementById('input-home-color').value;
-    const aColor = document.getElementById('input-away-color').value;
-    document.getElementById('input-home-color').value = aColor;
-    document.getElementById('input-away-color').value = hColor;
+    // Pobieramy dane z inputów panela
+    const homeName = document.getElementById('input-home-name').value;
+    const awayName = document.getElementById('input-away-name').value;
+    const homeColor = document.getElementById('input-home-color').value;
+    const awayColor = document.getElementById('input-away-color').value;
+    const homeText = document.getElementById('input-home-text').value;
+    const awayText = document.getElementById('input-away-text').value;
+    const homeLogo = document.getElementById('input-home-logo').value;
+    const awayLogo = document.getElementById('input-away-logo').value;
+    const homePlayers = document.getElementById('txt-home-players').value;
+    const awayPlayers = document.getElementById('txt-away-players').value;
+    const homeCoach = document.getElementById('input-home-coach').value;
+    const awayCoach = document.getElementById('input-away-coach').value;
 
-    const hText = document.getElementById('input-home-text').value;
-    const aText = document.getElementById('input-away-text').value;
-    document.getElementById('input-home-text').value = aText;
-    document.getElementById('input-away-text').value = hText;
+    // Zamiana miejscami w polach formularza
+    document.getElementById('input-home-name').value = awayName;
+    document.getElementById('input-away-name').value = homeName;
+    document.getElementById('input-home-color').value = awayColor;
+    document.getElementById('input-away-color').value = homeColor;
+    document.getElementById('input-home-text').value = awayText;
+    document.getElementById('input-away-text').value = homeText;
+    document.getElementById('input-home-logo').value = awayLogo;
+    document.getElementById('input-away-logo').value = homeLogo;
+    document.getElementById('txt-home-players').value = awayPlayers;
+    document.getElementById('txt-away-players').value = homePlayers;
+    document.getElementById('input-home-coach').value = awayCoach;
+    document.getElementById('input-away-coach').value = homeCoach;
 
-    const hLogo = document.getElementById('input-home-logo').value;
-    const aLogo = document.getElementById('input-away-logo').value;
-    document.getElementById('input-home-logo').value = aLogo;
-    document.getElementById('input-away-logo').value = hLogo;
-
-    const hPlayers = document.getElementById('txt-home-players').value;
-    const aPlayers = document.getElementById('txt-away-players').value;
-    document.getElementById('txt-home-players').value = aPlayers;
-    document.getElementById('txt-away-players').value = hPlayers;
-
-    const hCoach = document.getElementById('input-home-coach').value;
-    const aCoach = document.getElementById('input-away-coach').value;
-    document.getElementById('input-home-coach').value = aCoach;
-    document.getElementById('input-away-coach').value = hCoach;
-
-    // Zamiana aktualnych wyników bramkowych miejscami
+    // Zamiana bramkowa w zmiennych stanu
     const tempScore = matchState.homeScore;
     matchState.homeScore = matchState.awayScore;
     matchState.awayScore = tempScore;
 
-    // 2. Odczytanie nowych wartości i wysłanie zsynchronizowanego stanu do OBS
+    // Zgrupowanie i natychmiastowy wypust do bazy danych i OBS
     updateTeams();
-    updateLineupsData();
     updateControlUI();
 }
 
@@ -214,15 +227,7 @@ function triggerGoalAnimation() {
 }
 
 function updateLineupsData() {
-    matchState.homePlayers = document.getElementById('txt-home-players').value.split(',').map(p => p.trim()).filter(p => p !== "");
-    matchState.awayPlayers = document.getElementById('txt-away-players').value.split(',').map(p => p.trim()).filter(p => p !== "");
-    
-    const homeCoachInput = document.getElementById('input-home-coach');
-    const awayCoachInput = document.getElementById('input-away-coach');
-    matchState.homeCoach = homeCoachInput ? homeCoachInput.value : "Trener Gospodarzy";
-    matchState.awayCoach = awayCoachInput ? awayCoachInput.value : "Trener Gości";
-
-    sendToOBS('state_update', matchState);
+    updateTeams();
 }
 
 function triggerLineupVisual(side, show) {
@@ -241,12 +246,22 @@ function updateOverlayUI() {
     const awayHudImg = document.getElementById('hud-away-logo');
     
     if (homeHudImg) {
-        homeHudImg.src = matchState.homeLogo || "";
-        homeHudImg.style.display = matchState.homeLogo ? "block" : "none";
+        if (matchState.homeLogo) {
+            homeHudImg.src = matchState.homeLogo;
+            homeHudImg.style.display = "inline-block";
+        } else {
+            homeHudImg.style.display = "none";
+            homeHudImg.src = "";
+        }
     }
     if (awayHudImg) {
-        awayHudImg.src = matchState.awayLogo || "";
-        awayHudImg.style.display = matchState.awayLogo ? "block" : "none";
+        if (matchState.awayLogo) {
+            awayHudImg.src = matchState.awayLogo;
+            awayHudImg.style.display = "inline-block";
+        } else {
+            awayHudImg.style.display = "none";
+            awayHudImg.src = "";
+        }
     }
 }
 
@@ -288,8 +303,13 @@ function animateLineupCentral(side, show) {
 
         const lineupLogoImg = document.getElementById('lineup-team-logo');
         if (lineupLogoImg) {
-            lineupLogoImg.src = teamLogoUrl || "";
-            lineupLogoImg.style.display = teamLogoUrl ? "block" : "none";
+            if (teamLogoUrl) {
+                lineupLogoImg.src = teamLogoUrl;
+                lineupLogoImg.style.display = "block";
+            } else {
+                lineupLogoImg.style.display = "none";
+                lineupLogoImg.src = "";
+            }
         }
 
         document.getElementById('lineup-team-title').innerText = teamName;
