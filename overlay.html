@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>Pełny Overlay Meczowy</title>
+    <title>Pełny Overlay Meczowy - Dynamiczne Barwy</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Arial, sans-serif; overflow: hidden; background-color: transparent; }
@@ -37,7 +37,7 @@
         .hud-time { font-family: monospace; font-size: 16px; font-weight: 700; color: #00f2fe; margin-top: 2px; }
         .hud-part { font-size: 10px; font-weight: 800; color: #a0aec0; text-transform: uppercase; }
 
-        /* NOWY POP-UP STATYSTYK INDYWIDUALNYCH (DÓŁ EKRANU) */
+        /* POP-UP STATYSTYK INDYWIDUALNYCH */
         .stat-popup {
             position: absolute;
             bottom: -100px;
@@ -59,21 +59,26 @@
         .stat-text { color: #a0aec0; text-transform: uppercase; font-size: 14px; font-weight: 600; }
         .stat-value { font-size: 22px; font-weight: 900; color: #00ffaa; background: #090915; padding: 2px 12px; border-radius: 4px; }
 
-        /* GRAFICZNE BOISKO (ŚRODEK EKRANU) */
+        /* GRAFICZNE BOISKO (DYNAMICZNY KOLOR PRZEWODNI: --team-theme-color) */
+        :root {
+            --team-theme-color: #00f2fe; /* Domyślny kolor podmieniany przez JS */
+        }
+
         .pitch-container {
             position: absolute;
             top: 50%; left: 50%;
             transform: translate(-50%, -50%) scale(0);
-            width: 700px; height: 480px;
+            width: 700px; height: 500px;
             background: rgba(11, 11, 22, 0.96);
-            border: 2px solid rgba(0, 242, 254, 0.3);
+            border: 2px solid var(--team-theme-color);
             border-radius: 16px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.9), inset 0 0 20px rgba(255, 255, 255, 0.02);
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s, border-color 0.3s;
             opacity: 0; z-index: 5;
         }
         .pitch-container.active { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        
         .pitch {
             position: relative;
             width: 640px; height: 350px;
@@ -86,25 +91,40 @@
         .penalty-area.home { position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 60px; height: 160px; border: 2px solid rgba(255,255,255,0.15); border-left: none; }
         .penalty-area.away { position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 60px; height: 160px; border: 2px solid rgba(255,255,255,0.15); border-right: none; }
 
-        .pitch-header { text-align: center; margin-bottom: 10px; width: 100%; }
-        .pitch-header h2 { margin: 0; font-size: 26px; color: #fff; font-weight: 900; text-transform: uppercase; text-shadow: 0 0 10px rgba(0, 242, 254, 0.6); }
-        .pitch-coach { font-size: 12px; color: #00ffaa; font-weight: bold; text-transform: uppercase; margin-top: 2px; }
-        
-        .pitch-footer { width: 640px; margin-top: 10px; padding: 6px; background: rgba(0,0,0,0.3); border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); font-size: 11px; color: #fff; }
-        .pitch-footer strong { color: #4facfe; text-transform: uppercase; }
+        /* HERB NA ŚRODKU BOISKA */
+        .pitch-logo-bg {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 130px; height: 130px;
+            object-fit: contain;
+            opacity: 0.15; /* Subtelne tło, żeby nie zasłaniało nazwisk */
+            pointer-events: none;
+        }
 
-        /* KULKI ZAWODNIKÓW */
+        .pitch-header { text-align: center; margin-bottom: 12px; width: 100%; display: flex; justify-content: center; align-items: center; gap: 15px;}
+        .pitch-header img { width: 45px; height: 45px; object-fit: contain; }
+        .pitch-header-text { display: flex; flex-direction: column; align-items: center; }
+        .pitch-header h2 { margin: 0; font-size: 28px; color: #fff; font-weight: 900; text-transform: uppercase; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
+        .pitch-coach { font-size: 13px; color: var(--team-theme-color); font-weight: bold; text-transform: uppercase; margin-top: 2px; letter-spacing: 1px; transition: color 0.3s; }
+        
+        .pitch-footer { width: 640px; margin-top: 10px; padding: 8px; background: rgba(0,0,0,0.4); border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); font-size: 12px; color: #fff; }
+        .pitch-footer strong { color: var(--team-theme-color); text-transform: uppercase; transition: color 0.3s; }
+
+        /* KULKI ZAWODNIKÓW Z DYNAMICZNYM KOLOREM */
         .player-node { position: absolute; display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -50%); }
         .player-node .badge {
             width: 36px; height: 36px;
-            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+            background: linear-gradient(135deg, #1d2331 0%, #0b0b16 100%);
             border-radius: 50%; display: flex; justify-content: center; align-items: center;
-            color: #0b0b16; font-weight: 900; font-size: 15px;
-            box-shadow: 0 0 12px rgba(0, 242, 254, 0.5); border: 2px solid #ffffff;
+            color: #ffffff; font-weight: 900; font-size: 15px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.6); 
+            border: 2px solid var(--team-theme-color);
+            transition: border-color 0.3s;
         }
-        .player-node .p-name { margin-top: 4px; font-size: 12px; font-weight: 700; color: #fff; text-transform: uppercase; background: rgba(11, 11, 22, 0.85); padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
+        .player-node .p-name { margin-top: 4px; font-size: 12px; font-weight: 700; color: #fff; text-transform: uppercase; background: rgba(11, 11, 22, 0.85); padding: 2px 6px; border-radius: 4px; white-space: nowrap; border: 1px solid rgba(255,255,255,0.05); }
 
-        /* FORMACJA */
+        /* STRUKTURA 5 GRACZY */
         .pos-gk   { left: 10%; top: 50%; }
         .pos-def1 { left: 32%; top: 25%; }
         .pos-def2 { left: 32%; top: 75%; }
@@ -126,10 +146,16 @@
 
     <div id="lineup-pitch-overlay" class="pitch-container">
         <div class="pitch-header">
-            <h2 id="pitch-team-name">DRUŻYNA</h2>
-            <div id="pitch-coach-display" class="pitch-coach">TRENER: -</div>
+            <img id="pitch-team-logo" src="" alt="" style="display: none;">
+            <div class="pitch-header-text">
+                <h2 id="pitch-team-name">DRUŻYNA</h2>
+                <div id="pitch-coach-display" class="pitch-coach">TRENER: -</div>
+            </div>
         </div>
+        
         <div class="pitch">
+            <img id="pitch-bg-logo" class="pitch-logo-bg" src="" alt="" style="display: none;">
+            
             <div class="center-line"></div>
             <div class="center-circle"></div>
             <div class="penalty-area home"></div>
@@ -141,6 +167,7 @@
             <div class="player-node pos-mid1" id="p4"><div class="badge">4</div><span class="p-name">-</span></div>
             <div class="player-node pos-mid2" id="p5"><div class="badge">5</div><span class="p-name">-</span></div>
         </div>
+        
         <div class="pitch-footer">
             <strong>Rezerwowi:</strong> <span id="pitch-bench-display">-</span>
         </div>
@@ -156,7 +183,6 @@
         let statTimeout = null;
 
         function updateOverlay() {
-            // Wyniki i czas
             if (localStorage.getItem('teamHome')) document.getElementById('score-home-name').innerText = localStorage.getItem('teamHome').toUpperCase();
             if (localStorage.getItem('teamAway')) document.getElementById('score-away-name').innerText = localStorage.getItem('teamAway').toUpperCase();
             if (localStorage.getItem('scoreHome')) document.getElementById('score-home-val').innerText = localStorage.getItem('scoreHome');
@@ -164,18 +190,47 @@
             if (localStorage.getItem('match_timer_string')) document.getElementById('hud-time').innerText = localStorage.getItem('match_timer_string');
             if (localStorage.getItem('match_period')) document.getElementById('hud-part').innerText = localStorage.getItem('match_period');
 
-            // Pokazywanie boiska
             const pitchOverlay = document.getElementById('lineup-pitch-overlay');
             const showHome = localStorage.getItem('showHomeLineup') === 'true';
             const showAway = localStorage.getItem('showAwayLineup') === 'true';
 
+            const logoHeader = document.getElementById('pitch-team-logo');
+            const logoBg = document.getElementById('pitch-bg-logo');
+
             if (showHome) {
+                // Wybór koloru klubu i ustawienie zmiennej CSS
+                const homeColor = localStorage.getItem('colorHome') || '#00f2fe';
+                document.documentElement.style.setProperty('--team-theme-color', homeColor);
+
+                // Przypisanie herbu
+                const homeLogo = localStorage.getItem('logoHome') || '';
+                if(homeLogo) {
+                    logoHeader.src = homeLogo; logoHeader.style.display = 'block';
+                    logoBg.src = homeLogo; logoBg.style.display = 'block';
+                } else {
+                    logoHeader.style.display = 'none'; logoBg.style.display = 'none';
+                }
+
                 document.getElementById('pitch-team-name').innerText = (localStorage.getItem('teamHome') || "GOSPODARZE").toUpperCase();
                 document.getElementById('pitch-coach-display').innerText = "TRENER: " + (localStorage.getItem('coachHome') || "-").toUpperCase();
                 document.getElementById('pitch-bench-display').innerText = localStorage.getItem('benchHome') || "BRAK REZERWOWYCH";
                 fillPitchPlayers('lineupHome');
                 pitchOverlay.classList.add('active');
+
             } else if (showAway) {
+                // Wybór koloru klubu i ustawienie zmiennej CSS
+                const awayColor = localStorage.getItem('colorAway') || '#ff0055';
+                document.documentElement.style.setProperty('--team-theme-color', awayColor);
+
+                // Przypisanie herbu
+                const awayLogo = localStorage.getItem('logoAway') || '';
+                if(awayLogo) {
+                    logoHeader.src = awayLogo; logoHeader.style.display = 'block';
+                    logoBg.src = awayLogo; logoBg.style.display = 'block';
+                } else {
+                    logoHeader.style.display = 'none'; logoBg.style.display = 'none';
+                }
+
                 document.getElementById('pitch-team-name').innerText = (localStorage.getItem('teamAway') || "GOŚCIE").toUpperCase();
                 document.getElementById('pitch-coach-display').innerText = "TRENER: " + (localStorage.getItem('coachAway') || "-").toUpperCase();
                 document.getElementById('pitch-bench-display').innerText = localStorage.getItem('benchAway') || "BRAK REZERWOWYCH";
@@ -207,11 +262,9 @@
             }
         }
 
-        // Wykrywanie akcji animacji statystyk
         window.addEventListener('storage', (e) => {
             if (e.key === 'trigger_stat_anim' && e.newValue) {
                 const statData = JSON.parse(e.newValue);
-                
                 document.getElementById('stat-dsp-player').innerText = statData.player.toUpperCase();
                 document.getElementById('stat-dsp-label').innerText = statData.category.toUpperCase();
                 document.getElementById('stat-dsp-val').innerText = statData.value;
@@ -220,9 +273,7 @@
                 alertBox.classList.add('active');
 
                 clearTimeout(statTimeout);
-                statTimeout = setTimeout(() => {
-                    alertBox.classList.remove('active');
-                }, 5000); // Znika po 5 sekundach
+                statTimeout = setTimeout(() => { alertBox.classList.remove('active'); }, 5000);
             }
             updateOverlay();
         });
