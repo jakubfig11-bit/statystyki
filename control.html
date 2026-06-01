@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Broadcast HUD - Control Panel</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="control-body">
+
+    <div class="control-panel">
+        <header>
+            <h1>🏆 BROADCAST CONTROL PANEL</h1>
+            <p>Status: <span id="db-status" class="status-badge">Łączenie...</span></p>
+        </header>
+
+        <div class="panel-grid">
+            <div class="panel-card">
+                <h3>📊 TABLICA WYNIKÓW</h3>
+                <div class="team-control-row">
+                    <div class="team-input-group">
+                        <input type="text" id="ctrl-home-name" value="HOME">
+                        <div class="score-actions">
+                            <button onclick="changeScore('home', -1)">-</button>
+                            <span id="ctrl-home-score" class="score-val">0</span>
+                            <button onclick="changeScore('home', 1)">+</button>
+                        </div>
+                    </div>
+                    <div class="vs-label">VS</div>
+                    <div class="team-input-group">
+                        <input type="text" id="ctrl-away-name" value="AWAY">
+                        <div class="score-actions">
+                            <button onclick="changeScore('away', -1)">-</button>
+                            <span id="ctrl-away-score" class="score-val">0</span>
+                            <button onclick="changeScore('away', 1)">+</button>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="updateMatchNames()">Aktualizuj nazwy klubów</button>
+            </div>
+
+            <div class="panel-card">
+                <h3>⏱️ KONTROLA CZASU</h3>
+                <div class="timer-display" id="ctrl-timer">00:00</div>
+                <div class="timer-buttons">
+                    <button class="btn-success" onclick="toggleTimer()">START / PAUZA</button>
+                    <button class="btn-danger" onclick="resetTimer()">RESET</button>
+                </div>
+            </div>
+
+            <div class="panel-card full-width">
+                <h3>🔥 AKCJE I ANIMACJE LIVE</h3>
+                <div class="action-grid">
+                    <div class="goal-trigger-box">
+                        <h4>Wyzwalacz Gola</h4>
+                        <input type="text" id="ctrl-scorer-name" placeholder="Nazwisko strzelca...">
+                        <select id="ctrl-scorer-team">
+                            <option value="home">Gospodarze (HOME)</option>
+                            <option value="away">Goście (AWAY)</option>
+                        </select>
+                        <button class="btn-neon-yellow" onclick="triggerGoalAnimation()">⚽ TRANSMITUJ GOLA!</button>
+                    </div>
+
+                    <div class="lineup-trigger-box">
+                        <h4>Prezentacja Składów</h4>
+                        <button id="btn-lineup-toggle" class="btn-purple" onclick="toggleLineups()">POKAŻ SKŁADY</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        // Inicjalizacja trybu kontrolera
+        document.addEventListener("DOMContentLoaded", () => {
+            initControlPanel();
+        });
+    </script>
+</body>
+</html>
