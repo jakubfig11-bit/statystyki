@@ -175,6 +175,29 @@
         </div>
     </div>
 
+    <!-- NOWOŚĆ: AUTOMATYCZNY PANEL REJESTRACJI BRAMEK Z TIMESTAMPEM -->
+    <div class="section-box" style="border: 2px solid #ff0055;">
+        <h3>Szybka automatyczna rejestracja strzelca bramki</h3>
+        <div class="grid-two" style="margin-bottom: 10px;">
+            <div class="form-group">
+                <label>Nick / Nazwisko zawodnika</label>
+                <input type="text" id="automated-goal-scorer" placeholder="np. 9. LEWANDOWSKI">
+            </div>
+            <div class="form-group">
+                <label>Drużyna strzelająca</label>
+                <select id="automated-goal-side">
+                    <option value="home">GOSPODARZE</option>
+                    <option value="away">GOŚCIE</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <button onclick="submitAutomatedGoal()" style="background: #ff0055; color: #fff; width: 100%; padding: 14px; font-size: 14px; font-weight: bold;">
+                Zatwierdź bramkę (+1 punkt i wyślij animację na żywo z aktualnym czasem)
+            </button>
+        </div>
+    </div>
+
 </div>
 
 <script>
@@ -270,7 +293,6 @@
         }
     }
 
-    // NOWA FUNKCJA RĘCZNEGO ZARZĄDZANIA WYSUNIĘCIEM KWADRATU
     function controlStatPanel(action) {
         if(action === 'show') {
             const pName = document.getElementById('stat-player-name').value || "ZAWODNIK";
@@ -291,11 +313,24 @@
             localStorage.setItem('showAwayLineup', 'false');
             localStorage.setItem('showHomeLineup', 'true');
         } else if(action === 'away') {
-            localStorage.setItem('showHomeLineup', 'false');
+            localStorage.setItem('showHomeHomeLineup', 'false');
             localStorage.setItem('showAwayLineup', 'true');
         } else {
             localStorage.setItem('showHomeLineup', 'false');
             localStorage.setItem('showAwayLineup', 'false');
+        }
+    }
+
+    // WYWOŁANIE PRZEZ NOWY PANEL AUTOMATYZACJI BRAMEK
+    function submitAutomatedGoal() {
+        if (typeof window.triggerAutomatedGoalSystem === 'function') {
+            window.triggerAutomatedGoalSystem();
+        } else {
+            // Rezerwowy fallback lokalny, gdyby skrypt Supabase się ładował dłużej
+            const side = document.getElementById('automated-goal-side').value;
+            const scorer = document.getElementById('automated-goal-scorer').value || "ZAWODNIK";
+            changeScore(side, 1);
+            document.getElementById('automated-goal-scorer').value = "";
         }
     }
 
