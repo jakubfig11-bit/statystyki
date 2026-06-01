@@ -2,7 +2,7 @@
     --bg-dark: #090a0f;
     --bg-card: #12141c;
     --text-main: #ffffff;
-    --glass-bg: rgba(15, 18, 28, 0.75);
+    --glass-bg: rgba(15, 18, 28, 0.85);
     --glass-border: rgba(255, 255, 255, 0.08);
 }
 
@@ -16,16 +16,15 @@ body, html {
 }
 
 .overlay-body { background: transparent !important; overflow: hidden; }
-.control-body { background-color: var(--bg-dark); color: var(--text-main); overflow-y: auto; padding-bottom: 5px; }
+.control-body { background-color: var(--bg-dark); color: var(--text-main); overflow-y: auto; padding-bottom: 20px; }
 
 /* ==========================================================================
-   SCOREBOARD HUD - PREMIUM TV STYLE (GLASSMORPHISM)
+   SCOREBOARD HUD - LEFT CORNER PREMIUM TV (FIXED & SYMMETRIC)
    ========================================================================== */
-.scoreboard-wrapper {
+.scoreboard-wrapper.left-corner {
     position: absolute;
-    top: 25px;
-    left: 50%;
-    transform: translateX(-50%);
+    top: 30px;
+    left: 40px;
     z-index: 10;
 }
 
@@ -33,79 +32,84 @@ body, html {
     display: flex;
     align-items: center;
     background: var(--glass-bg);
-    backdrop-filter: blur(14px);
+    backdrop-filter: blur(16px);
     border: 1px solid var(--glass-border);
-    border-radius: 30px;
-    padding: 0 8px;
-    height: 54px;
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
-    position: relative;
+    border-radius: 12px;
+    height: 44px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+    overflow: hidden;
 }
 
 .tv-team {
     display: flex;
     align-items: center;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 700;
     letter-spacing: 0.5px;
     color: var(--text-main);
-    padding: 0 20px;
+    padding: 0 16px;
     text-transform: uppercase;
-    position: relative;
     height: 100%;
 }
 
-/* Kolorowe pionowe paski akcentowe obok herbu */
-.color-accent {
-    width: 4px;
-    height: 24px;
-    border-radius: 2px;
-    position: absolute;
-    top: 15px;
+/* Sztywne kontenery na logotypy zapobiegające asymetrii */
+.crest-container {
+    width: 32px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
-.tv-team.home .color-accent { left: 8px; }
-.tv-team.away .color-accent { right: 8px; }
+.tv-team.home .crest-container { margin-right: 8px; }
+.tv-team.away .crest-container { margin-left: 8px; }
 
-/* Dynamiczne logotypy klubów */
 .club-crest {
-    width: 28px;
-    height: 28px;
+    max-width: 26px;
+    max-height: 26px;
     object-fit: contain;
-    margin: 0 10px;
 }
 .club-crest.hidden { display: none !important; }
+
+/* Kolorowe paski akcentowe */
+.color-accent {
+    width: 4px;
+    height: 100%;
+    position: absolute;
+    top: 0;
+}
+.tv-team.home .color-accent { left: 0; }
+.tv-team.away .color-accent { right: 0; }
+
+/* Zintegrowany rdzeń: Wynik + Czas */
+.tv-center-core {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.4);
+    height: 100%;
+    padding: 0 16px;
+    border-left: 1px solid rgba(255, 255, 255, 0.05);
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    min-width: 70px;
+}
 
 .tv-score-box {
     display: flex;
     align-items: center;
-    justify-content: center;
-    background: rgba(255, 255, 255, 0.08);
-    height: 38px;
-    padding: 0 18px;
-    border-radius: 20px;
-    font-size: 20px;
+    gap: 6px;
+    font-size: 16px;
     font-weight: 900;
+    line-height: 1;
+    margin-top: 2px;
 }
-#hud-home-score { color: #ffffff; margin-right: 6px; }
-#hud-away-score { color: #ffffff; margin-left: 6px; }
-.tv-divider { width: 2px; height: 14px; background: rgba(255,255,255,0.2); }
+.tv-divider { width: 1px; height: 10px; background: rgba(255,255,255,0.2); }
 
-/* Zawieszony mały licznik czasu pod spodem */
 .tv-timer {
-    position: absolute;
-    bottom: -24px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(5px);
-    border: 1px solid rgba(255,255,255,0.05);
-    border-top: none;
-    padding: 2px 14px;
-    font-size: 12px;
+    font-size: 10px;
     font-weight: 700;
-    border-radius: 0 0 8px 8px;
-    color: #a0a5b5;
-    letter-spacing: 0.5px;
+    color: #94a3b8;
+    margin-top: 2px;
 }
 
 /* ==========================================================================
@@ -113,94 +117,60 @@ body, html {
    ========================================================================== */
 .goal-overlay-container {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    padding-top: 120px;
-    z-index: 100;
-    opacity: 0;
-    visibility: hidden;
+    top: 0; left: 0; width: 100%; height: 100%;
+    display: flex; justify-content: center; align-items: flex-start;
+    padding-top: 140px; z-index: 100;
+    opacity: 0; visibility: hidden;
 }
-
 .goal-bg-flash {
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
-    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 60%);
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
     pointer-events: none;
 }
-
 .goal-tv-card {
     background: #0b0c10;
     border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 16px;
-    padding: 20px 60px;
+    border-radius: 12px;
+    padding: 16px 50px;
     text-align: center;
-    box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+    box-shadow: 0 25px 50px rgba(0,0,0,0.5);
 }
-
-.goal-tv-title {
-    font-size: 46px;
-    font-weight: 900;
-    margin: 0;
-    letter-spacing: 3px;
-    color: #ffffff;
-    text-transform: uppercase;
-}
-
-.goal-tv-details {
-    margin-top: 5px;
-    font-size: 18px;
-    font-weight: 600;
-    color: #798094;
-    text-transform: uppercase;
-}
-#goal-team { color: #ffffff; margin-left: 10px; font-weight: 400; }
+.goal-tv-title { font-size: 38px; font-weight: 900; margin: 0; letter-spacing: 2px; color: #ffffff; }
+.goal-tv-details { margin-top: 4px; font-size: 15px; font-weight: 600; color: #94a3b8; text-transform: uppercase; }
+#goal-team { color: #ffffff; margin-left: 8px; font-weight: 500; }
 
 /* ==========================================================================
-   SKŁADY (Lineups) - ELEGANCKIE MATOWE SZKŁO
+   SKŁADY (Lineups)
    ========================================================================== */
 .lineups-container {
     position: fixed;
-    bottom: 60px;
-    left: 8%; right: 8%;
-    height: 65%;
-    display: flex;
-    justify-content: space-between;
-    z-index: 5;
-    opacity: 0;
-    visibility: hidden;
+    bottom: 40px; left: 40px; right: 40px;
+    height: 60%; display: flex; justify-content: space-between;
+    z-index: 5; opacity: 0; visibility: hidden;
 }
-
 .lineup-col {
-    width: 44%;
-    background: var(--glass-bg);
-    backdrop-filter: blur(20px);
-    border: 1px solid var(--glass-border);
-    border-radius: 20px;
-    padding: 30px;
-    box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+    width: 48%; background: var(--glass-bg); backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border); border-radius: 12px; padding: 24px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
 }
-.lineup-col h2 { font-size: 22px; color: #ffffff; margin-top: 0; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
+.lineup-col h2 { font-size: 18px; color: #ffffff; margin-top: 0; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px; text-transform: uppercase; }
 .lineup-col ul { list-style: none; padding: 0; margin: 0; }
-.lineup-col li { font-size: 16px; color: #cbd5e1; padding: 9px 0; font-weight: 500; border-bottom: 1px solid rgba(255,255,255,0.02); display: flex; align-items: center; }
-.lineup-col li span { color: rgba(255,255,255,0.3); margin-right: 12px; font-size: 12px; }
+.lineup-col li { font-size: 14px; color: #e2e8f0; padding: 8px 0; font-weight: 500; border-bottom: 1px solid rgba(255,255,255,0.02); display: flex; align-items: center; }
+.lineup-col li span { color: rgba(255,255,255,0.25); margin-right: 10px; }
 
 /* ==========================================================================
-   UI CONTROL PANEL PANELU
+   UI CONTROL PANEL
    ========================================================================== */
 .control-panel { max-width: 1000px; margin: 0 auto; padding: 30px 20px; }
 header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1f2331; padding-bottom: 20px; }
-header h1 { font-size: 22px; font-weight: 800; margin: 0; letter-spacing: 0.5px; }
+header h1 { font-size: 22px; font-weight: 800; margin: 0; }
 .status-badge { background: #ffaa00; color: #000; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
 .status-badge.connected { background: #10b981; color: white; }
 .panel-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; margin-top: 25px;}
 .panel-card { background: var(--bg-card); border: 1px solid #1f2331; padding: 25px; border-radius: 12px; }
 .panel-card.full-width { grid-column: span 2; }
-.panel-card h3 { margin-top: 0; font-size: 14px; color: #64748b; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px; }
+.panel-card h3 { margin-top: 0; font-size: 13px; color: #64748b; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px; }
 .team-control-row { display: flex; align-items: flex-start; justify-content: space-between; }
 .team-input-group { width: 44%; display: flex; flex-direction: column; gap: 10px; }
 .team-input-group label { font-size: 12px; font-weight: 700; color: #94a3b8; }
@@ -216,7 +186,7 @@ header h1 { font-size: 22px; font-weight: 800; margin: 0; letter-spacing: 0.5px;
 .timer-buttons { display: flex; gap: 12px; }
 .goal-trigger-box input, .goal-trigger-box select { width: 100%; padding: 12px; margin-bottom: 12px; background: #090a0f; border: 1px solid #262c3e; color: white; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
 
-button.btn-primary { width: 100%; background: #262c3e; color: white; border: none; padding: 14px; font-weight: 600; cursor: pointer; border-radius: 6px; font-size: 14px; transition: background 0.2s; }
+button.btn-primary { width: 100%; background: #262c3e; color: white; border: none; padding: 14px; font-weight: 600; cursor: pointer; border-radius: 6px; font-size: 14px; }
 button.btn-primary:hover { background: #323a52; }
 button.btn-success { flex: 1; background: #10b981; color: white; border: none; padding: 14px; font-weight: 600; cursor: pointer; border-radius: 6px; font-size: 14px; }
 button.btn-danger { background: #ef4444; color: white; border: none; padding: 14px; font-weight: 600; cursor: pointer; border-radius: 6px; font-size: 14px; }
