@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <title>PANEL KONTROLNY - Scoreboard v3</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="style-v3.css">
     <style>
-        /* Całkowite odblokowanie skrolowania niezależnie od style-v3.css */
         html, body {
             background: #11141a !important;
             overflow-y: auto !important;
             overflow-x: hidden !important;
             height: auto !important;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            color: #fff;
         }
         #scroll-force-container {
             display: block !important;
@@ -161,7 +160,7 @@
         }
     </style>
 </head>
-<body style="background: #11141a !important; overflow-y: auto !important; height: auto !important;">
+<body>
 
 <div id="scroll-force-container">
     <div class="control-container">
@@ -169,7 +168,7 @@
         
         <div class="score-panel-display">
             <div class="score-box">
-                <label>Gospodarze</label>
+                <label id="label-home-score">Gospodarze</label>
                 <div class="score-num" id="home-score-display">0</div>
                 <div class="flex-row">
                     <button id="home-minus" class="btn-secondary">-1</button>
@@ -187,7 +186,7 @@
             </div>
 
             <div class="score-box">
-                <label>Goście</label>
+                <label id="label-away-score">Goście</label>
                 <div class="score-num" id="away-score-display">0</div>
                 <div class="flex-row">
                     <button id="away-minus" class="btn-secondary">-1</button>
@@ -215,11 +214,11 @@
                 </div>
                 <div class="form-group">
                     <label>Link do Logo URL</label>
-                    <input type="text" id="home-logo-input" placeholder="https://link-do-grafiki.png/logo.png">
+                    <input type="text" id="home-logo-input" placeholder="https://link.png">
                 </div>
                 <div class="form-group">
                     <label>Trener Gospodarzy</label>
-                    <input type="text" id="home-coach-input" placeholder="Trener Gospodarzy">
+                    <input type="text" id="home-coach-input">
                 </div>
             </div>
 
@@ -241,11 +240,11 @@
                 </div>
                 <div class="form-group">
                     <label>Link do Logo URL</label>
-                    <input type="text" id="away-logo-input" placeholder="https://link-do-grafiki.png/logo.png">
+                    <input type="text" id="away-logo-input" placeholder="https://link.png">
                 </div>
                 <div class="form-group">
                     <label>Trener Gości</label>
-                    <input type="text" id="away-coach-input" placeholder="Trener Gości">
+                    <input type="text" id="away-coach-input">
                 </div>
             </div>
         </div>
@@ -265,20 +264,18 @@
 
         <div class="section-box" style="margin-bottom: 20px;">
             <h3>Zarządzanie Składami</h3>
-            
             <div class="lineup-tabs">
                 <button type="button" id="tab-home" class="tab-btn active">EDYCJA: GOSPODARZE</button>
                 <button type="button" id="tab-away" class="tab-btn">EDYCJA: GOŚCIE</button>
             </div>
-            
             <div class="grid-two">
                 <div class="form-group">
                     <label id="main-players-label">Skład Główny (5 linii)</label>
-                    <textarea id="lineup-main-input" rows="6" placeholder="1. Nazwisko GK&#10;2. Nazwisko DF L&#10;3. Nazwisko DF P&#10;4. Nazwisko FW L&#10;5. Nazwisko FW P"></textarea>
+                    <textarea id="lineup-main-input" rows="6"></textarea>
                 </div>
                 <div class="form-group">
                     <label id="bench-players-label">Zawodnicy Rezerwowi</label>
-                    <textarea id="lineup-bench-input" rows="6" placeholder="12. Zawodnik A&#10;14. Zawodnik B"></textarea>
+                    <textarea id="lineup-bench-input" rows="6"></textarea>
                 </div>
             </div>
             <div class="flex-row" style="justify-content: flex-end;">
@@ -340,6 +337,195 @@
     </div>
 </div>
 
-<script src="app.js"></script>
+<script>
+    // System zmiennych Realtime przez localStorage
+    let homeScore = 0;
+    let awayScore = 0;
+    let timerSeconds = 0;
+    let timerInterval = null;
+    let currentLinupsTab = 'home'; // 'home' lub 'away'
+
+    // Elementy DOM
+    const homeScoreDisplay = document.getElementById('home-score-display');
+    const awayScoreDisplay = document.getElementById('away-score-display');
+    const controlTimerDisplay = document.getElementById('control-timer-display');
+    const btnTimerStart = document.getElementById('btn-timer-start');
+
+    function syncAll() {
+        localStorage.setItem('match_home_name', document.getElementById('home-name-input').value);
+        localStorage.setItem('match_away_name', document.getElementById('away-name-input').value);
+        localStorage.setItem('match_home_color', document.getElementById('home-color-input').value);
+        localStorage.setItem('match_away_color', document.getElementById('away-color-input').value);
+        localStorage.setItem('match_home_logo', document.getElementById('home-logo-input').value);
+        localStorage.setItem('match_away_logo', document.getElementById('away-logo-input').value);
+        localStorage.setItem('match_period', document.getElementById('period-select').value);
+        
+        localStorage.setItem('match_home_score', homeScore);
+        localStorage.setItem('match_away_score', awayScore);
+        
+        // Zegar string
+        let mins = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+        let secs = (timerSeconds % 60).toString().padStart(2, '0');
+        let timeStr = `${mins}:${secs}`;
+        controlTimerDisplay.innerText = timeStr;
+        localStorage.setItem('match_timer_string', timeStr);
+        localStorage.setItem('match_timer_seconds', timerSeconds);
+        
+        // Labele pomocnicze w panelu
+        document.getElementById('label-home-score').innerText = document.getElementById('home-name-input').value;
+        document.getElementById('label-away-score').innerText = document.getElementById('away-name-input').value;
+    }
+
+    // Podpięcie nasłuchiwania na wpisywanie tekstu z pól
+    const inputs = ['home-name-input', 'away-name-input', 'home-color-input', 'away-color-input', 'home-logo-input', 'away-logo-input', 'period-select'];
+    inputs.forEach(id => document.getElementById(id).addEventListener('input', syncAll));
+    document.getElementById('period-select').addEventListener('change', syncAll);
+
+    // Wyniki operacje BUTTONS
+    document.getElementById('home-plus').addEventListener('click', () => { homeScore++; homeScoreDisplay.innerText = homeScore; syncAll(); });
+    document.getElementById('home-minus').addEventListener('click', () => { if(homeScore > 0) homeScore--; homeScoreDisplay.innerText = homeScore; syncAll(); });
+    document.getElementById('away-plus').addEventListener('click', () => { awayScore++; awayScoreDisplay.innerText = awayScore; syncAll(); });
+    document.getElementById('away-minus').addEventListener('click', () => { if(awayScore > 0) awayScore--; awayScoreDisplay.innerText = awayScore; syncAll(); });
+
+    // Obsługa Zegara meczu
+    btnTimerStart.addEventListener('click', () => {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            btnTimerStart.innerText = "START";
+            btnTimerStart.style.background = "#00ffaa";
+        } else {
+            btnTimerStart.innerText = "STOP";
+            btnTimerStart.style.background = "#ffcc00";
+            timerInterval = setInterval(() => {
+                timerSeconds++;
+                syncAll();
+            }, 1000);
+        }
+    });
+
+    document.getElementById('btn-timer-reset').addEventListener('click', () => {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        timerSeconds = 0;
+        btnTimerStart.innerText = "START";
+        btnTimerStart.style.background = "#00ffaa";
+        syncAll();
+    });
+
+    // Funkcja Bramki (Animacja gola)
+    function triggerGoalAnimation(teamSide) {
+        let scorer = document.getElementById('goal-scorer-input').value || "ZAWODNIK";
+        let currentMins = Math.floor(timerSeconds / 60).toString();
+        let teamName = teamSide === 'home' ? document.getElementById('home-name-input').value : document.getElementById('away-name-input').value;
+        let teamColor = teamSide === 'home' ? document.getElementById('home-color-input').value : document.getElementById('away-color-input').value;
+
+        localStorage.setItem('match_goal_time', currentMins);
+        localStorage.setItem('match_goal_team_name', teamName);
+        localStorage.setItem('match_goal_player', scorer);
+        localStorage.setItem('match_goal_color', teamColor);
+        localStorage.setItem('match_goal_visible', 'true');
+
+        // Automatyczne wygaszenie popupu po 7 sekundach
+        setTimeout(() => {
+            localStorage.setItem('match_goal_visible', 'false');
+        }, 7000);
+    }
+
+    document.getElementById('btn-goal-home').addEventListener('click', () => {
+        homeScore++;
+        homeScoreDisplay.innerText = homeScore;
+        syncAll();
+        triggerGoalAnimation('home');
+    });
+
+    document.getElementById('btn-goal-away').addEventListener('click', () => {
+        awayScore++;
+        awayScoreDisplay.innerText = awayScore;
+        syncAll();
+        triggerGoalAnimation('away');
+    });
+
+    // System statystyk indywidualnych
+    document.getElementById('btn-show-stat').addEventListener('click', () => {
+        localStorage.setItem('match_stat_team', document.getElementById('stat-team-select').value);
+        localStorage.setItem('match_stat_player', document.getElementById('stat-player-input').value);
+        localStorage.setItem('match_stat_category', document.getElementById('stat-category-select').value);
+        localStorage.setItem('match_stat_value', document.getElementById('stat-value-input').value);
+        localStorage.setItem('match_stat_visible', 'true');
+
+        // Znika po 6 sekundach
+        setTimeout(() => {
+            localStorage.setItem('match_stat_visible', 'false');
+        }, 6000);
+    });
+
+    // SWAP (zamiana stron)
+    document.getElementById('btn-swap').addEventListener('click', () => {
+        const hName = document.getElementById('home-name-input').value;
+        const aName = document.getElementById('away-name-input').value;
+        const hColor = document.getElementById('home-color-input').value;
+        const aColor = document.getElementById('away-color-input').value;
+        const hTxt = document.getElementById('home-textcolor-input').value;
+        const aTxt = document.getElementById('away-textcolor-input').value;
+        const hLogo = document.getElementById('home-logo-input').value;
+        const aLogo = document.getElementById('away-logo-input').value;
+
+        document.getElementById('home-name-input').value = aName;
+        document.getElementById('away-name-input').value = hName;
+        document.getElementById('home-color-input').value = aColor;
+        document.getElementById('away-color-input').value = hColor;
+        document.getElementById('home-textcolor-input').value = aTxt;
+        document.getElementById('away-textcolor-input').value = hTxt;
+        document.getElementById('home-logo-input').value = aLogo;
+        document.getElementById('away-logo-input').value = hLogo;
+
+        let tempScore = homeScore;
+        homeScore = awayScore;
+        awayScore = tempScore;
+
+        homeScoreDisplay.innerText = homeScore;
+        awayScoreDisplay.innerText = awayScore;
+        syncAll();
+    });
+
+    document.getElementById('btn-force-update').addEventListener('click', syncAll);
+
+    // Składy - Przełączanie TAbów local
+    const tabHome = document.getElementById('tab-home');
+    const tabAway = document.getElementById('tab-away');
+    
+    tabHome.addEventListener('click', () => {
+        tabHome.classList.add('active');
+        tabAway.classList.remove('active');
+        currentLinupsTab = 'home';
+        document.getElementById('main-players-label').innerText = "Skład Główny: GOSPODARZE";
+        loadLineupInputs();
+    });
+    tabAway.addEventListener('click', () => {
+        tabAway.classList.add('active');
+        tabHome.classList.remove('active');
+        currentLinupsTab = 'away';
+        document.getElementById('main-players-label').innerText = "Skład Główny: GOŚCIE";
+        loadLineupInputs();
+    });
+
+    function loadLineupInputs() {
+        document.getElementById('lineup-main-input').value = localStorage.getItem(`lineup_${currentLinupsTab}_main`) || '';
+        document.getElementById('lineup-bench-input').value = localStorage.getItem(`lineup_${currentLinupsTab}_bench`) || '';
+    }
+    
+    document.getElementById('btn-save-lineups').addEventListener('click', () => {
+        localStorage.setItem(`lineup_${currentLinupsTab}_main`, document.getElementById('lineup-main-input').value);
+        localStorage.setItem(`lineup_${currentLinupsTab}_bench`, document.getElementById('lineup-bench-input').value);
+        alert('Skład zapisany w pamięci lokalnej!');
+    });
+
+    // Inicjalizacja startowa
+    window.onload = () => {
+        syncAll();
+        loadLineupInputs();
+    };
+</script>
 </body>
 </html>
