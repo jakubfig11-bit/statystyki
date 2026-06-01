@@ -2,15 +2,55 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>Overlay Meczowy - Wersja Finalna</title>
+    <title>Overlay Meczowy - Poprawka Layoutu</title>
     <link rel="stylesheet" href="style-v3.css">
     <style>
-        /* STYLIZACJA DLA DYNAMICZNEJ BELKI BRAMKOWEJ */
+        /* Całkowite czyszczenie tła, aby w OBS było widać tylko elementy HUD */
+        html, body {
+            background: transparent !important;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            width: 1920px;
+            height: 1080px;
+        }
+
+        /* POPRAWKA: Panel taktyczny boiska/składów nie może być wielkim czarnym blokiem */
+        .lineups-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4) !important; /* Delikatne przyciemnienie zamiast czarnej ściany */
+            display: none; /* Domyślnie ukryty, aktywowany klasą */
+            z-index: 5000;
+        }
+        .lineups-overlay.active {
+            display: flex !important;
+        }
+
+        /* POPRAWKA: Statystyki - domyślnie schowane, żeby nie robiły syfu */
+        .stat-badge-container {
+            position: absolute;
+            top: 150px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-200px);
+            transition: transform 0.4s ease-out;
+            z-index: 6000;
+            opacity: 0;
+        }
+        .stat-badge-container.active {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        /* Dynamiczna belka bramkowa (z dołu) */
         #custom-goal-badge {
             position: absolute;
             bottom: 50px;
             left: 50%;
-            transform: translateX(-50%) translateY(200px);
+            transform: translateX(-50%) translateY(300px);
             width: 550px;
             height: 90px;
             background: rgba(14, 14, 28, 0.95);
@@ -21,91 +61,27 @@
             align-items: center;
             overflow: hidden;
             z-index: 9999;
-            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         #custom-goal-badge.active {
             transform: translateX(-50%) translateY(0);
         }
-        #goal-accent {
-            width: 10px;
-            height: 100%;
-            background: #ff0055;
-            flex-shrink: 0;
-        }
-        .goal-logo-box {
-            width: 80px;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(255, 255, 255, 0.02);
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
-            padding: 10px;
-        }
-        #goal-logo-img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
-        .goal-details {
-            flex: 1;
-            padding: 0 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-        .goal-title-row {
-            display: flex;
-            align-items: baseline;
-            gap: 8px;
-        }
-        .goal-alert {
-            font-size: 20px;
-            font-weight: 900;
-            color: #00ffaa;
-            text-transform: uppercase;
-        }
-        #goal-team-name {
-            font-size: 13px;
-            font-weight: 800;
-            text-transform: uppercase;
-            color: #ff0055;
-        }
-        #goal-player-nick {
-            font-size: 24px;
-            font-weight: 800;
-            color: #fff;
-            text-transform: uppercase;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .goal-time-box {
-            padding: 0 20px;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: rgba(0,0,0,0.3);
-            border-left: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        .goal-time-lbl {
-            font-size: 9px;
-            font-weight: 700;
-            color: #718096;
-            text-transform: uppercase;
-        }
-        #goal-time-val {
-            font-size: 22px;
-            font-weight: 900;
-            color: #fff;
-            font-family: monospace;
-        }
+        #goal-accent { width: 10px; height: 100%; background: #ff0055; flex-shrink: 0; }
+        .goal-logo-box { width: 80px; height: 100%; display: flex; align-items: center; justify-content: center; background: rgba(255, 255, 255, 0.02); padding: 10px; }
+        #goal-logo-img { width: 100%; height: 100%; object-fit: contain; }
+        .goal-details { flex: 1; padding: 0 20px; display: flex; flex-direction: column; justify-content: center; }
+        .goal-title-row { display: flex; align-items: baseline; gap: 8px; }
+        .goal-alert { font-size: 20px; font-weight: 900; color: #00ffaa; text-transform: uppercase; }
+        #goal-team-name { font-size: 13px; font-weight: 800; text-transform: uppercase; color: #ff0055; }
+        #goal-player-nick { font-size: 24px; font-weight: 800; color: #fff; text-transform: uppercase; }
+        .goal-time-box { padding: 0 20px; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.3); }
+        .goal-time-lbl { font-size: 9px; color: #718096; text-transform: uppercase; }
+        #goal-time-val { font-size: 22px; font-weight: 900; color: #fff; font-family: monospace; }
     </style>
 </head>
 <body>
 
+    <!-- TV SCOREBOARD (HUD) - Trzymamy strukturę z Twojego style-v3.css -->
     <div class="hud-container">
         <div class="hud-home">
             <span class="hud-team-name" id="dsp-home-name">TORINO</span>
@@ -124,6 +100,7 @@
         </div>
     </div>
 
+    <!-- DYNAMICZNA BELKA GOLOWA (CHOWANA NA DOLE) -->
     <div id="custom-goal-badge">
         <div id="goal-accent"></div>
         <div class="goal-logo-box">
@@ -142,6 +119,7 @@
         </div>
     </div>
 
+    <!-- KWADRAT STATYSTYK (UKRYTY DOPÓKI NIE KLIKNIESZ "POKAŻ") -->
     <div class="stat-badge-container" id="stat-panel">
         <div class="stat-badge-accent" id="stat-accent"></div>
         <div class="stat-main">
@@ -151,6 +129,7 @@
         <div class="stat-badge-value" id="stat-dsp-val">1</div>
     </div>
 
+    <!-- TAKTYCZNE BOISKO (WYSWIETLANE TYLKO GDY WŁĄCZONE) -->
     <div class="lineups-overlay" id="pitch-overlay">
         <div class="lineup-tv-center-block">
             <div class="pitch-visualizer">
@@ -172,11 +151,11 @@
                 </div>
                 <div class="sidebar-section" style="flex:1;">
                     <h3>ZAWODNICY REZERWOWI</h3>
-                    <div id="side-bench-list" style="white-space: pre-line; line-height: 1.6; color:#a0aec0;"></div>
+                    <div id="side-bench-list" style="white-space: pre-line;"></div>
                 </div>
                 <div class="sidebar-section">
                     <h3>GŁÓWNY TRENER</h3>
-                    <div id="side-coach-name" style="font-weight:bold; color:#fff;"></div>
+                    <div id="side-coach-name"></div>
                 </div>
             </div>
         </div>
@@ -187,7 +166,7 @@
         let goalTimeout = null;
 
         function updateOverlay() {
-            // Scoreboard (HUD) text sync
+            // Synchronizacja tekstu scoreboardu
             document.getElementById('dsp-home-name').innerText = localStorage.getItem('homeName') || 'TORINO';
             document.getElementById('dsp-away-name').innerText = localStorage.getItem('awayName') || 'ELCHE';
             
@@ -201,7 +180,7 @@
             document.getElementById('dsp-timer').innerText = `${m}:${s}`;
             document.getElementById('dsp-period').innerText = localStorage.getItem('period') || '1H';
 
-            // Logos HUD sync
+            // Logotypy drużyn w HUD
             let hl = localStorage.getItem('homeLogo');
             let al = localStorage.getItem('awayLogo');
             let hImg = document.getElementById('dsp-home-logo');
@@ -210,11 +189,11 @@
             if(hl && hl.length > 5) { hImg.src = hl; hImg.style.display='inline-block'; } else { hImg.style.display='none'; }
             if(al && al.length > 5) { aImg.src = al; aImg.style.display='inline-block'; } else { aImg.style.display='none'; }
 
-            // Dynamic Text Colors for HUD Teams
+            // Kolory czcionek w HUD
             document.getElementById('dsp-home-name').style.color = localStorage.getItem('homeTextColor') || '#ffffff';
             document.getElementById('dsp-away-name').style.color = localStorage.getItem('awayTextColor') || '#ffffff';
 
-            // Stat panel sync
+            // Zarządzanie panelem statystyk (Ukrywanie/Pokazywanie)
             let statPanel = document.getElementById('stat-panel');
             if(localStorage.getItem('showStatPanel') === 'true') {
                 document.getElementById('stat-dsp-player').innerText = localStorage.getItem('stat_cur_player');
@@ -225,7 +204,7 @@
                 statPanel.classList.remove('active');
             }
 
-            // Tactical Pitch Overlay Sync
+            // Zarządzanie składami i boiskiem taktycznym
             let pitchOverlay = document.getElementById('pitch-overlay');
             let showHome = localStorage.getItem('showHomeLineup') === 'true';
             let showAway = localStorage.getItem('showAwayLineup') === 'true';
@@ -236,7 +215,7 @@
                 
                 document.getElementById('side-team-title').innerText = localStorage.getItem(`${side}Name`);
                 document.getElementById('side-team-title').style.color = localStorage.getItem(`${side}Color`);
-                document.getElementById('side-coach-name').innerText = localStorage.getItem(`${side}Coach`) || 'BRAK';
+                document.getElementById('side-coach-name').innerText = localStorage.getItem(`${side}Coach`) || '';
                 
                 let sLogo = localStorage.getItem(`${side}Logo`);
                 let sideLogoImg = document.getElementById('side-team-logo');
@@ -244,13 +223,12 @@
 
                 document.getElementById('side-bench-list').innerText = localStorage.getItem(`bench${side.charAt(0).toUpperCase() + side.slice(1)}`) || '';
 
-                // Fill custom pitch shirt nodes
                 fillPitchPlayers(`lineup${side.charAt(0).toUpperCase() + side.slice(1)}`, localStorage.getItem(`${side}Color`), localStorage.getItem(`${side}TextColor`));
             } else {
                 pitchOverlay.classList.remove('active');
             }
 
-            // ODSŁUCH ZDARZENIA STRZELENIA BRAMKI (DLA BELKI Z DOŁU)
+            // Sprawdzanie triggeru bramki
             let goalEventRaw = localStorage.getItem('goal_event_trigger');
             if(goalEventRaw) {
                 let goalEvent = JSON.parse(goalEventRaw);
@@ -283,23 +261,19 @@
             }
         }
 
-        // FUNKCJA URUCHAMIAJĄCA WYSUWANIE BELKI GOLOWEJ
         function triggerGoalAnimation(data) {
             let badge = document.getElementById('custom-goal-badge');
             let accent = document.getElementById('goal-accent');
             let teamLbl = document.getElementById('goal-team-name');
             let logoImg = document.getElementById('goal-logo-img');
 
-            // Wstrzyknięcie zebranych z panelu i czasu danych
             document.getElementById('goal-player-nick').innerText = data.scorer;
             document.getElementById('goal-team-name').innerText = data.team;
             document.getElementById('goal-time-val').innerText = data.time;
 
-            // Zmiana barw pod barwy wybranej drużyny
             accent.style.backgroundColor = data.color;
             teamLbl.style.color = data.color;
 
-            // Obsługa logo wewnątrz belki golowej
             if(data.logo && data.logo.length > 5) {
                 logoImg.src = data.logo;
                 logoImg.style.display = 'block';
@@ -307,13 +281,12 @@
                 logoImg.style.display = 'none';
             }
 
-            // Klasa CSS wysuwająca element z dołu screenu
             badge.classList.add('active');
 
             clearTimeout(goalTimeout);
             goalTimeout = setTimeout(() => {
                 badge.classList.remove('active');
-            }, 7000); // Belka chowa się automatycznie po 7 sekundach
+            }, 7000);
         }
 
         window.addEventListener('storage', updateOverlay);
