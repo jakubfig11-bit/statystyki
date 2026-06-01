@@ -1,12 +1,9 @@
 :root {
-    --bg-dark: #0d0e12;
-    --bg-card: #161920;
-    --neon-yellow: #e0ff00;
-    --neon-red: #ff003c;
-    --neon-purple: #8a2be2;
-    --text-white: #ffffff;
-    --font-hud: 'Orbitron', sans-serif;
-    --font-ui: 'Rajdhani', sans-serif;
+    --bg-dark: #090a0f;
+    --bg-card: #12141c;
+    --text-main: #ffffff;
+    --glass-bg: rgba(15, 18, 28, 0.75);
+    --glass-border: rgba(255, 255, 255, 0.08);
 }
 
 body, html {
@@ -14,90 +11,105 @@ body, html {
     padding: 0;
     width: 100%;
     height: 100%;
-    font-family: var(--font-ui);
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
 }
 
-/* Przezroczyste tło pod źródło w OBS */
-.overlay-body {
-    background-color: transparent !important;
-    overflow: hidden;
-}
-
-/* Ciemne tło dla panelu kontrolnego, żeby tekst nie był biały na białym */
-.control-body {
-    background-color: var(--bg-dark);
-    color: var(--text-white);
-    overflow-y: auto;
-}
+.overlay-body { background: transparent !important; overflow: hidden; }
+.control-body { background-color: var(--bg-dark); color: var(--text-main); overflow-y: auto; padding-bottom: 5px; }
 
 /* ==========================================================================
-   SCOREBOARD HUD (Styl Transmisji TV)
+   SCOREBOARD HUD - PREMIUM TV STYLE (GLASSMORPHISM)
    ========================================================================== */
 .scoreboard-wrapper {
     position: absolute;
-    top: 30px;
+    top: 25px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 10;
 }
 
-.scoreboard {
+.scoreboard-tv {
     display: flex;
     align-items: center;
-    background: rgba(13, 14, 18, 0.95);
-    border: 2px solid #252936;
-    border-top: 3px solid var(--neon-yellow);
-    padding: 5px 20px;
-    box-shadow: 0px 10px 30px rgba(0,0,0,0.7);
-    border-radius: 4px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(14px);
+    border: 1px solid var(--glass-border);
+    border-radius: 30px;
+    padding: 0 8px;
+    height: 54px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+    position: relative;
 }
 
-.team {
-    font-family: var(--font-hud);
-    font-size: 22px;
-    font-weight: 900;
-    color: var(--text-white);
-    letter-spacing: 2px;
-    padding: 5px 15px;
-    text-transform: uppercase;
-}
-.team.home { text-align: right; }
-.team.away { text-align: left; }
-
-.score {
-    font-family: var(--font-hud);
-    font-size: 32px;
-    font-weight: 900;
-    color: var(--neon-yellow);
-    min-width: 40px;
-    text-align: center;
-    background: #1c1f2a;
-    padding: 2px 10px;
-    border-radius: 4px;
-}
-
-.divider {
-    font-family: var(--font-hud);
-    font-size: 26px;
-    color: var(--text-white);
-    margin: 0 8px;
-}
-
-.timer-box {
-    background: var(--neon-yellow);
-    color: var(--bg-dark);
-    font-family: var(--font-hud);
-    font-size: 20px;
+.tv-team {
+    display: flex;
+    align-items: center;
+    font-size: 15px;
     font-weight: 700;
-    padding: 8px 15px;
-    margin-left: 20px;
-    border-radius: 2px;
-    transform: skewX(-12deg);
+    letter-spacing: 0.5px;
+    color: var(--text-main);
+    padding: 0 20px;
+    text-transform: uppercase;
+    position: relative;
+    height: 100%;
 }
-.timer-box span { display: block; transform: skewX(12deg); }
+
+/* Kolorowe pionowe paski akcentowe obok herbu */
+.color-accent {
+    width: 4px;
+    height: 24px;
+    border-radius: 2px;
+    position: absolute;
+    top: 15px;
+}
+.tv-team.home .color-accent { left: 8px; }
+.tv-team.away .color-accent { right: 8px; }
+
+/* Dynamiczne logotypy klubów */
+.club-crest {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    margin: 0 10px;
+}
+.club-crest.hidden { display: none !important; }
+
+.tv-score-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.08);
+    height: 38px;
+    padding: 0 18px;
+    border-radius: 20px;
+    font-size: 20px;
+    font-weight: 900;
+}
+#hud-home-score { color: #ffffff; margin-right: 6px; }
+#hud-away-score { color: #ffffff; margin-left: 6px; }
+.tv-divider { width: 2px; height: 14px; background: rgba(255,255,255,0.2); }
+
+/* Zawieszony mały licznik czasu pod spodem */
+.tv-timer {
+    position: absolute;
+    bottom: -24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-top: none;
+    padding: 2px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 0 0 8px 8px;
+    color: #a0a5b5;
+    letter-spacing: 0.5px;
+}
 
 /* ==========================================================================
-   ANIMACJA GOOOL
+   ANIMACJA GOL - MODERNA TV CARD
    ========================================================================== */
 .goal-overlay-container {
     position: fixed;
@@ -107,52 +119,55 @@ body, html {
     height: 100%;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
+    padding-top: 120px;
     z-index: 100;
     opacity: 0;
     visibility: hidden;
-    pointer-events: none;
 }
 
 .goal-bg-flash {
     position: absolute;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle, rgba(224,255,0,0.4) 0%, transparent 70%);
-    opacity: 0;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 60%);
+    pointer-events: none;
 }
 
-.goal-ribbon {
-    background: linear-gradient(90deg, transparent, rgba(13,14,18,0.95) 15%, rgba(13,14,18,0.95) 85%, transparent);
-    width: 100%;
+.goal-tv-card {
+    background: #0b0c10;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 20px 60px;
     text-align: center;
-    padding: 40px 0;
-    border-top: 4px solid var(--neon-yellow);
-    border-bottom: 4px solid var(--neon-red);
-    transform: scaleX(0);
+    box-shadow: 0 30px 60px rgba(0,0,0,0.6);
 }
 
-.goal-title {
-    font-family: var(--font-hud);
-    font-size: 90px;
+.goal-tv-title {
+    font-size: 46px;
     font-weight: 900;
-    color: var(--neon-yellow);
     margin: 0;
-    text-shadow: 0 0 30px rgba(224, 255, 0, 0.6);
+    letter-spacing: 3px;
+    color: #ffffff;
+    text-transform: uppercase;
 }
 
-.goal-details { font-size: 32px; font-weight: 700; color: var(--text-white); margin-top: 10px; text-transform: uppercase; }
-.goal-details #goal-team { color: var(--neon-red); margin-left: 15px; }
+.goal-tv-details {
+    margin-top: 5px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #798094;
+    text-transform: uppercase;
+}
+#goal-team { color: #ffffff; margin-left: 10px; font-weight: 400; }
 
 /* ==========================================================================
-   SKŁADY (Lineups)
+   SKŁADY (Lineups) - ELEGANCKIE MATOWE SZKŁO
    ========================================================================== */
 .lineups-container {
     position: fixed;
-    bottom: 50px;
-    left: 5%;
-    right: 5%;
-    height: 70%;
+    bottom: 60px;
+    left: 8%; right: 8%;
+    height: 65%;
     display: flex;
     justify-content: space-between;
     z-index: 5;
@@ -161,45 +176,49 @@ body, html {
 }
 
 .lineup-col {
-    width: 42%;
-    background: rgba(22, 25, 32, 0.95);
-    border-left: 5px solid var(--neon-yellow);
-    padding: 25px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+    width: 44%;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.4);
 }
-.lineup-col.right-team { border-left: none; border-right: 5px solid var(--neon-red); }
-.lineup-col h2 { font-family: var(--font-hud); color: var(--text-white); font-size: 28px; margin-top: 0; border-bottom: 2px solid #323846; padding-bottom: 10px; }
+.lineup-col h2 { font-size: 22px; color: #ffffff; margin-top: 0; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
 .lineup-col ul { list-style: none; padding: 0; margin: 0; }
-.lineup-col li { font-size: 20px; color: #b3b9c9; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-.lineup-col li span { color: var(--neon-yellow); margin-right: 15px; }
+.lineup-col li { font-size: 16px; color: #cbd5e1; padding: 9px 0; font-weight: 500; border-bottom: 1px solid rgba(255,255,255,0.02); display: flex; align-items: center; }
+.lineup-col li span { color: rgba(255,255,255,0.3); margin-right: 12px; font-size: 12px; }
 
 /* ==========================================================================
-   UI PANELU STEROWANIA
+   UI CONTROL PANEL PANELU
    ========================================================================== */
-.control-panel { max-width: 1100px; margin: 0 auto; padding: 20px; }
-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #252936; padding-bottom: 20px; }
-header h1 { font-family: var(--font-hud); font-size: 28px; margin: 0; color: var(--neon-yellow); }
-.status-badge { background: #ffaa00; color: #000; padding: 4px 10px; border-radius: 4px; font-weight: bold; }
-.status-badge.connected { background: #00ff66; }
-.panel-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; margin-top: 20px;}
-.panel-card { background: var(--bg-card); border: 1px solid #252936; padding: 25px; border-radius: 6px; }
+.control-panel { max-width: 1000px; margin: 0 auto; padding: 30px 20px; }
+header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1f2331; padding-bottom: 20px; }
+header h1 { font-size: 22px; font-weight: 800; margin: 0; letter-spacing: 0.5px; }
+.status-badge { background: #ffaa00; color: #000; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+.status-badge.connected { background: #10b981; color: white; }
+.panel-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; margin-top: 25px;}
+.panel-card { background: var(--bg-card); border: 1px solid #1f2331; padding: 25px; border-radius: 12px; }
 .panel-card.full-width { grid-column: span 2; }
-.panel-card h3 { margin-top: 0; font-family: var(--font-hud); color: #8892b0; border-bottom: 1px solid #252936; padding-bottom: 10px; }
-.team-control-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-.team-input-group { width: 45%; text-align: center; }
-.team-input-group input { width: 100%; background: #0d0e12; border: 1px solid #323846; color: white; padding: 10px; font-size: 18px; text-align: center; font-weight: bold; border-radius: 4px; box-sizing: border-box; }
-.score-actions { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 10px; }
-.score-actions button { width: 40px; height: 40px; background: #252936; border: none; color: white; font-size: 20px; font-weight: bold; cursor: pointer; border-radius: 4px; }
-.score-actions button:hover { background: var(--neon-yellow); color: black; }
-.score-val { font-family: var(--font-hud); font-size: 36px; font-weight: bold; }
-.vs-label { font-family: var(--font-hud); font-size: 24px; color: var(--neon-red); font-weight: bold; }
-.timer-display { font-family: var(--font-hud); font-size: 60px; text-align: center; margin: 20px 0; color: var(--neon-yellow); }
-.timer-buttons { display: flex; gap: 15px; }
-.action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.goal-trigger-box input, .goal-trigger-box select { width: 100%; padding: 12px; margin-bottom: 15px; background: #0d0e12; border: 1px solid #323846; color: white; border-radius: 4px; box-sizing: border-box; }
+.panel-card h3 { margin-top: 0; font-size: 14px; color: #64748b; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px; }
+.team-control-row { display: flex; align-items: flex-start; justify-content: space-between; }
+.team-input-group { width: 44%; display: flex; flex-direction: column; gap: 10px; }
+.team-input-group label { font-size: 12px; font-weight: 700; color: #94a3b8; }
+.team-input-group input[type="text"] { width: 100%; background: #090a0f; border: 1px solid #262c3e; color: white; padding: 12px; font-size: 15px; border-radius: 6px; box-sizing: border-box; font-weight: 600; }
+.color-picker-wrapper { display: flex; align-items: center; gap: 10px; font-size: 14px; margin-top: 5px; }
+.color-picker-wrapper input[type="color"] { border: none; width: 40px; height: 30px; background: transparent; cursor: pointer; }
+.score-actions { display: flex; justify-content: center; align-items: center; gap: 20px; background: #090a0f; padding: 10px; border-radius: 8px; border: 1px solid #262c3e; margin-top: 10px; }
+.score-actions button { width: 36px; height: 36px; background: #262c3e; border: none; color: white; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: 6px; }
+.score-actions button:hover { background: #38415c; }
+.score-val { font-size: 32px; font-weight: 800; min-width: 40px; text-align: center; }
+.vs-label { font-size: 20px; color: #475569; font-weight: 800; align-self: center; margin-top: 40px; }
+.timer-display { font-size: 72px; font-weight: 800; text-align: center; margin: 15px 0; color: #ffffff; letter-spacing: -1px; }
+.timer-buttons { display: flex; gap: 12px; }
+.goal-trigger-box input, .goal-trigger-box select { width: 100%; padding: 12px; margin-bottom: 12px; background: #090a0f; border: 1px solid #262c3e; color: white; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
 
-button.btn-primary { width: 100%; background: #323846; color: white; border: none; padding: 12px; font-weight: bold; cursor: pointer; border-radius: 4px; }
-button.btn-success { flex: 1; background: #00ff66; color: black; border: none; padding: 15px; font-weight: bold; cursor: pointer; border-radius: 4px; font-size: 16px; }
-button.btn-danger { background: var(--neon-red); color: white; border: none; padding: 15px; font-weight: bold; cursor: pointer; border-radius: 4px; font-size: 16px; }
-button.btn-neon-yellow { width: 100%; background: var(--neon-yellow); color: black; border: none; padding: 15px; font-family: var(--font-hud); font-weight: 900; font-size: 18px; cursor: pointer; border-radius: 4px; }
-button.btn-purple { width: 100%; background: var(--neon-purple); color: white; border: none; padding: 15px; font-family: var(--font-hud); font-weight: bold; cursor: pointer; border-radius: 4px; }
+button.btn-primary { width: 100%; background: #262c3e; color: white; border: none; padding: 14px; font-weight: 600; cursor: pointer; border-radius: 6px; font-size: 14px; transition: background 0.2s; }
+button.btn-primary:hover { background: #323a52; }
+button.btn-success { flex: 1; background: #10b981; color: white; border: none; padding: 14px; font-weight: 600; cursor: pointer; border-radius: 6px; font-size: 14px; }
+button.btn-danger { background: #ef4444; color: white; border: none; padding: 14px; font-weight: 600; cursor: pointer; border-radius: 6px; font-size: 14px; }
+button.btn-neon-yellow { width: 100%; background: #ffffff; color: #000000; border: none; padding: 14px; font-weight: 700; font-size: 14px; cursor: pointer; border-radius: 6px; text-transform: uppercase; }
+button.btn-purple { width: 100%; background: #6366f1; color: white; border: none; padding: 14px; font-weight: 600; cursor: pointer; border-radius: 6px; font-size: 14px; text-transform: uppercase; }
