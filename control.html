@@ -12,8 +12,9 @@
     <div class="control-panel">
         <div class="control-header">
             <h2>PANEL STEROWANIA OVERLAYEM V2 (SUPABASE)</h2>
-            <div>
-                <button class="btn btn-neon btn-sm" onclick="updateTeams()">💥 Zaktualizuj Nazwy, Kolory i Logo w OBS</button>
+            <div class="btn-group">
+                <button class="btn btn-red" onclick="swapTeams()">🔄 ZAMIEŃ STRONY DRUŻYN (SWAP)</button>
+                <button class="btn btn-neon" onclick="updateTeams()">💥 Zaktualizuj Dane w OBS</button>
             </div>
         </div>
 
@@ -152,7 +153,7 @@
                 </div>
 
                 <div style="margin-top: 20px;">
-                    <button class="btn btn-neon btn-block" style="padding: 12px;" onclick="updateLineupsData()">💾 1. Zapisz i Wyślij dane składu do OBS</button>
+                    <button class="btn btn-neon btn-block" style="padding: 12px;" onclick="updateLineupsData()">💾 Zapisz i Wyślij dane składu do OBS</button>
                 </div>
 
                 <div class="form-group-row" style="margin-top:15px;">
@@ -162,7 +163,7 @@
                     </div>
                     <div>
                         <button class="btn btn-neon" style="width:100%;" onclick="triggerLineupVisual('away', true)">📺 POKAŻ SKŁAD GOŚCI</button>
-                        <button class="btn btn-red" style="width:100%; margin-top:5px;" onclick="triggerLineupVisual('away', false)">❌ UKRYJ GOCI</button>
+                        <button class="btn btn-red" style="width:100%; margin-top:5px;" onclick="triggerLineupVisual('away', false)">❌ UKRYJ GOŚCI</button>
                     </div>
                 </div>
             </div>
