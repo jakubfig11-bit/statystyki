@@ -23,6 +23,7 @@ let currentMatchState = {
 
 let timerInterval = null;
 let realtimeChannel = null;
+let isAnimationPlaying = false; // BLOKADA: Zabezpieczenie przed zapętleniem animacji
 
 // ==========================================
 // LOGIKA OVERLAY (OBS)
@@ -44,8 +45,8 @@ async function initOverlayView() {
 }
 
 function handleStateUpdate(data) {
-    // Sprawdzamy czy trigger gola zmienił się z false na true
-    if (data.show_goal_trigger === true && currentMatchState.show_goal_trigger === false) {
+    // 1. NAPRAWA PĘTLI: Sprawdzamy sztywno czy flaga gola zmieniła się z false na true ORAZ czy animacja już nie trwa
+    if (data.show_goal_trigger === true && currentMatchState.show_goal_trigger === false && !isAnimationPlaying) {
         const teamColor = data.scorer_team === 'home' ? data.home_color : data.away_color;
         const teamName = data.scorer_team === 'home' ? data.home_name : data.away_name;
         const teamLogo = data.scorer_team === 'home' ? data.home_logo : data.away_logo;
@@ -53,6 +54,11 @@ function handleStateUpdate(data) {
         runGSAPGoalAnimation(data.scorer_name, teamName, teamColor, teamLogo);
     }
     
+    // Zabezpieczenie na wypadek, gdyby panel sędziego zresetował trigger, zanim skończy się lokalna animacja
+    if (data.show_goal_trigger === false && isAnimationPlaying) {
+        // Ignorujemy ten konkretny broadcast resetujący, by nie przerywać animacji ani jej nie dublować
+    }
+
     if (data.show_lineups !== currentMatchState.show_lineups) {
         toggleGSAPLineups(data.show_lineups);
     }
@@ -104,8 +110,8 @@ function renderLineupsStructures() {
     document.getElementById('away-players-list').innerHTML = defaultAwayPlayers.map(p => `<li><span>―</span>${p}</li>`).join('');
 }
 
-// ANIMACJA GOLA Z LOGIEM W TLE (8 SEKUND)
 function runGSAPGoalAnimation(scorer, teamName, teamColor, teamLogo) {
+    isAnimationPlaying = true; // Aktywujemy blokadę
     const exactGoalTime = formatTime(currentMatchState.match_time);
     
     document.getElementById('goal-scorer').innerText = scorer || "ZAWODNIK";
@@ -113,7 +119,6 @@ function runGSAPGoalAnimation(scorer, teamName, teamColor, teamLogo) {
     document.getElementById('goal-time').innerText = exactGoalTime;
     document.getElementById('goal-card-accent').style.borderBottom = `6px solid ${teamColor}`;
 
-    // Obsługa logotypu w tle cieszynki
     const bgLogoImg = document.getElementById('goal-bg-logo');
     if (teamLogo && teamLogo.trim() !== "") {
         bgLogoImg.src = teamLogo;
@@ -125,12 +130,17 @@ function runGSAPGoalAnimation(scorer, teamName, teamColor, teamLogo) {
     const overlay = document.getElementById('goal-overlay');
     const card = overlay.querySelector('.goal-tv-card');
 
-    let tl = gsap.timeline({ onStart: () => { gsap.set(overlay, { visibility: 'visible', opacity: 1 }); } });
+    let tl = gsap.timeline({ 
+        onStart: () => { 
+            gsap.set(overlay, { visibility: 'visible', opacity: 1 }); 
+        } 
+    });
 
     tl.fromTo(card, { y: 150, opacity: 0, scale: 0.95 }, { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: "power4.out" })
       .to({}, { duration: 8.0 }) 
       .to(card, { y: 150, opacity: 0, scale: 0.95, duration: 0.5, ease: "power4.in", onComplete: () => {
           gsap.set(overlay, { visibility: 'hidden' });
+          isAnimationPlaying = false; // Zdejmujemy blokadę lokalną dopiero po pełnym schowaniu karty
           resetGoalTrigger();
       }});
 }
@@ -148,7 +158,7 @@ function toggleGSAPLineups(show) {
 }
 
 // ==========================================
-// LOGIKA CONTROL PANEL
+// LOGIKA CONTROL PANEL (PANEL SĘDZIEGO)
 // ==========================================
 async function initControlPanel() {
     await fetchInitialState();
@@ -215,7 +225,6 @@ function updateMatchNames() {
     saveStateToSupabase();
 }
 
-// Te funkcje muszą być prawidłowo spięte pod przyciskami w HTML panelu!
 function toggleTimer() { 
     currentMatchState.is_running = !currentMatchState.is_running; 
     saveStateToSupabase(); 
@@ -234,20 +243,25 @@ function toggleLineups() {
 }
 
 function triggerGoalAnimation() {
+    // Zapobiegamy odpaleniu kolejnego gola, jeśli animacja na overlayu jeszcze trwa
+    if (currentMatchState.show_goal_trigger) return;
+
     currentMatchState.scorer_name = document.getElementById('ctrl-scorer-name').value;
     currentMatchState.scorer_team = document.getElementById('ctrl-scorer-team').value;
     currentMatchState.show_goal_trigger = true;
+    
     if (currentMatchState.scorer_team === 'home') currentMatchState.home_score++;
     else currentMatchState.away_score++;
+    
     document.getElementById('ctrl-home-score').innerText = currentMatchState.home_score;
     document.getElementById('ctrl-away-score').innerText = currentMatchState.away_score;
     saveStateToSupabase();
 }
 
-function resetGoalTrigger() {
+async function resetGoalTrigger() {
     currentMatchState.show_goal_trigger = false;
-    sendBroadcastState();
-    supabaseClient.from('match_state').update({ show_goal_trigger: false }).eq('id', 'live_match');
+    // Ważne: Wykonujemy update cicho w bazie bez rozsyłania broadcastu pushującego ponowną animację
+    await supabaseClient.from('match_state').update({ show_goal_trigger: false }).eq('id', 'live_match');
 }
 
 function formatTime(totalSeconds) {
