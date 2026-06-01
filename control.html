@@ -130,31 +130,31 @@
     </div>
 
     <!-- TRANSMISJA LIVE & SKŁAD -->
-    <div class="card" style="margin-bottom: 20px;">
-        <h3>🔥 TRANSMISJA LIVE</h3>
-        <div class="grid-2">
-            <div>
-                <label>Strzelec gola:</label> <input type="text" id="ctrl-scorer-name">
-                <label>Drużyna:</label>
-                <select id="ctrl-scorer-team">
-                    <option value="home">Gospodarze</option>
-                    <option value="away">Goście</option>
-                </select>
-                <button class="btn btn-danger" style="background:#f1c40f; color:#000;" onclick="triggerGoalAnimation()">⚽ TRANSMITUJ GOL!</button>
-            </div>
-            <div>
-                <label>Który skład pokazać na overlayu?</label>
-                <select id="ctrl-lineups-team" onchange="updateMatchNames()">
-                    <option value="home">Pokazuj skład Gospodarzy</option>
-                    <option value="away">Pokazuj skład Gości</option>
-                </select>
-                <button class="btn btn-purple" style="margin-top:25px; padding:20px;" onclick="toggleLineups()">WŁĄCZ / WYŁĄCZ SKŁAD NA EKRANIE</button>
-            </div>
+    <div class="grid-2" style="margin-bottom: 20px;">
+        <div class="card">
+            <h3>🔥 TRANSMISJA LIVE GOLA</h3>
+            <label>Strzelec gola:</label> <input type="text" id="ctrl-scorer-name">
+            <label>Drużyna:</label>
+            <select id="ctrl-scorer-team">
+                <option value="home">Gospodarze</option>
+                <option value="away">Goście</option>
+            </select>
+            <button class="btn btn-danger" style="background:#f1c40f; color:#000;" onclick="triggerGoalAnimation()">⚽ TRANSMITUJ GOL!</button>
+        </div>
+        
+        <div class="card">
+            <h3>📋 KONTROLA SKŁADU NA EKRANIE</h3>
+            <label>Który skład pokazać na overlayu?</label>
+            <select id="ctrl-lineups-team" onchange="updateMatchNames()">
+                <option value="home">Pokazuj skład Gospodarzy</option>
+                <option value="away">Pokazuj skład Gości</option>
+            </select>
+            <button class="btn btn-purple" style="margin-top:25px; padding:20px;" onclick="toggleLineups()">WŁĄCZ / WYŁĄCZ SKŁAD</button>
         </div>
     </div>
 
     <!-- STATYSTYKI INDYWIDUALNE -->
-    <div class="card">
+    <div class="card" style="margin-bottom: 20px;">
         <h3>📊 INDYWIDUALNE STATYSTYKI ZAWODNIKA</h3>
         <div class="grid-2">
             <div>
@@ -190,6 +190,31 @@
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
             <button class="btn btn-primary" onclick="updatePlayerStatsData()">Zapisz wartości statystyk</button>
             <button class="btn btn-purple" style="background: #20b2aa;" onclick="togglePlayerStatsOverlay()">WŁĄCZ / WYŁĄCZ STATYSTYKI NA OBS</button>
+        </div>
+    </div>
+
+    <!-- NOWOŚĆ: ANIMACJA ZMIAN ZAWODNIKÓW -->
+    <div class="card">
+        <h3>🔄 TRANSMISJA ZMIANY ZAWODNIKA</h3>
+        <div class="grid-2">
+            <div>
+                <label>🔴 SCHODZI (Nazwisko / Numer):</label>
+                <input type="text" id="ctrl-sub-out" placeholder="np. 9. LEWANDOWSKI">
+            </div>
+            <div>
+                <label>🟢 WCHODZI (Nazwisko / Numer):</label>
+                <input type="text" id="ctrl-sub-in" placeholder="np. 14. MILIK">
+            </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-top: 10px;">
+            <div>
+                <label>Drużyna wykonująca zmianę:</label>
+                <select id="ctrl-sub-team">
+                    <option value="home">Gospodarze</option>
+                    <option value="away">Goście</option>
+                </select>
+            </div>
+            <button class="btn btn-success" style="background: #e67e22; margin-top: 28px;" onclick="triggerSubAnimation()">🔄 TRANSMITUJ ZMIANĘ!</button>
         </div>
     </div>
 </div>
