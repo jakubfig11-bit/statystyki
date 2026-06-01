@@ -21,7 +21,6 @@ let matchState = {
     awayLogo: ""
 };
 
-// Domyślna pamięć lokalna paneli
 let currentEditingTeam = 'home';
 let localLineups = {
     home: { 
@@ -149,6 +148,16 @@ function initControl() {
     updateControlUI();
 }
 
+function updateControlUI() {
+    if (!isControl) return;
+    document.getElementById('home-score-display').innerText = matchState.homeScore;
+    document.getElementById('away-score-display').innerText = matchState.awayScore;
+    document.getElementById('control-timer-display').innerText = formatTime(matchState.timerSeconds);
+    document.getElementById('period-select').value = matchState.period;
+    document.getElementById('btn-timer-start').innerText = matchState.timerRunning ? "PAUZA" : "START";
+    document.getElementById('btn-timer-start').style.background = matchState.timerRunning ? "#ff4d4d" : "#00ffaa";
+}
+
 function switchLineupTab(team) {
     localLineups[currentEditingTeam].main = document.getElementById('lineup-main-input').value;
     localLineups[currentEditingTeam].bench = document.getElementById('lineup-bench-input').value;
@@ -165,7 +174,6 @@ function switchLineupTab(team) {
 function saveActiveLineupTab() {
     localLineups[currentEditingTeam].main = document.getElementById('lineup-main-input').value;
     localLineups[currentEditingTeam].bench = document.getElementById('lineup-bench-input').value;
-    
     updateTeams();
 }
 
@@ -194,12 +202,10 @@ function updateTeams() {
     localLineups[currentEditingTeam].main = document.getElementById('lineup-main-input').value;
     localLineups[currentEditingTeam].bench = document.getElementById('lineup-bench-input').value;
 
-    // Parsowanie Gospodarzy
     const homeMain = localLineups.home.main.split('\n').map(p => p.trim()).filter(p => p !== "");
     const homeBench = localLineups.home.bench.split('\n').map(p => p.trim()).filter(p => p !== "");
     matchState.homePlayers = [...homeMain, ...homeBench];
 
-    // Parsowanie Gości
     const awayMain = localLineups.away.main.split('\n').map(p => p.trim()).filter(p => p !== "");
     const awayBench = localLineups.away.bench.split('\n').map(p => p.trim()).filter(p => p !== "");
     matchState.awayPlayers = [...awayMain, ...awayBench];
@@ -271,6 +277,7 @@ function startTimerInterval() {
             if (document.getElementById('control-timer-display')) {
                 document.getElementById('control-timer-display').innerText = formatTime(matchState.timerSeconds);
             }
+            // Optymalizacja przesyłania czasu - wysyłamy tylko niezbędne aktualizacje stanu
             sendToOBS('state_update', matchState);
         } else {
             clearInterval(timerInterval);
@@ -320,9 +327,7 @@ function triggerPlayerStat() {
 }
 
 function triggerLineupVisual(side, show) {
-    // KLUCZOWE: Wymuszenie przetworzenia pól tekstowych przed nadaniem sygnału grafiki
     updateTeams();
-    
     setTimeout(() => {
         sendToOBS('trigger_action', { 
             id: `lineup_${side}_` + Date.now(), 
@@ -333,12 +338,17 @@ function triggerLineupVisual(side, show) {
 }
 
 function updateOverlayUI() {
+    // Dynamiczna aktualizacja tekstu i wartości
     if (document.getElementById('hud-home-name')) document.getElementById('hud-home-name').innerText = matchState.homeName;
     if (document.getElementById('hud-away-name')) document.getElementById('hud-away-name').innerText = matchState.awayName;
     if (document.getElementById('hud-home-score')) document.getElementById('hud-home-score').innerText = matchState.homeScore;
     if (document.getElementById('hud-away-score')) document.getElementById('hud-away-score').innerText = matchState.awayScore;
     if (document.getElementById('hud-timer')) document.getElementById('hud-timer').innerText = formatTime(matchState.timerSeconds);
     if (document.getElementById('hud-period')) document.getElementById('hud-period').innerText = matchState.period;
+
+    // Dynamiczne wymuszenie kolorów z panelu na HUD (Naprawa braku zmian kolorów na żywo)
+    if (document.getElementById('hud-home-name')) document.getElementById('hud-home-name').style.color = matchState.homeTextColor;
+    if (document.getElementById('hud-away-name')) document.getElementById('hud-away-name').style.color = matchState.awayTextColor;
 
     const homeHudImg = document.getElementById('hud-home-logo');
     const awayHudImg = document.getElementById('hud-away-logo');
@@ -372,7 +382,7 @@ function animatePlayerStat(side, player, category, value) {
     document.getElementById('stat-badge-category').innerText = category;
     document.getElementById('stat-badge-value').innerText = value;
 
-    accentStripe.style.setProperty('background-color', mainColor, 'important');
+    if (accentStripe) accentStripe.style.setProperty('background-color', mainColor, 'important');
     document.getElementById('stat-badge-value').style.setProperty('color', mainColor, 'important');
 
     gsap.killTweensOf(container);
@@ -396,10 +406,14 @@ function animateGoal(side, team, scorer, timeString) {
     document.getElementById('goal-badge-scorer').innerText = scorer;
     document.getElementById('goal-badge-time').innerText = timeString;
 
-    accentStripe.style.setProperty('background-color', mainColor, 'important');
+    if (accentStripe) accentStripe.style.setProperty('background-color', mainColor, 'important');
     document.getElementById('goal-badge-team').style.setProperty('color', mainColor, 'important');
 
     gsap.killTweensOf(container);
+
+    // Wymuszenie czyszczenia stylów blokujących widoczność przed startem osi czasu GSAP
+    container.style.visibility = "visible";
+    container.style.opacity = "0";
 
     const tl = gsap.timeline();
     tl.set(container, { visibility: 'visible', y: 250, opacity: 0 })
@@ -437,7 +451,6 @@ function animateLineupCentral(side, show) {
         document.getElementById('lineup-team-title').style.color = mainColor;
         document.getElementById('pitch-border-line').style.borderColor = mainColor;
 
-        // Reset i przygotowanie kulek (zawodników wyjściowych) do staggeru
         const targetNodes = [];
         const positions = ['.pos-gk', '.pos-df-l', '.pos-df-r', '.pos-fw-l', '.pos-fw-r'];
         
@@ -457,8 +470,17 @@ function animateLineupCentral(side, show) {
                 }
                 numEl.innerText = pNum;
                 nameEl.innerText = pName;
+                
+                // BEZPOŚREDNIA BLOKADA PROPORCJI KULKI - usuwa spłaszczenia wywołane responsywnością OBS
                 shirt.style.setProperty('background-color', mainColor, 'important');
                 shirt.style.setProperty('border-color', textColor, 'important');
+                shirt.style.setProperty('width', '48px', 'important');
+                shirt.style.setProperty('height', '48px', 'important');
+                shirt.style.setProperty('min-width', '48px', 'important');
+                shirt.style.setProperty('min-height', '48px', 'important');
+                shirt.style.setProperty('aspect-ratio', '1 / 1', 'important');
+                shirt.style.setProperty('border-radius', '50%', 'important');
+                
                 numEl.style.setProperty('color', textColor, 'important');
                 
                 node.style.display = 'flex';
@@ -468,7 +490,6 @@ function animateLineupCentral(side, show) {
             }
         });
 
-        // Wstrzykiwanie rezerwowych do listy z przypisaniem unikalnej klasy do animacji sekwencyjnej
         const benchUl = document.getElementById('lineup-bench-list');
         benchUl.innerHTML = "";
         const benchPlayers = playersList.slice(5);
@@ -477,7 +498,7 @@ function animateLineupCentral(side, show) {
             benchPlayers.forEach(player => {
                 const li = document.createElement('li');
                 li.innerText = player;
-                li.className = "bench-player-item"; // Klasa do przechwycenia przez GSAP
+                li.className = "bench-player-item"; 
                 li.style.borderLeft = `3px solid ${mainColor}`;
                 li.style.paddingLeft = "8px";
                 li.style.margin = "6px 0";
@@ -495,7 +516,6 @@ function animateLineupCentral(side, show) {
             coachDiv.style.borderLeft = `4px solid ${mainColor}`;
         }
 
-        // CZĘŚĆ ANIMACYJNA (GSAP MOTION DESIGN STAGGER EFFECT)
         gsap.killTweensOf([overlay, centerBlock]);
         const benchItems = overlay.querySelectorAll('.bench-player-item');
         if(targetNodes.length > 0) gsap.set(targetNodes, { opacity: 0, scale: 0 });
@@ -507,11 +527,9 @@ function animateLineupCentral(side, show) {
         tl.to(overlay, { opacity: 1, duration: 0.3 })
           .fromTo(centerBlock, { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "power2.out" }, "-=0.1");
           
-        // 1. Sekwencyjne pojawianie się kulek zawodników (stagger)
         if(targetNodes.length > 0) {
             tl.to(targetNodes, { opacity: 1, scale: 1, duration: 0.5, stagger: 0.15, ease: "back.out(1.5)" }, "-=0.1");
         }
-        // 2. Sekwencyjne wjeżdżanie rezerwowych od lewej strony (stagger)
         if(benchItems.length > 0) {
             tl.to(benchItems, { opacity: 1, x: 0, duration: 0.4, stagger: 0.12, ease: "power1.out" }, "-=0.2");
         }
