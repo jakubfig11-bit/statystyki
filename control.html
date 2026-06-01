@@ -1,24 +1,26 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="pl" style="background: #11141a !important; overflow-y: auto !important; height: auto !important;">
 <head>
     <meta charset="UTF-8">
     <title>PANEL KONTROLNY - Scoreboard v3</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="style-v3.css">
     <style>
+        /* Całkowite odblokowanie skrolowania niezależnie od style-v3.css */
         html, body {
-            background: #11141a;
-            color: #f1f1f1;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            /* KLUCZOWA POPRAWKA: Wymuszenie skrolowania, jeśli treść się nie mieści */
-            overflow-y: auto !important; 
-            overflow-x: hidden;
+            background: #11141a !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
             height: auto !important;
         }
-        .control-wrapper {
-            padding: 20px;
-            box-sizing: border-box;
+        #scroll-force-container {
+            display: block !important;
+            width: 100% !important;
+            height: auto !important;
+            min-height: 100vh !important;
+            overflow-y: auto !important;
+            padding: 20px !important;
+            box-sizing: border-box !important;
         }
         .control-container {
             max-width: 1100px;
@@ -159,13 +161,12 @@
         }
     </style>
 </head>
-<body>
+<body style="background: #11141a !important; overflow-y: auto !important; height: auto !important;">
 
-<div class="control-wrapper">
+<div id="scroll-force-container">
     <div class="control-container">
         <h2>Meczowy Panel Sterowania Realtime</h2>
         
-        <!-- 1. LIVE WYNIK I CZAS -->
         <div class="score-panel-display">
             <div class="score-box">
                 <label>Gospodarze</label>
@@ -195,7 +196,6 @@
             </div>
         </div>
 
-        <!-- 2. KONFIGURACJA DRUŻYN ORAZ BARW -->
         <div class="grid-two">
             <div class="section-box">
                 <h3>Gospodarze (Ustawienia)</h3>
@@ -250,7 +250,6 @@
             </div>
         </div>
 
-        <!-- POMOCNICZE OPERACJE GLOBALNE -->
         <div class="section-box" style="margin-bottom: 20px; display: flex; gap: 15px; align-items: center;">
             <div style="flex: 1;">
                 <label>Część Meczu (Połowa/Kwarta)</label>
@@ -264,7 +263,6 @@
             <button id="btn-force-update" style="margin-top: 15px;">Wymuś synchronizację</button>
         </div>
 
-        <!-- 3. ZARZĄDZANIE SKŁADAMI (LINEUPS) -->
         <div class="section-box" style="margin-bottom: 20px;">
             <h3>Zarządzanie Składami</h3>
             
@@ -288,7 +286,6 @@
             </div>
         </div>
 
-        <!-- 4. WYZWALACZE ANIMACJI (TRIGGERS) -->
         <div class="grid-two">
             <div class="section-box">
                 <h3>Wizualizacja Składów (Mecz)</h3>
