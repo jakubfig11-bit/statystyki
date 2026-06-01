@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>Overlay Meczowy - Wersja Finalna</title>
+    <title>Overlay Meczowy - Broadcast Realtime</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -39,22 +39,22 @@
             border-right: 2px solid #252547;
             padding: 0 15px;
         }
-        .hud-score { font-size: 28px; font-weight: 900; font-family: monospace; color: #00ffaa; width: 70px; text-align: center; }
-        .hud-mid-info { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 70px; }
-        .hud-timer { font-size: 16px; font-weight: 700; color: #fff; font-family: monospace; }
-        .hud-period { font-size: 11px; font-weight: 800; color: #718096; }
+        .hud-score-container { font-size: 24px; font-weight: 900; color: #ffffff; width: 80px; text-align: center; font-family: monospace; }
+        .hud-mid-info { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 80px; margin-left: 5px;}
+        .hud-timer { font-size: 16px; font-weight: 700; color: #00f2fe; font-family: monospace; }
+        .hud-period { font-size: 11px; font-weight: 800; color: #718096; text-transform: uppercase; }
 
-        /* =========================================================================
-           NOWOŚĆ: MOTION DESIGN - DYNAMICZNA BELKA GOLOWA (WYSUWANA Z DOŁU)
-           ========================================================================= */
+        /* ==========================================
+           DYNAMICZNA BELKA GOLOWA (WYSUWANA Z DOŁU)
+           ========================================== */
         #goal-badge-container {
             position: absolute;
             bottom: 50px;
             left: 50%;
-            transform: translateX(-50%) translateY(250px); /* Pozycja startowa (schowana w dół) */
+            transform: translateX(-50%) translateY(250px);
             width: 580px;
             height: 95px;
-            background: rgba(14, 14, 28, 0.9);
+            background: rgba(14, 14, 28, 0.95);
             backdrop-filter: blur(10px);
             border: 2px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
@@ -63,18 +63,16 @@
             align-items: center;
             overflow: hidden;
             z-index: 999;
-            visibility: hidden; /* Kontrolowane przez GSAP */
+            visibility: hidden;
         }
 
-        /* Dynamiczny pasek akcentujący po lewej stronie z kolorem drużyny */
         #goal-badge-accent {
             width: 12px;
             height: 100%;
-            background-color: #ff0055; /* Zmieniane dynamicznie przez JS */
+            background-color: #ff0055;
             flex-shrink: 0;
         }
 
-        /* Kontener na Logo Drużyny wewnątrz grafiki bramkowej */
         .goal-badge-logo-box {
             width: 85px;
             height: 100%;
@@ -91,7 +89,6 @@
             object-fit: contain;
         }
 
-        /* Główna zawartość tekstowa */
         .goal-badge-main-content {
             flex: 1;
             padding: 0 20px;
@@ -120,7 +117,7 @@
             font-size: 14px;
             font-weight: 800;
             text-transform: uppercase;
-            color: #ff0055; /* Zmieniane dynamicznie przez JS */
+            color: #ff0055;
         }
 
         #goal-badge-scorer {
@@ -134,7 +131,6 @@
             text-overflow: ellipsis;
         }
 
-        /* Sekcja czasu po prawej stronie */
         .goal-badge-time-box {
             padding: 0 25px;
             height: 100%;
@@ -166,7 +162,7 @@
             to { text-shadow: 0 0 15px rgba(0, 255, 170, 0.6); }
         }
 
-        /* PANEL STATYSTYK (STARY ELEMENT SYSTEMU) */
+        /* POPUP STATYSTYK (STAT BADGE CO BYŁO PO LEWEJ STRONIE) */
         #stat-badge-container {
             position: absolute;
             bottom: 50px;
@@ -176,7 +172,7 @@
             height: 80px;
             background: rgba(14, 14, 28, 0.95);
             border-radius: 8px;
-            border: 1px solid #252547;
+            border: 2px solid #252547;
             display: flex;
             align-items: center;
             overflow: hidden;
@@ -189,7 +185,7 @@
         #stat-badge-category { font-size: 12px; font-weight: 700; color: #a0aec0; text-transform: uppercase; }
         #stat-badge-value { font-size: 32px; font-weight: 900; padding: 0 20px; font-family: monospace; }
 
-        /* SKŁADY (CENTRALNY PANEL TV) */
+        /* SKŁADY (CENTRALNY PANEL WIDOKU BOISKA) */
         #lineups-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -214,14 +210,14 @@
         .pitch-visualizer { flex: 1.3; position: relative; background: #14142b; padding: 30px; display: flex; align-items: center; justify-content: center; }
         .pitch-mock { width: 100%; height: 100%; border: 2px dashed rgba(255,255,255,0.1); position: relative; border-radius: 8px; }
         .player-node { position: absolute; display: flex; flex-direction: column; align-items: center; gap: 6px; transform: translate(-50%, -50%); }
-        .player-shirt { width: 46px; height: 46px; background: #ff0055; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
+        .player-shirt { width: 46px; height: 46px; background: #ff0055; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.4); border: 2px solid #fff;}
         .p-name { background: rgba(0,0,0,0.7); padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 700; color: #fff; text-transform: uppercase; white-space: nowrap; }
         
-        .pos-gk { top: 85%; left: 50%; }
-        .pos-df-l { top: 60%; left: 25%; }
-        .pos-df-r { top: 60%; left: 75%; }
-        .pos-fw-l { top: 30%; left: 30%; }
-        .pos-fw-r { top: 30%; left: 70%; }
+        .pos-gk   { left: 10%; top: 50%; }
+        .pos-df-l { left: 32%; top: 25%; }
+        .pos-df-r { left: 32%; top: 75%; }
+        .pos-fw-l { left: 60%; top: 30%; }
+        .pos-fw-r { left: 78%; top: 58%; }
 
         .tactical-sidebar { flex: 1; background: #0b0b14; padding: 40px; display: flex; flex-direction: column; border-left: 2px solid #252547; }
         .sidebar-header { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; }
@@ -236,20 +232,21 @@
 
     <div class="hud-container">
         <div class="hud-home">
-            <span class="hud-team-name" id="hud-home-name">TORINO</span>
             <img class="hud-logo" id="hud-home-logo" src="" alt="" style="display:none;">
+            <span class="hud-team-name" id="hud-home-name">TORINO</span>
         </div>
         <div class="hud-center">
-            <div class="hud-score" id="hud-home-score">0</div>
+            <div class="hud-score-container">
+                <span id="hud-home-score">0</span> - <span id="hud-away-score">0</span>
+            </div>
             <div class="hud-mid-info">
                 <div class="hud-timer" id="hud-timer">00:00</div>
                 <div class="hud-period" id="hud-period">1H</div>
             </div>
-            <div class="hud-score" id="hud-away-score">0</div>
         </div>
         <div class="hud-away">
-            <img class="hud-logo" id="hud-away-logo" src="" alt="" style="display:none;">
             <span class="hud-team-name" id="hud-away-name">ELCHE</span>
+            <img class="hud-logo" id="hud-away-logo" src="" alt="" style="display:none;">
         </div>
     </div>
 
