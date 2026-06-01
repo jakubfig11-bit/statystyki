@@ -21,7 +21,7 @@
         }
 
         /* ==========================================
-           2. STABILNY SCOREBOARD (SZEROKIE BLOKI)
+           2. STABILNY SCOREBOARD (ZWARTE BLOKI - BEZ DZIUR)
            ========================================== */
         .hud-container {
             position: absolute;
@@ -39,22 +39,25 @@
             overflow: hidden;
         }
 
+        /* Likwidacja pustych przestrzeni - elementy kleją się do środka */
         .hud-home {
             display: flex;
             align-items: center;
             justify-content: flex-end;
-            width: 250px;
+            padding: 0 20px;
             height: 100%;
-            padding-right: 20px;
+            flex: 1;
+            min-width: 200px;
         }
 
         .hud-away {
             display: flex;
             align-items: center;
             justify-content: flex-start;
-            width: 250px;
+            padding: 0 20px;
             height: 100%;
-            padding-left: 20px;
+            flex: 1;
+            min-width: 200px;
         }
 
         .hud-center {
@@ -62,7 +65,7 @@
             border-left: 2px solid #252547;
             border-right: 2px solid #252547;
             height: 100%;
-            width: 160px;
+            width: 140px;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -80,8 +83,8 @@
         }
 
         .hud-team-logo {
-            width: 34px;
-            height: 34px;
+            width: 36px;
+            height: 36px;
             object-fit: contain;
             margin: 0 12px;
             flex-shrink: 0;
@@ -129,7 +132,7 @@
             overflow: hidden;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
             z-index: 100;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.3s ease, transform 0.3s ease;
             opacity: 0;
             visibility: hidden;
         }
@@ -289,10 +292,10 @@
     </div>
 
     <div id="stat-badge" class="stat-badge-xl-wrapper">
-        <div class="stat-badge-xl-stripe"></div>
+        <div class="stat-badge-xl-stripe" id="stat-stripe"></div>
         <div class="stat-badge-xl-content">
             <div class="stat-badge-xl-left">
-                <div id="stat-main-title" class="stat-badge-xl-title">STATYSTYKI INDYWIDUALNE ZAWODNIKA</div>
+                <div id="stat-main-title" class="stat-badge-xl-title">STATYSTYKI INDYWIDUALNE</div>
                 <div id="stat-title" class="stat-badge-xl-player">STRZAŁY NA BRAMKĘ</div>
             </div>
             <div class="stat-badge-xl-right">
@@ -317,51 +320,43 @@
 
     <script>
         function updateOverlay() {
-            // 1. Nazwy drużyn i loga (Obsługa obu popularnych wariantów zapisu kluczy)
-            const homeName = localStorage.getItem('home_name') || localStorage.getItem('team_home_name') || 'GOSPODARZE';
-            const awayName = localStorage.getItem('away_name') || localStorage.getItem('team_away_name') || 'GOŚCIE';
-            
+            // Nazwy i logotypy
+            const homeName = localStorage.getItem('match_home_name') || 'TORINO';
+            const awayName = localStorage.getItem('match_away_name') || 'ELCHE';
             document.getElementById('home-name').innerText = homeName.toUpperCase();
             document.getElementById('away-name').innerText = awayName.toUpperCase();
 
-            const homeLogo = localStorage.getItem('home_logo') || localStorage.getItem('team_home_logo');
-            const awayLogo = localStorage.getItem('away_logo') || localStorage.getItem('team_away_logo');
+            const homeLogo = localStorage.getItem('match_home_logo');
+            const awayLogo = localStorage.getItem('match_away_logo');
             const hLogoEl = document.getElementById('home-logo');
             const aLogoEl = document.getElementById('away-logo');
 
-            if (homeLogo && homeLogo !== "null") { hLogoEl.src = homeLogo; hLogoEl.style.display = 'block'; } else { hLogoEl.style.display = 'none'; }
-            if (awayLogo && awayLogo !== "null") { aLogoEl.src = awayLogo; aLogoEl.style.display = 'block'; } else { aLogoEl.style.display = 'none'; }
+            if (homeLogo && homeLogo.trim() !== "") { hLogoEl.src = homeLogo; hLogoEl.style.display = 'block'; } else { hLogoEl.style.display = 'none'; }
+            if (awayLogo && awayLogo.trim() !== "") { aLogoEl.src = awayLogo; aLogoEl.style.display = 'block'; } else { aLogoEl.style.display = 'none'; }
 
-            // 2. Wynik i Czas (Pobieranie dokładnych zmiennych z Twojego panelu realtime)
-            const homeScore = localStorage.getItem('home_score') || localStorage.getItem('wynik_gospodarze') || '0';
-            const awayScore = localStorage.getItem('away_score') || localStorage.getItem('wynik_goscie') || '0';
+            // Wyniki, czas, połowa
+            const homeScore = localStorage.getItem('match_home_score') || '0';
+            const awayScore = localStorage.getItem('match_away_score') || '0';
             document.getElementById('hud-score').innerText = `${homeScore} - ${awayScore}`;
 
-            // Obsługa zegara (składanie z minut/sekund lub gotowego ciągu)
-            let matchTime = localStorage.getItem('match_time');
-            if (!matchTime) {
-                const mins = localStorage.getItem('time_minutes') || localStorage.getItem('czas_minuty') || '00';
-                const secs = localStorage.getItem('time_seconds') || localStorage.getItem('czas_sekundy') || '00';
-                matchTime = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-            }
-            document.getElementById('hud-time').innerText = matchTime;
+            const timeStr = localStorage.getItem('match_timer_string') || '00:00';
+            document.getElementById('hud-time').innerText = timeStr;
 
-            const matchPart = localStorage.getItem('match_part') || localStorage.getItem('mecz_polowa') || '1H';
-            document.getElementById('hud-part').innerText = matchPart;
+            const period = localStorage.getItem('match_period') || '1H';
+            document.getElementById('hud-part').innerText = period;
 
-            // 3. Statystyki Indywidualne (Szef / Kategoria)
+            // Statystyki indywidualne
             const statBadge = document.getElementById('stat-badge');
-            const isStatVisible = localStorage.getItem('stat_visible') === 'true' || localStorage.getItem('szef_visible') === 'true';
-            
+            const isStatVisible = localStorage.getItem('match_stat_visible') === 'true';
             if (isStatVisible) {
-                const catText = localStorage.getItem('stat_text') || localStorage.getItem('stat_kategoria') || 'STRZAŁY NA BRAMKĘ';
-                const playerText = localStorage.getItem('stat_player') || localStorage.getItem('stat_zawodnik') || 'ZAWODNIK';
-                const valText = localStorage.getItem('stat_value') || localStorage.getItem('stat_wartosc') || '1';
-
-                document.getElementById('stat-main-title').innerText = catText.toUpperCase();
-                document.getElementById('stat-title').innerText = playerText.toUpperCase();
-                document.getElementById('stat-value').innerText = valText;
+                document.getElementById('stat-main-title').innerText = (localStorage.getItem('match_stat_category') || 'STATYSTYKI').toUpperCase();
+                document.getElementById('stat-title').innerText = (localStorage.getItem('match_stat_player') || 'ZAWODNIK').toUpperCase();
+                document.getElementById('stat-value').innerText = localStorage.getItem('match_stat_value') || '1';
                 
+                const teamSide = localStorage.getItem('match_stat_team') || 'home';
+                const stripeColor = teamSide === 'home' ? (localStorage.getItem('match_home_color') || '#ff0055') : (localStorage.getItem('match_away_color') || '#ffff00');
+                document.getElementById('stat-stripe').style.background = stripeColor;
+
                 statBadge.style.visibility = 'visible';
                 statBadge.style.opacity = '1';
             } else {
@@ -369,22 +364,17 @@
                 statBadge.style.opacity = '0';
             }
 
-            // 4. Animacja Gola
+            // Overlay bramki (GOL)
             const goalBadge = document.getElementById('goal-badge');
-            const isGoalVisible = localStorage.getItem('goal_visible') === 'true' || localStorage.getItem('bramka_visible') === 'true';
-            
+            const isGoalVisible = localStorage.getItem('match_goal_visible') === 'true';
             if (isGoalVisible) {
-                const gTime = localStorage.getItem('goal_time') || localStorage.getItem('bramka_czas') || '00';
-                const gTeam = localStorage.getItem('goal_team') || localStorage.getItem('bramka_druzyna') || 'TEAM';
-                const gPlayer = localStorage.getItem('goal_player') || localStorage.getItem('bramka_zawodnik') || 'ZAWODNIK';
+                document.getElementById('goal-time').innerText = (localStorage.getItem('match_goal_time') || '00') + "'";
+                document.getElementById('goal-team').innerText = (localStorage.getItem('match_goal_team_name') || 'TEAM').toUpperCase();
+                document.getElementById('goal-player').innerText = (localStorage.getItem('match_goal_player') || 'ZAWODNIK').toUpperCase();
                 
-                document.getElementById('goal-time').innerText = gTime + "'";
-                document.getElementById('goal-team').innerText = gTeam.toUpperCase();
-                document.getElementById('goal-player').innerText = gPlayer.toUpperCase();
-                
-                const goalStripeColor = localStorage.getItem('goal_color') || localStorage.getItem('bramka_kolor') || '#ff0055';
-                document.getElementById('goal-stripe').style.backgroundColor = goalStripeColor;
-                document.getElementById('goal-team').style.color = goalStripeColor;
+                const goalColor = localStorage.getItem('match_goal_color') || '#ff0055';
+                document.getElementById('goal-stripe').style.backgroundColor = goalColor;
+                document.getElementById('goal-team').style.color = goalColor;
 
                 goalBadge.style.visibility = 'visible';
                 goalBadge.style.opacity = '1';
@@ -396,12 +386,8 @@
             }
         }
 
-        // Natychmiastowe przechwytywanie zmian między kartami przeglądarki
         window.addEventListener('storage', updateOverlay);
-        
-        // Zapasowy szybki interwał (50ms), żeby OBS reagował bez opóźnień
         setInterval(updateOverlay, 50);
-        
         window.onload = updateOverlay;
     </script>
 </body>
