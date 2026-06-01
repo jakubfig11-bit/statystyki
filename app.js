@@ -23,7 +23,7 @@ let currentMatchState = {
 
 let timerInterval = null;
 let realtimeChannel = null;
-let isAnimationPlaying = false; // Lokalna blokada nakładania się animacji w OBS
+let isAnimationPlaying = false; 
 
 // ==========================================
 // LOGIKA OVERLAY (OBS)
@@ -45,13 +45,12 @@ async function initOverlayView() {
 }
 
 function handleStateUpdate(data) {
-    // FIX: Sztywne porównanie z poprzednim stanem lokalnym, aby uniknąć pętli przy klikaniu czasu
+    // Odpalenie animacji gola - sprawdzamy sztywno zmianę stanu
     if (data.show_goal_trigger === true && currentMatchState.show_goal_trigger === false && !isAnimationPlaying) {
         const teamColor = data.scorer_team === 'home' ? data.home_color : data.away_color;
         const teamName = data.scorer_team === 'home' ? data.home_name : data.away_name;
         const teamLogo = data.scorer_team === 'home' ? data.home_logo : data.away_logo;
         
-        // Przekazujemy bezpośrednio data.scorer_name z odebranej paczki
         runGSAPGoalAnimation(data.scorer_name, teamName, teamColor, teamLogo);
     }
     
@@ -110,8 +109,8 @@ function runGSAPGoalAnimation(scorer, teamName, teamColor, teamLogo) {
     isAnimationPlaying = true;
     const exactGoalTime = formatTime(currentMatchState.match_time);
     
-    // FIX: Jeśli scorer jest pusty, zabezpieczamy wyświetlanie wpisem domyślnym
-    document.getElementById('goal-scorer').innerText = (scorer && scorer.trim() !== "") ? scorer.toUpperCase() : "STRZELEC";
+    // Poprawne i stabilne wstrzyknięcie wpisanego nicku strzelca
+    document.getElementById('goal-scorer').innerText = (scorer && scorer.trim() !== "") ? scorer.toUpperCase() : "ZAWODNIK";
     document.getElementById('goal-team').innerText = teamName;
     document.getElementById('goal-time').innerText = exactGoalTime;
     document.getElementById('goal-card-accent').style.borderBottom = `6px solid ${teamColor}`;
@@ -138,6 +137,8 @@ function runGSAPGoalAnimation(scorer, teamName, teamColor, teamLogo) {
       .to(card, { y: 150, opacity: 0, scale: 0.95, duration: 0.5, ease: "power4.in", onComplete: () => {
           gsap.set(overlay, { visibility: 'hidden' });
           isAnimationPlaying = false;
+          // Po zakończeniu animacji lokalnie ustawiamy status na false w pamięci RAM podręcznej
+          currentMatchState.show_goal_trigger = false;
       }});
 }
 
@@ -161,8 +162,10 @@ async function initControlPanel() {
     updateControlPanelUI();
     
     const statusBadge = document.getElementById('db-status');
-    statusBadge.innerText = "POŁĄCZONO";
-    statusBadge.classList.add('connected');
+    if (statusBadge) {
+        statusBadge.innerText = "POŁĄCZONO";
+        statusBadge.classList.add('connected');
+    }
 
     realtimeChannel = supabaseClient.channel('match-broadcast', { config: { broadcast: { ack: false, self: false } } });
     realtimeChannel.subscribe();
@@ -170,23 +173,110 @@ async function initControlPanel() {
     setInterval(() => {
         if (currentMatchState.is_running) {
             currentMatchState.match_time++;
-            document.getElementById('ctrl-timer').innerText = formatTime(currentMatchState.match_time);
+            const timerEl = document.getElementById('ctrl-timer');
+            if (timerEl) timerEl.innerText = formatTime(currentMatchState.match_time);
             sendBroadcastState();
         }
     }, 1000);
 }
 
 function updateControlPanelUI() {
-    document.getElementById('ctrl-home-name').value = currentMatchState.home_name;
-    document.getElementById('ctrl-away-name').value = currentMatchState.away_name;
-    document.getElementById('ctrl-home-logo').value = currentMatchState.home_logo || "";
-    document.getElementById('ctrl-away-logo').value = currentMatchState.away_logo || "";
-    document.getElementById('ctrl-home-color').value = currentMatchState.home_color || "#0052cc";
-    document.getElementById('ctrl-away-color').value = currentMatchState.away_color || "#ff0044";
-    document.getElementById('ctrl-home-score').innerText = currentMatchState.home_score;
-    document.getElementById('ctrl-away-score').innerText = currentMatchState.away_score;
-    document.getElementById('ctrl-timer').innerText = formatTime(currentMatchState.match_time);
+    if(document.getElementById('ctrl-home-name')) document.getElementById('ctrl-home-name').value = currentMatchState.home_name;
+    if(document.getElementById('ctrl-away-name')) document.getElementById('ctrl-away-name').value = currentMatchState.away_name;
+    if(document.getElementById('ctrl-home-logo')) document.getElementById('ctrl-home-logo').value = currentMatchState.home_logo || "";
+    if(document.getElementById('ctrl-away-logo')) document.getElementById('ctrl-away-logo').value = currentMatchState.away_logo || "";
+    if(document.getElementById('ctrl-home-color')) document.getElementById('ctrl-home-color').value = currentMatchState.home_color || "#0052cc";
+    if(document.getElementById('ctrl-away-color')) document.getElementById('ctrl-away-color').value = currentMatchState.away_color || "#ff0044";
+    if(document.getElementById('ctrl-home-score')) document.getElementById('ctrl-home-score').innerText = currentMatchState.home_score;
+    if(document.getElementById('ctrl-away-score')) document.getElementById('ctrl-away-score').innerText = currentMatchState.away_score;
+    if(document.getElementById('ctrl-timer')) document.getElementById('ctrl-timer').innerText = formatTime(currentMatchState.match_time);
 }
 
 function sendBroadcastState() {
     if (realtimeChannel) {
+        realtimeChannel.send({ type: 'broadcast', event: 'state-change', payload: currentMatchState });
+    }
+}
+
+async function saveStateToSupabase() {
+    sendBroadcastState();
+    await supabaseClient.from('match_state').update(currentMatchState).eq('id', 'live_match');
+}
+
+async function fetchInitialState() {
+    let { data } = await supabaseClient.from('match_state').select('*').eq('id', 'live_match').single();
+    if (data) currentMatchState = data;
+}
+
+function changeScore(team, val) {
+    if (team === 'home') currentMatchState.home_score = Math.max(0, currentMatchState.home_score + val);
+    else currentMatchState.away_score = Math.max(0, currentMatchState.away_score + val);
+    const scoreEl = document.getElementById(`ctrl-${team}-score`);
+    if (scoreEl) scoreEl.innerText = currentMatchState[`${team}_score`];
+    saveStateToSupabase();
+}
+
+function updateMatchNames() {
+    currentMatchState.home_name = document.getElementById('ctrl-home-name').value;
+    currentMatchState.away_name = document.getElementById('ctrl-away-name').value;
+    currentMatchState.home_logo = document.getElementById('ctrl-home-logo').value;
+    currentMatchState.away_logo = document.getElementById('ctrl-away-logo').value;
+    currentMatchState.home_color = document.getElementById('ctrl-home-color').value;
+    currentMatchState.away_color = document.getElementById('ctrl-away-color').value;
+    saveStateToSupabase();
+}
+
+function toggleTimer() { 
+    currentMatchState.is_running = !currentMatchState.is_running; 
+    saveStateToSupabase(); 
+}
+
+function resetTimer() { 
+    currentMatchState.is_running = false; 
+    currentMatchState.match_time = 0; 
+    const timerEl = document.getElementById('ctrl-timer');
+    if (timerEl) timerEl.innerText = "00:00"; 
+    saveStateToSupabase(); 
+}
+
+function toggleLineups() { 
+    currentMatchState.show_lineups = !currentMatchState.show_lineups; 
+    saveStateToSupabase(); 
+}
+
+async function triggerGoalAnimation() {
+    if (currentMatchState.show_goal_trigger || isAnimationPlaying) return;
+
+    // Pobieramy poprawny nick z pola tekstowego
+    const scorerInput = document.getElementById('ctrl-scorer-name');
+    const inputScorer = scorerInput ? scorerInput.value : "";
+    
+    currentMatchState.scorer_name = inputScorer;
+    currentMatchState.scorer_team = document.getElementById('ctrl-scorer-team').value;
+    currentMatchState.show_goal_trigger = true;
+    
+    if (currentMatchState.scorer_team === 'home') currentMatchState.home_score++;
+    else currentMatchState.away_score++;
+    
+    if(document.getElementById('ctrl-home-score')) document.getElementById('ctrl-home-score').innerText = currentMatchState.home_score;
+    if(document.getElementById('ctrl-away-score')) document.getElementById('ctrl-away-score').innerText = currentMatchState.away_score;
+    
+    // 1. Wysyłamy natychmiastowy sygnał do Overlaya o bramce
+    sendBroadcastState();
+
+    // 2. Zapisujemy zaktualizowany stan meczu (wynik) na stałe w bazie danych,
+    // ale flaga gola w samej bazie ląduje od razu jako FALSE, żeby nie pętliła stopera!
+    let dbState = { ...currentMatchState, show_goal_trigger: false };
+    await supabaseClient.from('match_state').update(dbState).eq('id', 'live_match');
+    
+    // 3. Resetujemy flagę lokalnie w panelu po ułamku sekundy, by móc strzelić kolejną bramkę
+    setTimeout(() => {
+        currentMatchState.show_goal_trigger = false;
+    }, 1000);
+}
+
+function formatTime(totalSeconds) {
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
