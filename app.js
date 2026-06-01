@@ -2,12 +2,8 @@ const SUPABASE_URL = "https://puhnsjqbqmojjouhsjnk.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1aG5zanFicW1vampvdWhzam5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyMjg4MDgsImV4cCI6MjA5NTgwNDgwOH0.fBFk7OyEeQ8T_v-tzXAffcDb1xfvgeVZfOvq2WqDC7k";
 
 let supabaseClient = null;
-
-// Bezpieczna inicjalizacja klienta Supabase
 if (typeof window.supabase !== 'undefined') {
     supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-} else {
-    console.error("Błąd: Nie załadowano skryptu Supabase!");
 }
 
 const defaultHomePlayers = ["1. NOWAK (GK)", "2. KOWALSKI", "3. ZIELIŃSKI", "4. WIŚNIEWSKI", "5. WÓJCIK", "6. KOWALCZYK", "7. KAMIŃSKI", "8. LEWANDOWSKI", "9. MILIK", "10. SZYMAŃSKI", "11. PIĄTEK", "TRENER: PROBIERZ"];
@@ -22,37 +18,42 @@ let currentMatchState = {
 };
 
 let timerInterval = null;
+let broadcastChannel = null;
 
 // ==========================================
-// LOGIKA DLA OVERLAY.HTML (OBS)
+// LOGIKA OVERLAY (OBS)
 // ==========================================
 async function initOverlayView() {
     await fetchInitialState();
     updateHUDUI();
     if (currentMatchState.is_running) startLocalTimer();
 
-    supabaseClient
-        .channel('hud-changes')
+    // Słuchamy na kanale Broadcast (błyskawiczna synchronizacja) + fallback z DB
+    broadcastChannel = supabaseClient.channel('match-live-stream', { config: { broadcast: { self: false } } });
+    
+    broadcastChannel
+        .on('broadcast', { event: 'state-update' }, ({ payload }) => {
+            handleIncomingState(payload);
+        })
         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'match_state' }, payload => {
-            const data = payload.new;
-            
-            if (data.show_goal_trigger && !currentMatchState.show_goal_trigger) {
-                runGSAPGoalAnimation(data.scorer_name, data.scorer_team === 'home' ? data.home_name : data.away_name);
-            }
-            
-            if (data.show_lineups !== currentMatchState.show_lineups) {
-                toggleGSAPLineups(data.show_lineups);
-            }
-
-            if (data.is_running !== currentMatchState.is_running) {
-                if (data.is_running) startLocalTimer();
-                else clearInterval(timerInterval);
-            }
-            
-            currentMatchState = data;
-            updateHUDUI();
+            handleIncomingState(payload.new);
         })
         .subscribe();
+}
+
+function handleIncomingState(data) {
+    if (data.show_goal_trigger && !currentMatchState.show_goal_trigger) {
+        runGSAPGoalAnimation(data.scorer_name, data.scorer_team === 'home' ? data.home_name : data.away_name);
+    }
+    if (data.show_lineups !== currentMatchState.show_lineups) {
+        toggleGSAPLineups(data.show_lineups);
+    }
+    if (data.is_running !== currentMatchState.is_running) {
+        if (data.is_running) startLocalTimer();
+        else clearInterval(timerInterval);
+    }
+    currentMatchState = data;
+    updateHUDUI();
 }
 
 function updateHUDUI() {
@@ -76,7 +77,7 @@ function renderLineupsStructures() {
     document.getElementById('away-players-list').innerHTML = defaultAwayPlayers.map(p => `<li><span>✦</span>${p}</li>`).join('');
 }
 
-// GSAP ANIMACJE (60FPS FEEL)
+// ANIMACJE GSAP
 function runGSAPGoalAnimation(scorer, teamName) {
     document.getElementById('goal-scorer').innerText = scorer || "ZAWODNIK";
     document.getElementById('goal-team').innerText = teamName;
@@ -121,7 +122,7 @@ function toggleGSAPLineups(show) {
 }
 
 // ==========================================
-// LOGIKA DLA CONTROL.HTML (PANEL)
+// LOGIKA CONTROL PANEL
 // ==========================================
 async function initControlPanel() {
     await fetchInitialState();
@@ -131,20 +132,15 @@ async function initControlPanel() {
     statusBadge.innerText = "POŁĄCZONO";
     statusBadge.classList.add('connected');
 
+    broadcastChannel = supabaseClient.channel('match-live-stream', { config: { broadcast: { self: false } } });
+    broadcastChannel.subscribe();
+
     setInterval(() => {
         if (currentMatchState.is_running) {
             currentMatchState.match_time++;
             document.getElementById('ctrl-timer').innerText = formatTime(currentMatchState.match_time);
         }
     }, 1000);
-
-    supabaseClient
-        .channel('panel-sync')
-        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'match_state' }, payload => {
-            currentMatchState = payload.new;
-            updateControlPanelUI();
-        })
-        .subscribe();
 }
 
 function updateControlPanelUI() {
@@ -162,6 +158,15 @@ function updateControlPanelUI() {
 }
 
 async function saveStateToSupabase() {
+    // 1. Nadaj sygnał w eter (błyskawiczny Broadcast do OBS)
+    if (broadcastChannel) {
+        broadcastChannel.send({
+            type: 'broadcast',
+            event: 'state-update',
+            payload: currentMatchState
+        });
+    }
+    // 2. Zapisz asynchronicznie w bazie danych jako backup
     await supabaseClient.from('match_state').update(currentMatchState).eq('id', 'live_match');
 }
 
@@ -173,6 +178,7 @@ async function fetchInitialState() {
 function changeScore(team, val) {
     if (team === 'home') currentMatchState.home_score = Math.max(0, currentMatchState.home_score + val);
     else currentMatchState.away_score = Math.max(0, currentMatchState.away_score + val);
+    document.getElementById(`ctrl-${team}-score`).innerText = currentMatchState[`${team}_score`];
     saveStateToSupabase();
 }
 
@@ -190,6 +196,7 @@ function toggleTimer() {
 function resetTimer() {
     currentMatchState.is_running = false;
     currentMatchState.match_time = 0;
+    document.getElementById('ctrl-timer').innerText = "00:00";
     saveStateToSupabase();
 }
 
@@ -206,10 +213,15 @@ function triggerGoalAnimation() {
     if (currentMatchState.scorer_team === 'home') currentMatchState.home_score++;
     else currentMatchState.away_score++;
 
+    // Lokalna aktualizacja wyniku w panelu admina od razu
+    document.getElementById('ctrl-home-score').innerText = currentMatchState.home_score;
+    document.getElementById('ctrl-away-score').innerText = currentMatchState.away_score;
+
     saveStateToSupabase();
 }
 
 async function resetGoalTriggerInDB() {
+    currentMatchState.show_goal_trigger = false;
     await supabaseClient.from('match_state').update({ show_goal_trigger: false }).eq('id', 'live_match');
 }
 
