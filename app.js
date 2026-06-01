@@ -42,7 +42,7 @@ function initSystem() {
     });
 
     if (isOverlay) {
-        updateOverlayUI();
+        // Overlay oczekuje na pierwszy kompletny broadcast z aktualnym stanem logotypów i kolorów
         myChannel
             .on('broadcast', { event: 'state_update' }, ({ payload }) => {
                 matchState = payload;
@@ -105,12 +105,54 @@ function updateTeams() {
     matchState.homeTextColor = document.getElementById('input-home-text').value;
     matchState.awayColor = document.getElementById('input-away-color').value;
     matchState.awayTextColor = document.getElementById('input-away-text').value;
-    
-    // Pobieranie linków logotypów z panelu sterowania
     matchState.homeLogo = document.getElementById('input-home-logo').value.trim();
     matchState.awayLogo = document.getElementById('input-away-logo').value.trim();
     
     sendToOBS('state_update', matchState);
+}
+
+// 🔄 GŁÓWNA FUNKCJA SWAP - ZAMIANA STRON DRUŻYN
+function swapTeams() {
+    // 1. Zamiana wartości w elementach HTML formularza panela sterowania
+    const hName = document.getElementById('input-home-name').value;
+    const aName = document.getElementById('input-away-name').value;
+    document.getElementById('input-home-name').value = aName;
+    document.getElementById('input-away-name').value = hName;
+
+    const hColor = document.getElementById('input-home-color').value;
+    const aColor = document.getElementById('input-away-color').value;
+    document.getElementById('input-home-color').value = aColor;
+    document.getElementById('input-away-color').value = hColor;
+
+    const hText = document.getElementById('input-home-text').value;
+    const aText = document.getElementById('input-away-text').value;
+    document.getElementById('input-home-text').value = aText;
+    document.getElementById('input-away-text').value = hText;
+
+    const hLogo = document.getElementById('input-home-logo').value;
+    const aLogo = document.getElementById('input-away-logo').value;
+    document.getElementById('input-home-logo').value = aLogo;
+    document.getElementById('input-away-logo').value = hLogo;
+
+    const hPlayers = document.getElementById('txt-home-players').value;
+    const aPlayers = document.getElementById('txt-away-players').value;
+    document.getElementById('txt-home-players').value = aPlayers;
+    document.getElementById('txt-away-players').value = hPlayers;
+
+    const hCoach = document.getElementById('input-home-coach').value;
+    const aCoach = document.getElementById('input-away-coach').value;
+    document.getElementById('input-home-coach').value = aCoach;
+    document.getElementById('input-away-coach').value = hCoach;
+
+    // Zamiana aktualnych wyników bramkowych miejscami
+    const tempScore = matchState.homeScore;
+    matchState.homeScore = matchState.awayScore;
+    matchState.awayScore = tempScore;
+
+    // 2. Odczytanie nowych wartości i wysłanie zsynchronizowanego stanu do OBS
+    updateTeams();
+    updateLineupsData();
+    updateControlUI();
 }
 
 function changePeriod() {
@@ -195,11 +237,17 @@ function updateOverlayUI() {
     if (document.getElementById('hud-timer')) document.getElementById('hud-timer').innerText = formatTime(matchState.timerSeconds);
     if (document.getElementById('hud-period')) document.getElementById('hud-period').innerText = matchState.period;
 
-    // Aktualizacja grafik herbów w belce HUD na górze
     const homeHudImg = document.getElementById('hud-home-logo');
     const awayHudImg = document.getElementById('hud-away-logo');
-    if (homeHudImg) homeHudImg.src = matchState.homeLogo || "";
-    if (awayHudImg) awayHudImg.src = matchState.awayLogo || "";
+    
+    if (homeHudImg) {
+        homeHudImg.src = matchState.homeLogo || "";
+        homeHudImg.style.display = matchState.homeLogo ? "block" : "none";
+    }
+    if (awayHudImg) {
+        awayHudImg.src = matchState.awayLogo || "";
+        awayHudImg.style.display = matchState.awayLogo ? "block" : "none";
+    }
 }
 
 function animateGoal(side, team, scorer, timeString) {
@@ -238,9 +286,11 @@ function animateLineupCentral(side, show) {
         const coachName = side === 'home' ? matchState.homeCoach : matchState.awayCoach;
         const teamLogoUrl = side === 'home' ? matchState.homeLogo : matchState.awayLogo;
 
-        // Przypisanie logo do nagłówka składów
         const lineupLogoImg = document.getElementById('lineup-team-logo');
-        if (lineupLogoImg) lineupLogoImg.src = teamLogoUrl || "";
+        if (lineupLogoImg) {
+            lineupLogoImg.src = teamLogoUrl || "";
+            lineupLogoImg.style.display = teamLogoUrl ? "block" : "none";
+        }
 
         document.getElementById('lineup-team-title').innerText = teamName;
         document.getElementById('lineup-team-title').style.color = mainColor;
