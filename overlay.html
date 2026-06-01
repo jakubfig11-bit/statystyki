@@ -5,15 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OBS Overlay HUD</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght=500;700;900&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="overlay-body">
 
+    <!-- Scoreboard HUD - Left Corner Premium TV -->
     <div class="scoreboard-wrapper left-corner">
         <div class="scoreboard-tv">
             
+            <!-- Gospodarze -->
             <div class="tv-team home">
                 <div class="color-accent" id="hud-home-accent"></div>
                 <div class="crest-container">
@@ -22,6 +24,7 @@
                 <span id="hud-home-name">HOME</span>
             </div>
             
+            <!-- Wyniki i Czas -->
             <div class="tv-center-core">
                 <div class="tv-score-box">
                     <span id="hud-home-score">0</span>
@@ -33,6 +36,7 @@
                 </div>
             </div>
             
+            <!-- Goście -->
             <div class="tv-team away">
                 <span id="hud-away-name">AWAY</span>
                 <div class="crest-container">
@@ -44,18 +48,26 @@
         </div>
     </div>
 
+    <!-- Animacja GOOOL - Z logiem w tle -->
     <div id="goal-overlay" class="goal-overlay-container bottom-position">
         <div class="goal-bg-flash"></div>
         <div class="goal-tv-card" id="goal-card-accent">
-            <h1 class="goal-tv-title">GOL!</h1>
-            <div class="goal-tv-details">
-                <span id="goal-scorer">ZAWODNIK</span>
-                <span id="goal-team">TEAM</span>
-                <span id="goal-time" class="goal-time-badge">00:00</span>
+            <!-- Przezroczyste logo w tle (30% opacity sterowane w CSS) -->
+            <img id="goal-bg-logo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="goal-card-bg-crest hidden" alt="">
+            
+            <!-- Treść nakładki -->
+            <div class="goal-card-content">
+                <h1 class="goal-tv-title">GOL!</h1>
+                <div class="goal-tv-details">
+                    <span id="goal-scorer">ZAWODNIK</span>
+                    <span id="goal-team">TEAM</span>
+                    <span id="goal-time" class="goal-time-badge">00:00</span>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- Animacja Składów -->
     <div id="lineups-overlay" class="lineups-container">
         <div class="lineup-col left-team">
             <h2 id="lineup-home-title">HOME TEAM</h2>
