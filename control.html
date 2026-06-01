@@ -25,6 +25,8 @@
         .btn-danger { background: #ff4444; color: white; }
         .btn-purple { background: #aa00ff; color: white; }
         .btn-purple:hover { background: #d500f9; }
+        .btn-warning { background: #f1c40f; color: #000; }
+        .btn-warning:hover { background: #f39c12; }
         .score-box { display: flex; align-items: center; justify-content: center; gap: 15px; font-size: 36px; font-weight: 800; margin: 15px 0; }
         .score-btn { width: 40px; height: 40px; background: #2d3446; border: none; color: white; border-radius: 6px; font-size: 20px; font-weight: 700; cursor: pointer; }
         .score-btn:hover { background: #3e4861; }
@@ -91,7 +93,10 @@
                 <label>Kolor:</label> <input type="color" id="ctrl-away-color" value="#ff0044">
             </div>
         </div>
-        <button class="btn btn-primary" onclick="updateMatchNames()">Zapisz dane drużyn</button>
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-top: 10px;">
+            <button class="btn btn-primary" onclick="updateMatchNames()">Zapisz dane drużyn</button>
+            <button class="btn btn-warning" onclick="swapTeams()" style="font-weight: 800;">🔄 SWAP (ZAMIEŃ)</button>
+        </div>
     </div>
 
     <!-- SKŁADY -->
@@ -148,7 +153,7 @@
         </div>
     </div>
 
-    <!-- NOWOŚĆ: STATYSTYKI INDYWIDUALNE -->
+    <!-- STATYSTYKI INDYWIDUALNE -->
     <div class="card">
         <h3>📊 INDYWIDUALNE STATYSTYKI ZAWODNIKA</h3>
         <div class="grid-2">
