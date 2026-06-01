@@ -23,7 +23,7 @@ let currentMatchState = {
 
 let timerInterval = null;
 let realtimeChannel = null;
-let isAnimationPlaying = false; // BLOKADA: Zabezpieczenie przed zapętleniem animacji
+let isAnimationPlaying = false; // Lokalna blokada nakładania się animacji w OBS
 
 // ==========================================
 // LOGIKA OVERLAY (OBS)
@@ -45,20 +45,16 @@ async function initOverlayView() {
 }
 
 function handleStateUpdate(data) {
-    // 1. NAPRAWA PĘTLI: Sprawdzamy sztywno czy flaga gola zmieniła się z false na true ORAZ czy animacja już nie trwa
+    // FIX: Sztywne porównanie z poprzednim stanem lokalnym, aby uniknąć pętli przy klikaniu czasu
     if (data.show_goal_trigger === true && currentMatchState.show_goal_trigger === false && !isAnimationPlaying) {
         const teamColor = data.scorer_team === 'home' ? data.home_color : data.away_color;
         const teamName = data.scorer_team === 'home' ? data.home_name : data.away_name;
         const teamLogo = data.scorer_team === 'home' ? data.home_logo : data.away_logo;
         
+        // Przekazujemy bezpośrednio data.scorer_name z odebranej paczki
         runGSAPGoalAnimation(data.scorer_name, teamName, teamColor, teamLogo);
     }
     
-    // Zabezpieczenie na wypadek, gdyby panel sędziego zresetował trigger, zanim skończy się lokalna animacja
-    if (data.show_goal_trigger === false && isAnimationPlaying) {
-        // Ignorujemy ten konkretny broadcast resetujący, by nie przerywać animacji ani jej nie dublować
-    }
-
     if (data.show_lineups !== currentMatchState.show_lineups) {
         toggleGSAPLineups(data.show_lineups);
     }
@@ -111,10 +107,11 @@ function renderLineupsStructures() {
 }
 
 function runGSAPGoalAnimation(scorer, teamName, teamColor, teamLogo) {
-    isAnimationPlaying = true; // Aktywujemy blokadę
+    isAnimationPlaying = true;
     const exactGoalTime = formatTime(currentMatchState.match_time);
     
-    document.getElementById('goal-scorer').innerText = scorer || "ZAWODNIK";
+    // FIX: Jeśli scorer jest pusty, zabezpieczamy wyświetlanie wpisem domyślnym
+    document.getElementById('goal-scorer').innerText = (scorer && scorer.trim() !== "") ? scorer.toUpperCase() : "STRZELEC";
     document.getElementById('goal-team').innerText = teamName;
     document.getElementById('goal-time').innerText = exactGoalTime;
     document.getElementById('goal-card-accent').style.borderBottom = `6px solid ${teamColor}`;
@@ -140,8 +137,7 @@ function runGSAPGoalAnimation(scorer, teamName, teamColor, teamLogo) {
       .to({}, { duration: 8.0 }) 
       .to(card, { y: 150, opacity: 0, scale: 0.95, duration: 0.5, ease: "power4.in", onComplete: () => {
           gsap.set(overlay, { visibility: 'hidden' });
-          isAnimationPlaying = false; // Zdejmujemy blokadę lokalną dopiero po pełnym schowaniu karty
-          resetGoalTrigger();
+          isAnimationPlaying = false;
       }});
 }
 
@@ -194,78 +190,3 @@ function updateControlPanelUI() {
 
 function sendBroadcastState() {
     if (realtimeChannel) {
-        realtimeChannel.send({ type: 'broadcast', event: 'state-change', payload: currentMatchState });
-    }
-}
-
-async function saveStateToSupabase() {
-    sendBroadcastState();
-    await supabaseClient.from('match_state').update(currentMatchState).eq('id', 'live_match');
-}
-
-async function fetchInitialState() {
-    let { data } = await supabaseClient.from('match_state').select('*').eq('id', 'live_match').single();
-    if (data) currentMatchState = data;
-}
-
-function changeScore(team, val) {
-    if (team === 'home') currentMatchState.home_score = Math.max(0, currentMatchState.home_score + val);
-    else currentMatchState.away_score = Math.max(0, currentMatchState.away_score + val);
-    document.getElementById(`ctrl-${team}-score`).innerText = currentMatchState[`${team}_score`];
-    saveStateToSupabase();
-}
-
-function updateMatchNames() {
-    currentMatchState.home_name = document.getElementById('ctrl-home-name').value;
-    currentMatchState.away_name = document.getElementById('ctrl-away-name').value;
-    currentMatchState.home_logo = document.getElementById('ctrl-home-logo').value;
-    currentMatchState.away_logo = document.getElementById('ctrl-away-logo').value;
-    currentMatchState.home_color = document.getElementById('ctrl-home-color').value;
-    currentMatchState.away_color = document.getElementById('ctrl-away-color').value;
-    saveStateToSupabase();
-}
-
-function toggleTimer() { 
-    currentMatchState.is_running = !currentMatchState.is_running; 
-    saveStateToSupabase(); 
-}
-
-function resetTimer() { 
-    currentMatchState.is_running = false; 
-    currentMatchState.match_time = 0; 
-    document.getElementById('ctrl-timer').innerText = "00:00"; 
-    saveStateToSupabase(); 
-}
-
-function toggleLineups() { 
-    currentMatchState.show_lineups = !currentMatchState.show_lineups; 
-    saveStateToSupabase(); 
-}
-
-function triggerGoalAnimation() {
-    // Zapobiegamy odpaleniu kolejnego gola, jeśli animacja na overlayu jeszcze trwa
-    if (currentMatchState.show_goal_trigger) return;
-
-    currentMatchState.scorer_name = document.getElementById('ctrl-scorer-name').value;
-    currentMatchState.scorer_team = document.getElementById('ctrl-scorer-team').value;
-    currentMatchState.show_goal_trigger = true;
-    
-    if (currentMatchState.scorer_team === 'home') currentMatchState.home_score++;
-    else currentMatchState.away_score++;
-    
-    document.getElementById('ctrl-home-score').innerText = currentMatchState.home_score;
-    document.getElementById('ctrl-away-score').innerText = currentMatchState.away_score;
-    saveStateToSupabase();
-}
-
-async function resetGoalTrigger() {
-    currentMatchState.show_goal_trigger = false;
-    // Ważne: Wykonujemy update cicho w bazie bez rozsyłania broadcastu pushującego ponowną animację
-    await supabaseClient.from('match_state').update({ show_goal_trigger: false }).eq('id', 'live_match');
-}
-
-function formatTime(totalSeconds) {
-    const mins = Math.floor(totalSeconds / 60);
-    const secs = totalSeconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-}
