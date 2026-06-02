@@ -1,10 +1,10 @@
 // =========================================================================
-// 🌐 CONFIG I INICJALIZACJA SUPABASE (NAPRAWIONA NAZWA ZMIENNEJ)
+// 🌐 CONFIG I INICJALIZACJA SUPABASE (NAPRAWIONY KLUCZ API)
 // =========================================================================
 const SUPABASE_URL = "https://puhnsjqbqmojjouhsjnk.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1aG5zanFicW1vampvdWhzam5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyMjg4MDgsImV4cCIpxjA5NTgwNDgwOH0.fBFk7OyEeQ8T_v-tzXAffcDb1xfvgeVZfOvq2WqDC7k";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1aG5zanFicW1vampvdWhzam5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyMjg4MDgsImV4cCI6MjA5NTgwNDgwOH0.fBFk7OyEeQ8T_v-tzXAffcDb1xfvgeVZfOvq2WqDC7k";
 
-// Zmieniono nazwę na 'db', aby uniknąć konfliktu z globalnym obiektem window.supabase
+// Inicjalizacja klienta bazy danych pod unikalną nazwą zmiennej
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Status połączenia w panelu
@@ -14,6 +14,7 @@ async function checkDatabaseConnection() {
         const badge = document.getElementById('db-status');
         if (badge) {
             if (error) {
+                console.error("Szczegóły błędu Supabase:", error);
                 badge.textContent = "BŁĄD TABELI";
                 badge.className = "status-badge";
                 badge.style.background = "#ff4757";
