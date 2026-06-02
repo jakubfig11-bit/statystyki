@@ -254,3 +254,53 @@ button.btn-success { flex: 1; background: #10b981; color: white; border: none; p
 button.btn-danger { background: #ef4444; color: white; border: none; padding: 14px; font-weight: 600; cursor: pointer; border-radius: 6px; font-size: 14px; }
 button.btn-neon-yellow { width: 100%; background: #ffffff; color: #000000; border: none; padding: 14px; font-weight: 700; font-size: 14px; cursor: pointer; border-radius: 6px; text-transform: uppercase; }
 button.btn-purple { width: 100%; background: #6366f1; color: white; border: none; padding: 14px; font-weight: 600; cursor: pointer; border-radius: 6px; font-size: 14px; text-transform: uppercase; }
+
+/* ==========================================================================
+   DODATEK: STYLE DLA SUMMARY BAR
+   ========================================================================== */
+#summary-overlay {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 800px;
+    background: #0d0f14;
+    border: 2px solid #232731;
+    border-radius: 8px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.7);
+    overflow: hidden;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+}
+
+.summary-accent {
+    width: 8px;
+    height: 45px;
+    background: #f1c40f; /* Żółty sportowy akcent */
+}
+
+.summary-title {
+    background: #1c2130;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 800;
+    padding: 0 15px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border-right: 1px solid #232731;
+}
+
+.summary-content-text {
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 0 20px;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
