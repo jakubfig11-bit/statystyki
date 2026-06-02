@@ -320,3 +320,6 @@ function initControlPanel() {
     checkDatabaseConnection();
     initHbrAnalyzer();
 }
+
+// 🟩 URUCHOMIENIE KODU PO ZAŁADOWANIU STRONY (To usunęło błąd)
+document.addEventListener('DOMContentLoaded', initControlPanel);
