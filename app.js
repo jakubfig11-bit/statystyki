@@ -325,3 +325,62 @@ function setupCrest(elementId, url) {
 }
 
 function formatTime(totalSeconds) { const mins = Math.floor(totalSeconds / 60); const secs = totalSeconds % 60; return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`; }
+
+// ==========================================================================
+// DODATEK: OBSŁUGA SUMMARY BAR
+// ==========================================================================
+
+// Rozszerzenie istniejących funkcji inicjalizacyjnych o ukrywanie/pokazywanie paska w locie
+const oryginalneHandleStateUpdate = handleStateUpdate;
+handleStateUpdate = function(data) {
+    oryginalneHandleStateUpdate(data);
+    
+    // Obsługa pokazania/ukrycia paska przez GSAP
+    if (data.show_summary_bar !== currentMatchState.show_summary_bar) {
+        toggleGSAPSummaryBar(data.show_summary_bar);
+    }
+    
+    // Aktualizacja tekstu w overlayu
+    if (document.getElementById('summary-text-field')) {
+        document.getElementById('summary-text-field').innerText = data.summary_bar_text || "";
+    }
+};
+
+const oryginalneUpdateControlPanelUI = updateControlPanelUI;
+updateControlPanelUI = function() {
+    oryginalneUpdateControlPanelUI();
+    if (document.getElementById('ctrl-summary-text')) {
+        document.getElementById('ctrl-summary-text').value = currentMatchState.summary_bar_text || "";
+    }
+};
+
+// Nowe funkcje sterujące
+function updateSummaryText() {
+    currentMatchState.summary_bar_text = document.getElementById('ctrl-summary-text').value;
+    saveStateToSupabase();
+}
+
+function toggleSummaryOverlay() {
+    currentMatchState.show_summary_bar = !currentMatchState.show_summary_bar;
+    saveStateToSupabase();
+}
+
+function toggleGSAPSummaryBar(show) {
+    const container = document.getElementById('summary-overlay');
+    if (!container) return;
+    
+    // Dopasowanie koloru akcentu paska do koloru gospodarzy (opcjonalnie)
+    const accent = document.getElementById('summary-bar-accent');
+    if (accent && currentMatchState.home_color) {
+        accent.style.backgroundColor = currentMatchState.home_color;
+    }
+
+    if (show) {
+        gsap.set(container, { visibility: 'visible', y: 100, opacity: 0 });
+        gsap.to(container, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" });
+    } else {
+        gsap.to(container, { y: 100, opacity: 0, duration: 0.4, ease: "power3.in", onComplete: () => {
+            gsap.set(container, { visibility: 'hidden' });
+        }});
+    }
+}
