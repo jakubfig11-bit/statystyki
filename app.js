@@ -1,5 +1,5 @@
 // =========================================================================
-// 🌐 CONFIG I INICJALIZACJA SUPABASE (Twoje oryginalne połączenie)
+// 🌐 CONFIG I INICJALIZACJA SUPABASE
 // =========================================================================
 const SUPABASE_URL = "https://puhnsjqbqmojjouhsjnk.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1aG5zanFicW1vampvdWhzam5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyMjg4MDgsImV4cCI6MjA5NTgwNDgwOH0.fBFk7OyEeQ8T_v-tzXAffcDb1xfvgeVZfOvq2WqDC7k";
@@ -51,13 +51,13 @@ async function loadCurrentMatchState() {
 }
 
 // =========================================================================
-// ⚽ TWOJE ORYGINALNE FUNKCJE STEROWANIA (WYNIK, CZAS, SKŁADY, ANIMACJE)
+// ⚽ FUNKCJE STEROWANIA (ZABEZPIECZONE PRZED DUBLOWANIEM ZAPYTAŃ)
 // =========================================================================
 
 async function changeScore(team, val) {
     const element = document.getElementById(`ctrl-${team}-score`);
     let currentScore = parseInt(element.textContent) + val;
-    if (currentScore < 0) currentScore = 0;
+    if (isNaN(currentScore) || currentScore < 0) currentScore = 0;
     element.textContent = currentScore;
 
     const updateData = {};
@@ -73,8 +73,14 @@ function toggleTimer() {
         clearInterval(timerInterval);
         timerInterval = null;
     } else {
-        let timeParts = timerEl.textContent.split(':');
-        let totalSec = parseInt(timeParts[0]) * 60 + parseInt(timeParts[1]);
+        let totalSec = 0;
+        if (timerEl && timerEl.textContent && timerEl.textContent.includes(':')) {
+            let timeParts = timerEl.textContent.split(':');
+            let mins = parseInt(timeParts[0]) || 0;
+            let secs = parseInt(timeParts[1]) || 0;
+            totalSec = (mins * 60) + secs;
+        }
+        
         timerInterval = setInterval(async () => {
             totalSec++;
             let m = Math.floor(totalSec / 60).toString().padStart(2, '0');
@@ -132,37 +138,57 @@ async function toggleLineups() {
     await supabase.from('match_state').update({ show_lineups: !data.show_lineups }).eq('id', 1);
 }
 
+// ZABEZPIECZENIE: Blokada ponownego kliknięcia w trakcie trwania animacji bramki
+let isGoalAnimating = false;
 async function triggerGoalAnimation() {
+    if (isGoalAnimating) return; // Jeśli animacja trwa, ignoruj kolejne kliknięcia
+    isGoalAnimating = true;
+
     const scorer = document.getElementById('ctrl-scorer-name').value;
     const team = document.getElementById('ctrl-scorer-team').value;
     
-    await changeScore(team, 1);
+    const element = document.getElementById(`ctrl-${team}-score`);
+    let currentScore = parseInt(element.textContent) + 1;
+    if (isNaN(currentScore)) currentScore = 1;
+    element.textContent = currentScore;
     
-    await supabase.from('match_state').update({
-        goal_trigger: true,
+    const updateData = {
+        goal_trigger: true, // Zostaje kompatybilne true/false dla Twojego OBS
         last_scorer: scorer,
         last_score_team: team
-    }).eq('id', 1);
+    };
+    updateData[`${team}_score`] = currentScore;
     
+    await supabase.from('match_state').update(updateData).eq('id', 1);
+    
+    // Po 5 sekundach (gdy animacja się skończy w OBS) resetujemy status w bazie i odblokowujemy przycisk
     setTimeout(async () => {
         await supabase.from('match_state').update({ goal_trigger: false }).eq('id', 1);
+        isGoalAnimating = false;
     }, 5000);
 }
 
+// ZABEZPIECZENIE: Blokada ponownego kliknięcia w trakcie trwania animacji zmian
+let isSubAnimating = false;
 async function triggerSubAnimation() {
+    if (isSubAnimating) return;
+    isSubAnimating = true;
+
     const subOut = document.getElementById('ctrl-sub-out').value;
     const subIn = document.getElementById('ctrl-sub-in').value;
     const team = document.getElementById('ctrl-sub-team').value;
     
     await supabase.from('match_state').update({
-        sub_trigger: true,
+        sub_trigger: true, // Zostaje kompatybilne true/false dla Twojego OBS
         sub_out: subOut,
         sub_in: subIn,
         sub_team: team
     }).eq('id', 1);
     
+    // Po 6 sekundach resetujemy status i odblokowujemy przycisk zmian
     setTimeout(async () => {
         await supabase.from('match_state').update({ sub_trigger: false }).eq('id', 1);
+        isSubAnimating = false;
     }, 6000);
 }
 
@@ -204,7 +230,7 @@ async function updateTeamStatsData() {
 
 
 // =========================================================================
-// 🤖 NOWOŚĆ: BEZPIECZNY AUTOMATYCZNY ANALYZER MECZÓW (.HBR / .HBR2)
+// 🤖 AUTOMATYCZNY ANALYZER MECZÓW (.HBR / .HBR2)
 // =========================================================================
 
 function initHbrAnalyzer() {
@@ -264,7 +290,7 @@ function initHbrAnalyzer() {
         reader.onloadend = async function() {
             try {
                 if (!window.HbrParser || typeof window.HbrParser.parse !== 'function') {
-                    throw new Error("Skrypt 'hbr-parser.js' nie został jeszcze w pełni załadowany. Odśwież stronę przez CTRL+F5.");
+                    throw new Error("Skrypt 'hbr-parser.js' nie został jeszcze w primi załadowany. Odśwież stronę przez CTRL+F5.");
                 }
 
                 const result = window.HbrParser.parse(reader.result);
@@ -274,7 +300,6 @@ function initHbrAnalyzer() {
                     const seconds = (result.match_time % 60).toString().padStart(2, '0');
                     const formattedTime = `${minutes}:${seconds}`;
 
-                    // Aktualizacja pól na ekranie panelu
                     document.getElementById('ctrl-timer').textContent = formattedTime;
                     
                     document.getElementById('ctrl-team-home-shots').value = result.team_stats.home.shots;
@@ -287,7 +312,6 @@ function initHbrAnalyzer() {
                     document.getElementById('ctrl-team-away-fouls').value = result.team_stats.away.fouls;
                     document.getElementById('ctrl-team-away-corners').value = result.team_stats.away.corners;
 
-                    // Wypchnięcie sparsowanych danych prosto do Supabase
                     const { error } = await supabase
                         .from('match_state') 
                         .update({
@@ -315,11 +339,22 @@ function initHbrAnalyzer() {
     }
 }
 
-// Główny rozruch panelu
-function initControlPanel() {
+// Globalne wystawienie funkcji sterujących dla systemu HTML (onclick)
+window.changeScore = changeScore;
+window.toggleTimer = toggleTimer;
+window.resetTimer = resetTimer;
+window.swapTeams = swapTeams;
+window.updateMatchNames = updateMatchNames;
+window.toggleLineups = toggleLineups;
+window.triggerGoalAnimation = triggerGoalAnimation;
+window.triggerSubAnimation = triggerSubAnimation;
+window.updatePlayerStatsData = updatePlayerStatsData;
+window.togglePlayerStatsOverlay = togglePlayerStatsOverlay;
+window.toggleSummaryOverlay = toggleSummaryOverlay;
+window.updateTeamStatsData = updateTeamStatsData;
+
+// Inicjalizacja bazy i analyzera po załadowaniu DOM
+document.addEventListener('DOMContentLoaded', () => {
     checkDatabaseConnection();
     initHbrAnalyzer();
-}
-
-// 🟩 URUCHOMIENIE KODU PO ZAŁADOWANIU STRONY (To usunęło błąd)
-document.addEventListener('DOMContentLoaded', initControlPanel);
+});
