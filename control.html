@@ -217,6 +217,18 @@
             <button class="btn btn-success" style="background: #e67e22; margin-top: 28px;" onclick="triggerSubAnimation()">🔄 TRANSMITUJ ZMIANĘ!</button>
         </div>
     </div>
+    <!-- ==========================================
+       DODATEK: PANEL KONTROLI SUMMARY BAR
+       ========================================== -->
+    <div class="card" style="margin-top: 20px;">
+        <h3>📋 KONTROLA PASKA PODSUMOWANIA (SUMMARY BAR)</h3>
+        <label>Tekst wyświetlany na pasku (np. strzelcy, kartki, ogłoszenia):</label>
+        <input type="text" id="ctrl-summary-text" placeholder="np. 12' Kowalski, 44' Nowak (K) | ŻK: Malinowski">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
+            <button class="btn btn-primary" onclick="updateSummaryText()">Zapisz tekst paska</button>
+            <button class="btn btn-purple" style="background: #e74c3c;" onclick="toggleSummaryOverlay()">WŁĄCZ / WYŁĄCZ PASEK NA OBS</button>
+        </div>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
