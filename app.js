@@ -16,7 +16,7 @@ let currentMatchState = {
     stat_player_name: "ZAWODNIK", stat_player_team: "home", show_player_stats: false,
     stat_shots: 0, stat_passes: 0, stat_goals: 0, stat_assists: 0,
     sub_out: "", sub_in: "", sub_team: "home", show_sub_trigger: false,
-    // NOWE POLA DLA PLANSZY SUMMARY BAR
+    // POLA DLA PLANSZY SUMMARY BAR
     team_home_shots: 0, team_home_saves: 0, team_home_fouls: 0, team_home_corners: 0,
     team_away_shots: 0, team_away_saves: 0, team_away_fouls: 0, team_away_corners: 0,
     show_summary: false
@@ -84,12 +84,14 @@ function startLocalTimer() {
     }, 1000);
 }
 
+// Funkcja wywoływana przy kliknięciu przycisku START / PAUZA
 function toggleTimer() { 
     currentMatchState.is_running = !currentMatchState.is_running; 
     if (!currentMatchState.is_running) clearInterval(timerInterval); else startLocalTimer();
     saveStateToSupabase(); 
 }
 
+// Funkcja resetująca licznik
 function resetTimer() { 
     clearInterval(timerInterval); currentMatchState.is_running = false; currentMatchState.match_time = 0; 
     if(document.getElementById('ctrl-timer')) document.getElementById('ctrl-timer').innerText = "00:00"; 
@@ -184,7 +186,7 @@ async function saveStateToSupabase() { sendBroadcastState(); await supabaseClien
 async function fetchInitialState() { let { data } = await supabaseClient.from('match_state').select('*').eq('id', 'live_match').single(); if (data) currentMatchState = data; }
 
 // ==========================================
-// FUNKCJE PANELU
+// FUNKCJE PANELU STEROWANIA
 // ==========================================
 
 function changeScore(team, val) {
@@ -323,7 +325,7 @@ function toggleGSAPSummary(show) {
 }
 
 // ==========================================
-// POMOCNIKI
+// POMOCNIKI METODOLOGICZNE
 // ==========================================
 
 function parseAndSetPlayer(elementId, playerString) {
