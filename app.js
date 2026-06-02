@@ -1,15 +1,16 @@
 // =========================================================================
-// 🌐 CONFIG I INICJALIZACJA SUPABASE
+// 🌐 CONFIG I INICJALIZACJA SUPABASE (NAPRAWIONA NAZWA ZMIENNEJ)
 // =========================================================================
 const SUPABASE_URL = "https://puhnsjqbqmojjouhsjnk.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1aG5zanFicW1vampvdWhzam5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyMjg4MDgsImV4cCI6MjA5NTgwNDgwOH0.fBFk7OyEeQ8T_v-tzXAffcDb1xfvgeVZfOvq2WqDC7k";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1aG5zanFicW1vampvdWhzam5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyMjg4MDgsImV4cCIpxjA5NTgwNDgwOH0.fBFk7OyEeQ8T_v-tzXAffcDb1xfvgeVZfOvq2WqDC7k";
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// Zmieniono nazwę na 'db', aby uniknąć konfliktu z globalnym obiektem window.supabase
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Status połączenia w panelu
 async function checkDatabaseConnection() {
     try {
-        const { data, error } = await supabase.from('match_state').select('id').eq('id', 1).single();
+        const { data, error } = await db.from('match_state').select('id').eq('id', 1).single();
         const badge = document.getElementById('db-status');
         if (badge) {
             if (error) {
@@ -30,7 +31,7 @@ async function checkDatabaseConnection() {
 
 // Pobieranie aktualnego stanu do okienek panelu na start
 async function loadCurrentMatchState() {
-    const { data, error } = await supabase.from('match_state').select('*').eq('id', 1).single();
+    const { data, error } = await db.from('match_state').select('*').eq('id', 1).single();
     if (data && !error) {
         document.getElementById('ctrl-home-score').textContent = data.home_score || 0;
         document.getElementById('ctrl-away-score').textContent = data.away_score || 0;
@@ -63,7 +64,7 @@ async function changeScore(team, val) {
     const updateData = {};
     updateData[`${team}_score`] = currentScore;
     
-    await supabase.from('match_state').update(updateData).eq('id', 1);
+    await db.from('match_state').update(updateData).eq('id', 1);
 }
 
 let timerInterval = null;
@@ -86,7 +87,7 @@ function toggleTimer() {
             let m = Math.floor(totalSec / 60).toString().padStart(2, '0');
             let s = (totalSec % 60).toString().padStart(2, '0');
             timerEl.textContent = `${m}:${s}`;
-            await supabase.from('match_state').update({ timer: `${m}:${s}` }).eq('id', 1);
+            await db.from('match_state').update({ timer: `${m}:${s}` }).eq('id', 1);
         }, 1000);
     }
 }
@@ -94,13 +95,13 @@ function toggleTimer() {
 async function resetTimer() {
     if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
     document.getElementById('ctrl-timer').textContent = "00:00";
-    await supabase.from('match_state').update({ timer: "00:00" }).eq('id', 1);
+    await db.from('match_state').update({ timer: "00:00" }).eq('id', 1);
 }
 
 async function swapTeams() {
-    await supabase.from('match_state').update({ trigger_swap: true }).eq('id', 1);
+    await db.from('match_state').update({ trigger_swap: true }).eq('id', 1);
     setTimeout(async () => {
-        await supabase.from('match_state').update({ trigger_swap: false }).eq('id', 1);
+        await db.from('match_state').update({ trigger_swap: false }).eq('id', 1);
     }, 2000);
 }
 
@@ -130,18 +131,17 @@ async function updateMatchNames() {
         
         lineups_display_team: document.getElementById('ctrl-lineups-team').value
     };
-    await supabase.from('match_state').update(data).eq('id', 1);
+    await db.from('match_state').update(data).eq('id', 1);
 }
 
 async function toggleLineups() {
-    const { data } = await supabase.from('match_state').select('show_lineups').eq('id', 1).single();
-    await supabase.from('match_state').update({ show_lineups: !data.show_lineups }).eq('id', 1);
+    const { data } = await db.from('match_state').select('show_lineups').eq('id', 1).single();
+    await db.from('match_state').update({ show_lineups: !data.show_lineups }).eq('id', 1);
 }
 
-// ZABEZPIECZENIE: Blokada ponownego kliknięcia w trakcie trwania animacji bramki
 let isGoalAnimating = false;
 async function triggerGoalAnimation() {
-    if (isGoalAnimating) return; // Jeśli animacja trwa, ignoruj kolejne kliknięcia
+    if (isGoalAnimating) return;
     isGoalAnimating = true;
 
     const scorer = document.getElementById('ctrl-scorer-name').value;
@@ -153,22 +153,20 @@ async function triggerGoalAnimation() {
     element.textContent = currentScore;
     
     const updateData = {
-        goal_trigger: true, // Zostaje kompatybilne true/false dla Twojego OBS
+        goal_trigger: true,
         last_scorer: scorer,
         last_score_team: team
     };
     updateData[`${team}_score`] = currentScore;
     
-    await supabase.from('match_state').update(updateData).eq('id', 1);
+    await db.from('match_state').update(updateData).eq('id', 1);
     
-    // Po 5 sekundach (gdy animacja się skończy w OBS) resetujemy status w bazie i odblokowujemy przycisk
     setTimeout(async () => {
-        await supabase.from('match_state').update({ goal_trigger: false }).eq('id', 1);
+        await db.from('match_state').update({ goal_trigger: false }).eq('id', 1);
         isGoalAnimating = false;
     }, 5000);
 }
 
-// ZABEZPIECZENIE: Blokada ponownego kliknięcia w trakcie trwania animacji zmian
 let isSubAnimating = false;
 async function triggerSubAnimation() {
     if (isSubAnimating) return;
@@ -178,16 +176,15 @@ async function triggerSubAnimation() {
     const subIn = document.getElementById('ctrl-sub-in').value;
     const team = document.getElementById('ctrl-sub-team').value;
     
-    await supabase.from('match_state').update({
-        sub_trigger: true, // Zostaje kompatybilne true/false dla Twojego OBS
+    await db.from('match_state').update({
+        sub_trigger: true,
         sub_out: subOut,
         sub_in: subIn,
         sub_team: team
     }).eq('id', 1);
     
-    // Po 6 sekundach resetujemy status i odblokowujemy przycisk zmian
     setTimeout(async () => {
-        await supabase.from('match_state').update({ sub_trigger: false }).eq('id', 1);
+        await db.from('match_state').update({ sub_trigger: false }).eq('id', 1);
         isSubAnimating = false;
     }, 6000);
 }
@@ -201,17 +198,17 @@ async function updatePlayerStatsData() {
         stat_goals: parseInt(document.getElementById('ctrl-stat-goals').value) || 0,
         stat_assists: parseInt(document.getElementById('ctrl-stat-assists').value) || 0
     };
-    await supabase.from('match_state').update(data).eq('id', 1);
+    await db.from('match_state').update(data).eq('id', 1);
 }
 
 async function togglePlayerStatsOverlay() {
-    const { data } = await supabase.from('match_state').select('show_player_stats').eq('id', 1).single();
-    await supabase.from('match_state').update({ show_player_stats: !data.show_player_stats }).eq('id', 1);
+    const { data } = await db.from('match_state').select('show_player_stats').eq('id', 1).single();
+    await db.from('match_state').update({ show_player_stats: !data.show_player_stats }).eq('id', 1);
 }
 
 async function toggleSummaryOverlay() {
-    const { data } = await supabase.from('match_state').select('show_summary').eq('id', 1).single();
-    await supabase.from('match_state').update({ show_summary: !data.show_summary }).eq('id', 1);
+    const { data } = await db.from('match_state').select('show_summary').eq('id', 1).single();
+    await db.from('match_state').update({ show_summary: !data.show_summary }).eq('id', 1);
 }
 
 async function updateTeamStatsData() {
@@ -225,7 +222,7 @@ async function updateTeamStatsData() {
         away_fouls: parseInt(document.getElementById('ctrl-team-away-fouls').value) || 0,
         away_corners: parseInt(document.getElementById('ctrl-team-away-corners').value) || 0
     };
-    await supabase.from('match_state').update(updateData).eq('id', 1);
+    await db.from('match_state').update(updateData).eq('id', 1);
 }
 
 
@@ -290,7 +287,7 @@ function initHbrAnalyzer() {
         reader.onloadend = async function() {
             try {
                 if (!window.HbrParser || typeof window.HbrParser.parse !== 'function') {
-                    throw new Error("Skrypt 'hbr-parser.js' nie został jeszcze w primi załadowany. Odśwież stronę przez CTRL+F5.");
+                    throw new Error("Skrypt 'hbr-parser.js' nie został jeszcze w pełni załadowany. Odśwież stronę przez CTRL+F5.");
                 }
 
                 const result = window.HbrParser.parse(reader.result);
@@ -312,7 +309,7 @@ function initHbrAnalyzer() {
                     document.getElementById('ctrl-team-away-fouls').value = result.team_stats.away.fouls;
                     document.getElementById('ctrl-team-away-corners').value = result.team_stats.away.corners;
 
-                    const { error } = await supabase
+                    const { error } = await db
                         .from('match_state') 
                         .update({
                             timer: formattedTime,
