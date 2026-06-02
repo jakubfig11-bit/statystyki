@@ -344,3 +344,133 @@ function setupCrest(elementId, url) {
 }
 
 function formatTime(totalSeconds) { const mins = Math.floor(totalSeconds / 60); const secs = totalSeconds % 60; return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`; }
+
+// =========================================================================
+// AUTOMATYCZNY ANALYZER MECZÓW (.HBR) - INTEGRACJA DRAG & DROP + SUPABASE
+// =========================================================================
+
+function initHbrAnalyzer() {
+    const dropZone = document.getElementById('hbr-drop-zone');
+    const msgBox = document.getElementById('analyzer-msg');
+
+    if (!dropZone) return; // Zabezpieczenie przed odpaleniem w widoku OBS overlay.html
+
+    // Efekty wizualne podczas przeciągania pliku nad okienkiem
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.add('drag-over');
+        }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.remove('drag-over');
+        }, false);
+    });
+
+    // Przechwycenie upuszczonego pliku
+    dropZone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+
+        if (files.length > 0) {
+            handleHbrFile(files[0]);
+        }
+    });
+
+    // Możliwość kliknięcia w strefę, aby wybrać plik tradycyjnie z dysku
+    dropZone.addEventListener('click', () => {
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = '.hbr,.hbr2';
+        fileInput.onchange = (e) => {
+            if (e.target.files.length > 0) {
+                handleHbrFile(e.target.files[0]);
+            }
+        };
+        fileInput.click();
+    });
+
+    function showStatus(text, type) {
+        msgBox.textContent = text;
+        msgBox.className = `analyzer-status ${type}`;
+        msgBox.style.display = 'block';
+        setTimeout(() => { msgBox.style.display = 'none'; }, 6000); // Komunikat znika po 6 sekundach
+    }
+
+    // Główna funkcja czytająca i wysyłająca dane
+    function handleHbrFile(file) {
+        if (!file.name.endsWith('.hbr') && !file.name.endsWith('.hbr2')) {
+            showStatus("❌ Błąd: To nie jest plik powtórki Haxball (.hbr / .hbr2)!", "error");
+            return;
+        }
+
+        showStatus("⏳ Analizowanie powtórki i przeliczanie fizyki meczu...", "success");
+
+        const reader = new FileReader();
+        reader.readAsArrayBuffer(file);
+
+        reader.onloadend = async function() {
+            try {
+                // 1. Wywołanie parsera binarnego
+                const result = window.HbrParser.parse(reader.result);
+                
+                if (result && result.valid) {
+                    // 2. Formatowanie wyliczonego czasu meczu (sekundy -> MM:SS)
+                    const minutes = Math.floor(result.match_time / 60).toString().padStart(2, '0');
+                    const seconds = (result.match_time % 60).toString().padStart(2, '0');
+                    const formattedTime = `${minutes}:${seconds}`;
+
+                    // 3. Aktualizacja pól formularza w panelu (żebyś widział, co się wczytało)
+                    document.getElementById('ctrl-timer').textContent = formattedTime;
+                    
+                    document.getElementById('ctrl-team-home-shots').value = result.team_stats.home.shots;
+                    document.getElementById('ctrl-team-home-saves').value = result.team_stats.home.saves;
+                    document.getElementById('ctrl-team-home-fouls').value = result.team_stats.home.fouls;
+                    document.getElementById('ctrl-team-home-corners').value = result.team_stats.home.corners;
+
+                    document.getElementById('ctrl-team-away-shots').value = result.team_stats.away.shots;
+                    document.getElementById('ctrl-team-away-saves').value = result.team_stats.away.saves;
+                    document.getElementById('ctrl-team-away-fouls').value = result.team_stats.away.fouls;
+                    document.getElementById('ctrl-team-away-corners').value = result.team_stats.away.corners;
+
+                    // 4. AUTOMATYCZNY ZAPIS DO SUPABASE
+                    // Zakładam, że Twoja tabela w bazie danych nazywa się 'match_data' lub podobnie.
+                    // Aktualizujemy rekord id=1 (Twoja stała sesja meczowa dla OBS)
+                    const { error } = await supabase
+                        .from('match_state') // Upewnij się, że nazwa tabeli zgadza się z Twoją bazą (np. match_state, match_data, overlay)
+                        .update({
+                            timer: formattedTime,
+                            home_shots: result.team_stats.home.shots,
+                            home_saves: result.team_stats.home.saves,
+                            home_fouls: result.team_stats.home.fouls,
+                            home_corners: result.team_stats.home.corners,
+                            away_shots: result.team_stats.away.shots,
+                            away_saves: result.team_stats.away.saves,
+                            away_fouls: result.team_stats.away.fouls,
+                            away_corners: result.team_stats.away.corners
+                        })
+                        .eq('id', 1); // aktualizacja aktywnego meczu
+
+                    if (error) throw error;
+
+                    showStatus(`✅ Sukces! Mecz przeanalizowany pomyślnie. Czas: ${formattedTime}. Dane wysłane do OBS.`, "success");
+                }
+            } catch (err) {
+                console.error("Błąd parsera:", err);
+                showStatus("❌ Błąd podczas przetwarzania pliku powtórki: " + err.message, "error");
+            }
+        };
+    }
+}
+
+// --- AKTYWACJA FUNKCJI W TWOIM PANELU ---
+// Dopisz wywołanie initHbrAnalyzer() w swojej głównej funkcji inicjalizującej panel sterowania,
+// albo po prostu dodaj to poniżej, żeby odpaliło się samo po załadowaniu skryptu:
+setTimeout(() => {
+    initHbrAnalyzer();
+}, 1000);
