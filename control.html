@@ -26,6 +26,31 @@
         .status-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; background: #ff4757; color: white; }
         .status-badge.connected { background: #2ed573; }
         .flex-row { display: flex; gap: 10px; align-items: flex-end; }
+        
+        /* NOWE STYLE DLA STREFY DRAG & DROP */
+        .drop-zone {
+            border: 3px dashed #4fa8ff;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            background: rgba(79, 168, 255, 0.03);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+        }
+        .drop-zone.drag-over {
+            background: rgba(79, 168, 255, 0.15);
+            border-color: #2ed573;
+            transform: scale(1.01);
+        }
+        .drop-zone p { margin: 0 0 10px 0; font-size: 16px; font-weight: bold; color: #fff; }
+        .drop-zone span { font-size: 12px; color: #8490a6; }
+        .analyzer-status {
+            margin-top: 10px; padding: 10px; border-radius: 6px; 
+            font-size: 13px; font-weight: bold; text-align: center; display: none;
+        }
+        .analyzer-status.success { background: rgba(46, 213, 115, 0.2); color: #2ed573; border: 1px solid #2ed573; }
+        .analyzer-status.error { background: rgba(255, 71, 87, 0.2); color: #ff4757; border: 1px solid #ff4757; }
     </style>
 </head>
 <body>
@@ -36,7 +61,6 @@
         <div>Baza danych: <span id="db-status" class="status-badge">ROZŁĄCZONO</span></div>
     </div>
 
-    <!-- WYNIK I CZAS -->
     <div class="card">
         <h3>⚽ ZARZĄDZANIE MECZEM</h3>
         <div class="grid-2">
@@ -68,11 +92,9 @@
         </div>
     </div>
 
-    <!-- DANE DRUŻYN I SKŁADY -->
     <div class="card">
         <h3>📋 NAZWY, LOGOTYPY I TAKTYKA</h3>
         <div class="grid-2">
-            <!-- GOSPODARZE -->
             <div>
                 <h4>GOSPODARZE (HOME)</h4>
                 <label>Nazwa:</label> <input type="text" id="ctrl-home-name">
@@ -89,7 +111,6 @@
                     <input type="text" id="ctrl-home-p5" placeholder="5. Nick">
                 </div>
             </div>
-            <!-- GOŚCIE -->
             <div>
                 <h4>GOŚCIE (AWAY)</h4>
                 <label>Nazwa:</label> <input type="text" id="ctrl-away-name">
@@ -117,7 +138,6 @@
         </div>
     </div>
 
-    <!-- ANIMACJA BRAMKI -->
     <div class="card">
         <h3>🔥 TRZASKANIE BRAMKI (GOAL POPUP)</h3>
         <div class="grid-3">
@@ -138,7 +158,6 @@
         </div>
     </div>
 
-    <!-- ZMIANY ZAWODNIKÓW -->
     <div class="card">
         <h3>🔄 ZMIANY ZAWODNIKÓW (SUBSTITUTION)</h3>
         <div class="grid-3">
@@ -163,7 +182,6 @@
         </div>
     </div>
 
-    <!-- STATYSTYKI INDYWIDUALNE -->
     <div class="card">
         <h3>👤 STATYSTYKI INDYWIDUALNE ZAWODNIKA</h3>
         <div class="grid-2">
@@ -195,7 +213,6 @@
         </div>
     </div>
 
-    <!-- NOWOŚĆ: SEKCJA STATYSTYK DRUŻYNOWYCH I PODSUMOWANIA (SUMMARY BAR) -->
     <div class="card">
         <h3>📊 STATYSTYKI DRUŻYNOWE (SUMMARY BAR)</h3>
         <div class="grid-2">
@@ -220,10 +237,19 @@
         </div>
     </div>
 
+    <div class="card" style="border: 2px solid #4fa8ff;">
+        <h3>🤖 AUTOMATYCZNY ANALYZER MECZÓW (.HBR)</h3>
+        <div id="hbr-drop-zone" class="drop-zone">
+            <p>⚽ PRZECIĄGNIJ I UPUŚĆ PLIK POWTÓRKI .HBR TUTAJ ⚽</p>
+            <span>System automatycznie obliczy czas meczu oraz zaktualizuje statystyki drużynowe w bazie danych</span>
+        </div>
+        <div id="analyzer-msg" class="analyzer-status"></div>
+    </div>
+
 </div>
 
-<!-- Ładowanie Supabase i Logiki aplikacji -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="hbr-parser.js"></script>
 <script src="app.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
