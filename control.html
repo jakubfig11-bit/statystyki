@@ -31,6 +31,11 @@
         .score-btn { width: 40px; height: 40px; background: #2d3446; border: none; color: white; border-radius: 6px; font-size: 20px; font-weight: 700; cursor: pointer; }
         .score-btn:hover { background: #3e4861; }
         .timer-display { font-size: 48px; font-weight: 800; text-align: center; color: #f5b041; margin: 10px 0; }
+        
+        /* Stylistyka asystenta paska */
+        .preset-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px; }
+        .btn-preset { background: #232731; color: #c5cbd3; font-size: 11px; padding: 8px; border-radius: 4px; text-align: left; font-weight: 600; text-transform: none; border: 1px solid #2d3446; cursor: pointer; width: 100%; transition: 0.2s; }
+        .btn-preset:hover { background: #2e3446; color: #fff; border-color: #4b5563; }
     </style>
 </head>
 <body>
@@ -41,7 +46,6 @@
         <div id="db-status" class="status-badge">ŁĄCZENIE...</div>
     </div>
 
-    <!-- WYNIK I CZAS -->
     <div class="grid-2">
         <div class="card">
             <h3>📊 TABLICA WYNIKÓW</h3>
@@ -76,7 +80,6 @@
         </div>
     </div>
 
-    <!-- DRUŻYNY -->
     <div class="card" style="margin-bottom: 20px;">
         <h3>⚙️ USTAWIENIA DRUŻYN</h3>
         <div class="grid-2">
@@ -94,75 +97,20 @@
             </div>
         </div>
         <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-top: 10px;">
-            <button class="btn btn-primary" onclick="updateMatchNames()">Zapisz dane drużyn</button>
-            <button class="btn btn-warning" onclick="swapTeams()" style="font-weight: 800;">🔄 SWAP (ZAMIEŃ)</button>
+            <button class="btn btn-primary" onclick="updateMatchNames()">Zapisz nazwy i kolory</button>
+            <button class="btn btn-warning" onclick="swapTeams()">🔄 Zamień strony</button>
         </div>
     </div>
 
-    <!-- SKŁADY -->
-    <div class="grid-2">
-        <div class="card">
-            <h3>🏠 SKŁAD: GOSPODARZE</h3>
-            <label>Trener:</label> <input type="text" id="ctrl-home-coach">
-            <label>Rezerwowi:</label> <input type="text" id="ctrl-home-subs">
-            <label>Wyjściowa 5 (Format: 1. NAZWISKO):</label>
-            <input type="text" id="ctrl-home-p1" placeholder="1. GK" style="margin-bottom:5px;">
-            <input type="text" id="ctrl-home-p2" placeholder="2. DEF P" style="margin-bottom:5px;">
-            <input type="text" id="ctrl-home-p3" placeholder="3. DEF L" style="margin-bottom:5px;">
-            <input type="text" id="ctrl-home-p4" placeholder="4. MID" style="margin-bottom:5px;">
-            <input type="text" id="ctrl-home-p5" placeholder="5. ATT">
-        </div>
-
-        <div class="card">
-            <h3>🚀 SKŁAD: GOŚCIE</h3>
-            <label>Trener:</label> <input type="text" id="ctrl-away-coach">
-            <label>Rezerwowi:</label> <input type="text" id="ctrl-away-subs">
-            <label>Wyjściowa 5 (Format: 1. NAZWISKO):</label>
-            <input type="text" id="ctrl-away-p1" placeholder="1. GK" style="margin-bottom:5px;">
-            <input type="text" id="ctrl-away-p2" placeholder="2. DEF P" style="margin-bottom:5px;">
-            <input type="text" id="ctrl-away-p3" placeholder="3. DEF L" style="margin-bottom:5px;">
-            <input type="text" id="ctrl-away-p4" placeholder="4. MID" style="margin-bottom:5px;">
-            <input type="text" id="ctrl-away-p5" placeholder="5. ATT">
-        </div>
-    </div>
-    <div class="card" style="margin-bottom:20px; text-align: center;">
-        <button class="btn btn-primary" style="width:50%;" onclick="updateMatchNames()">Zapisz składy obu drużyn</button>
-    </div>
-
-    <!-- TRANSMISJA LIVE & SKŁAD -->
-    <div class="grid-2" style="margin-bottom: 20px;">
-        <div class="card">
-            <h3>🔥 TRANSMISJA LIVE GOLA</h3>
-            <label>Strzelec gola:</label> <input type="text" id="ctrl-scorer-name">
-            <label>Drużyna:</label>
-            <select id="ctrl-scorer-team">
-                <option value="home">Gospodarze</option>
-                <option value="away">Goście</option>
-            </select>
-            <button class="btn btn-danger" style="background:#f1c40f; color:#000;" onclick="triggerGoalAnimation()">⚽ TRANSMITUJ GOL!</button>
-        </div>
-        
-        <div class="card">
-            <h3>📋 KONTROLA SKŁADU NA EKRANIE</h3>
-            <label>Który skład pokazać na overlayu?</label>
-            <select id="ctrl-lineups-team" onchange="updateMatchNames()">
-                <option value="home">Pokazuj skład Gospodarzy</option>
-                <option value="away">Pokazuj skład Gości</option>
-            </select>
-            <button class="btn btn-purple" style="margin-top:25px; padding:20px;" onclick="toggleLineups()">WŁĄCZ / WYŁĄCZ SKŁAD</button>
-        </div>
-    </div>
-
-    <!-- STATYSTYKI INDYWIDUALNE -->
     <div class="card" style="margin-bottom: 20px;">
-        <h3>📊 INDYWIDUALNE STATYSTYKI ZAWODNIKA</h3>
+        <h3>📈 PANEL STATYSTYK INDYWIDUALNYCH</h3>
         <div class="grid-2">
             <div>
-                <label>Nick / Nazwisko zawodnika:</label>
-                <input type="text" id="ctrl-stat-player-name" placeholder="np. KOWALSKI">
+                <label>Nazwisko zawodnika:</label>
+                <input type="text" id="ctrl-stat-player-name" value="KOWALSKI">
             </div>
             <div>
-                <label>Drużyna zawodnika (kolorystyka):</label>
+                <label>Drużyna zawodnika:</label>
                 <select id="ctrl-stat-player-team">
                     <option value="home">Gospodarze</option>
                     <option value="away">Goście</option>
@@ -188,25 +136,59 @@
             </div>
         </div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
-            <button class="btn btn-primary" onclick="updatePlayerStatsData()">Zapisz wartości statystyk</button>
-            <button class="btn btn-purple" style="background: #20b2aa;" onclick="togglePlayerStatsOverlay()">WŁĄCZ / WYŁĄCZ STATYSTYKI NA OBS</button>
+            <button class="btn btn-primary" onclick="updatePlayerStatsData()">Zapisz dane zawodnika</button>
+            <button class="btn btn-purple" onclick="togglePlayerStatsOverlay()">Pokaż / Ukryj statystyki</button>
         </div>
     </div>
 
-    <!-- NOWOŚĆ: ANIMACJA ZMIAN ZAWODNIKÓW -->
-    <div class="card">
-        <h3>🔄 TRANSMISJA ZMIANY ZAWODNIKA</h3>
-        <div class="grid-2">
+    <div class="card" style="margin-bottom: 20px;">
+        <h3>📋 PREZENTACJA SKŁADÓW (TAKTYCZNA PLANSZA)</h3>
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px;">
             <div>
-                <label>🔴 SCHODZI (Nazwisko / Numer):</label>
-                <input type="text" id="ctrl-sub-out" placeholder="np. 9. LEWANDOWSKI">
+                <label>Wybierz drużynę do wyświetlenia:</label>
+                <select id="ctrl-lineups-team" onchange="updateTacticalLineupsUI()">
+                    <option value="home">Gospodarze</option>
+                    <option value="away">Goście</option>
+                </select>
+                <button class="btn btn-purple" style="margin-top: 25px; height: 50px;" onclick="toggleLineups()">👁️ POKAŻ / UKRYJ SKŁAD</button>
             </div>
             <div>
-                <label>🟢 WCHODZI (Nazwisko / Numer):</label>
-                <input type="text" id="ctrl-sub-in" placeholder="np. 14. MILIK">
+                <div class="grid-2">
+                    <div>
+                        <label>Trener:</label> <input type="text" id="ctrl-home-coach" placeholder="Trener gospodarzy">
+                        <label>Bramkarz (1):</label> <input type="text" id="ctrl-home-p1" placeholder="1. Nazwisko">
+                        <label>Zawodnik (2):</label> <input type="text" id="ctrl-home-p2" placeholder="2. Nazwisko">
+                        <label>Zawodnik (3):</label> <input type="text" id="ctrl-home-p3" placeholder="3. Nazwisko">
+                        <label>Zawodnik (4):</label> <input type="text" id="ctrl-home-p4" placeholder="4. Nazwisko">
+                        <label>Zawodnik (5):</label> <input type="text" id="ctrl-home-p5" placeholder="5. Nazwisko">
+                        <label>Rezerwowi:</label> <input type="text" id="ctrl-home-subs" placeholder="np. 12. Nowak, 15. Kos">
+                    </div>
+                    <div>
+                        <label>Trener Gości:</label> <input type="text" id="ctrl-away-coach" placeholder="Trener gości">
+                        <label>Bramkarz (1):</label> <input type="text" id="ctrl-away-p1" placeholder="1. Nazwisko">
+                        <label>Zawodnik (2):</label> <input type="text" id="ctrl-away-p2" placeholder="2. Nazwisko">
+                        <label>Zawodnik (3):</label> <input type="text" id="ctrl-away-p3" placeholder="3. Nazwisko">
+                        <label>Zawodnik (4):</label> <input type="text" id="ctrl-away-p4" placeholder="4. Nazwisko">
+                        <label>Zawodnik (5):</label> <input type="text" id="ctrl-away-p5" placeholder="5. Nazwisko">
+                        <label>Rezerwowi:</label> <input type="text" id="ctrl-away-subs" placeholder="np. 4. Król, 9. Szafran">
+                    </div>
+                </div>
+                <button class="btn btn-primary" style="margin-top: 15px;" onclick="updateLineupsData()">Zapisz bazy składów zawodników</button>
             </div>
         </div>
-        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-top: 10px;">
+    </div>
+
+    <div class="card" style="margin-bottom: 20px;">
+        <h3>🔄 GENERATOR ZMIAN ZAWODNIKÓW</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+            <div>
+                <label>Schodzi (OUT):</label>
+                <input type="text" id="ctrl-sub-out" placeholder="np. 9. KOWALSKI">
+            </div>
+            <div>
+                <label>Wchodzi (IN):</label>
+                <input type="text" id="ctrl-sub-in" placeholder="np. 14. NOWAK">
+            </div>
             <div>
                 <label>Drużyna wykonująca zmianę:</label>
                 <select id="ctrl-sub-team">
@@ -217,13 +199,20 @@
             <button class="btn btn-success" style="background: #e67e22; margin-top: 28px;" onclick="triggerSubAnimation()">🔄 TRANSMITUJ ZMIANĘ!</button>
         </div>
     </div>
-    <!-- ==========================================
-       DODATEK: PANEL KONTROLI SUMMARY BAR
-       ========================================== -->
+
     <div class="card" style="margin-top: 20px;">
         <h3>📋 KONTROLA PASKA PODSUMOWANIA (SUMMARY BAR)</h3>
         <label>Tekst wyświetlany na pasku (np. strzelcy, kartki, ogłoszenia):</label>
         <input type="text" id="ctrl-summary-text" placeholder="np. 12' Kowalski, 44' Nowak (K) | ŻK: Malinowski">
+        
+        <label>✨ Szybki asystent szablonów (kliknij, by wstawić format):</label>
+        <div class="preset-grid">
+            <button class="btn-preset" onclick="insertPreset('goals')">⚽ Bramki: 12' Kowalski, 44' Nowak</button>
+            <button class="btn-preset" onclick="insertPreset('cards')">🟨 Kartki: ŻK: 23' Malinowski | CZK: 89' Szulc</button>
+            <button class="btn-preset" onclick="insertPreset('time')">⏱️ Doliczony czas: Sędzia dolicza 3 minuty</button>
+            <button class="btn-preset" onclick="insertPreset('sponsor')">📢 Ogłoszenie: Sponsorem meczu jest firma XYZ</button>
+        </div>
+
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
             <button class="btn btn-primary" onclick="updateSummaryText()">Zapisz tekst paska</button>
             <button class="btn btn-purple" style="background: #e74c3c;" onclick="toggleSummaryOverlay()">WŁĄCZ / WYŁĄCZ PASEK NA OBS</button>
@@ -233,6 +222,24 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
-<script>window.addEventListener('DOMContentLoaded', () => initControlPanel());</script>
+<script>
+    window.addEventListener('DOMContentLoaded', () => initControlPanel());
+    
+    // Funkcja pomocnicza asystenta szablonów paska
+    function insertPreset(type) {
+        const input = document.getElementById('ctrl-summary-text');
+        if(!input) return;
+        
+        if(type === 'goals') {
+            input.value = "⚽ STRZELCY: 14' Kowalski, 32' Nowak";
+        } else if(type === 'cards') {
+            input.value = "🟨 KARTKI: ŻK: 41' Malinowski, 65' Wiśniewski";
+        } else if(type === 'time') {
+            input.value = "⏱️ CZAS: Sędzia dolicza 4 minuty do drugiej połowy";
+        } else if(type === 'sponsor') {
+            input.value = "📢 OGŁOSZENIE: Zapraszamy na naszą stronę internetową!";
+        }
+    }
+</script>
 </body>
 </html>
