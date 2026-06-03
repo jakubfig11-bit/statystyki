@@ -71,152 +71,111 @@
         .pitch-watermark { position: absolute; top: 50%; left: 50%; width: 180px; height: 180px; object-fit: contain; transform: translate(-50%, -50%); opacity: 0.06; }
         .pitch-watermark.hidden { display: none; }
         .tactical-player { position: absolute; display: flex; flex-direction: column; align-items: center; gap: 8px; width: 110px; text-align: center; }
-        .player-shirt { width: 44px; height: 44px; background: #1c2130; border: 2px solid #ffffff; border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
-        .player-number { color: #ffffff; font-size: 16px; font-weight: 700; }
-        .player-name { color: #ffffff; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.8); background: rgba(13, 15, 20, 0.85); padding: 3px 8px; border-radius: 4px; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .tactical-subs-bar { background: #121620; border: 1px solid #242936; border-radius: 8px; padding: 12px 20px; display: flex; gap: 10px; font-size: 13px; }
-        .subs-label { color: #626875; font-weight: 700; }
-        .subs-values { color: #c5cbd3; font-weight: 600; }
+        .player-shirt { width: 44px; height: 44px; background: #1c2130; border: 2px solid #ffffff; border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 8px rgba(0,0,0,0.3); position: relative; }
+        .player-number { color: #ffffff; font-size: 16px; font-weight: 800; }
+        .player-name { color: #ffffff; font-size: 12px; font-weight: 700; background: rgba(13, 15, 20, 0.9); padding: 4px 10px; border-radius: 4px; white-space: nowrap; border: 1px solid #232731; box-shadow: 0 4px 6px rgba(0,0,0,0.2); text-transform: uppercase; letter-spacing: 0.5px; }
+        .tactical-coach-bar { display: flex; justify-content: space-between; align-items: center; border-top: 1.5px solid #232731; padding-top: 15px; }
+        .tactical-coach { font-size: 14px; font-weight: 700; color: #ffffff; letter-spacing: 0.5px; }
+        .tactical-subs-bar { display: flex; gap: 10px; margin-top: 8px; font-size: 12px; font-weight: 700; color: #838996; }
+        .subs-label { color: #f5b041; white-space: nowrap; }
+        .subs-values { color: #ffffff; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        /* Pozycjonowanie 5 graczy na taktycznej planszy */
+        #tactical-p1 { top: 45%; left: 6%; transform: translateY(-50%); }
+        #tactical-p2 { top: 20%; left: 32%; transform: translateY(-50%); }
+        #tactical-p3 { top: 70%; left: 32%; transform: translateY(-50%); }
+        #tactical-p4 { top: 32%; left: 68%; transform: translateY(-50%); }
+        #tactical-p5 { top: 58%; left: 68%; transform: translateY(-50%); }
 
         /* ==========================================
-           4. INDYWIDUALNA KARTA STATYSTYK (BEZ ZMIAN)
+           4. STATYSTYKI JEDNEGO ZAWODNIKA - BEZ ZMIAN
            ========================================== */
-        #player-stats-overlay {
-            position: absolute; top: 250px; left: 40px;
-            width: 340px; background: #0d0f14; border: 2px solid #232731; border-radius: 14px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.7); overflow: hidden; z-index: 50;
-        }
-        .stats-player-header { background: #1c2130; padding: 15px 18px; border-bottom: 1px solid #232731; position: relative; }
-        #stats-player-accent { position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: #0052cc; }
-        .stats-player-title { color: #838996; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin: 0; }
-        #stats-player-name { color: #ffffff; font-size: 20px; font-weight: 800; margin: 4px 0 0 0; letter-spacing: 0.5px; }
-        .stats-rows-container { padding: 10px 18px; }
-        .stat-item-row { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 1px solid rgba(35, 39, 49, 0.5); }
-        .stat-item-row:last-child { border-bottom: none; }
-        .stat-label { color: #c5cbd3; font-size: 14px; font-weight: 600; }
-        .stat-value { color: #ffffff; font-size: 18px; font-weight: 800; }
-
-        /* ==========================================
-           5. NOWOŚĆ: MODUŁ ZMIAN ZAWODNIKÓW (TELEWIZYJNY BANER)
-           ========================================== */
-        #sub-overlay {
-            position: fixed; bottom: 80px; left: 0; width: 100vw;
-            display: flex; justify-content: center; z-index: 110; pointer-events: none;
-        }
-        .sub-tv-card {
-            width: 520px; background: #0d0f14; border: 2px solid #232731; border-radius: 14px;
-            overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.7); position: relative;
-        }
-        .sub-team-header {
-            background: #1c2130; padding: 10px 20px; border-bottom: 1px solid #232731;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .sub-team-title { color: #ffffff; font-size: 13px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; margin: 0; }
-        .sub-label-badge { color: #f5b041; background: rgba(245,176,65,0.1); font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; }
-        
-        .sub-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
-        .sub-row { display: flex; align-items: center; gap: 15px; }
-        .sub-icon { font-size: 18px; font-weight: 900; width: 24px; text-align: center; }
-        .sub-icon.out { color: #ff4444; }
-        .sub-icon.in { color: #00c851; }
-        .sub-player-text { color: #ffffff; font-size: 16px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
-        #sub-card-accent { position: absolute; bottom: 0; left: 0; width: 100%; height: 5px; background: #e67e22; }
+        #player-stats-overlay { position: fixed; bottom: 80px; left: 50px; z-index: 85; }
+        .stats-tv-card { width: 380px; background: #0d0f14; border: 2px solid #232731; border-radius: 14px; overflow: hidden; box-shadow: 0 15px 30px rgba(0,0,0,0.5); }
+        .stats-header { background: #121620; padding: 15px 20px; display: flex; flex-direction: column; border-bottom: 2px solid #232731; position: relative; }
+        #stats-player-accent { position: absolute; top: 0; left: 0; bottom: 0; width: 6px; background-color: #0052cc; }
+        .stats-title { color: #ffffff; font-size: 18px; font-weight: 800; margin: 0; letter-spacing: 0.5px; }
+        .stats-subtitle { color: #838996; font-size: 11px; font-weight: 700; margin: 2px 0 0 0; letter-spacing: 1px; }
+        .stats-body { padding: 15px 20px; display: flex; flex-direction: column; gap: 10px; background: rgba(13,15,20,0.5); }
+        .stat-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 700; color: #838996; padding: 2px 0; }
+        .stat-label { letter-spacing: 0.5px; text-transform: uppercase; }
+        .stat-value { color: #ffffff; font-size: 16px; font-weight: 800; }
     </style>
 </head>
 <body>
 
-    <!-- SCOREBOARD -->
     <div class="hud-wrapper">
         <div class="hud-main-scoreboard">
-            <div class="hud-crest-box"><img id="hud-home-logo" class="hidden" src="" alt="L"></div>
-            <div id="hud-home-accent" class="hud-side-accent"></div>
+            <div id="hud-home-accent" class="hud-side-accent" style="background-color: #0052cc;"></div>
+            <div class="hud-crest-box">
+                <img id="hud-home-logo" src="" class="hidden" alt="Home Logo">
+            </div>
             <div id="hud-home-name" class="hud-team-name home">HOME</div>
             <div class="hud-score-center">
                 <span id="hud-home-score">0</span>
-                <span style="color: rgba(255,255,255,0.2); font-size:20px;">-</span>
+                <span>:</span>
                 <span id="hud-away-score">0</span>
             </div>
             <div id="hud-away-name" class="hud-team-name away">AWAY</div>
-            <div id="hud-away-accent" class="hud-side-accent"></div>
-            <div class="hud-crest-box"><img id="hud-away-logo" class="hidden" src="" alt="R"></div>
+            <div class="hud-crest-box">
+                <img id="hud-away-logo" src="" class="hidden" alt="Away Logo">
+            </div>
+            <div id="hud-away-accent" class="hud-side-accent" style="background-color: #ff0044;"></div>
         </div>
-        <div id="hud-timer" class="hud-timer-container">00:00</div>
-    </div>
-
-    <!-- INDYWIDUALNA KARTA STATYSTYK -->
-    <div id="player-stats-overlay" style="visibility: hidden;">
-        <div class="stats-player-header">
-            <div id="stats-player-accent"></div>
-            <p class="stats-player-title">Statystyki meczowe</p>
-            <h2 id="stats-player-name">ZAWODNIK</h2>
-        </div>
-        <div class="stats-rows-container">
-            <div class="stat-item-row">
-                <span class="stat-label">Strzały na bramkę</span>
-                <span id="stat-val-shots" class="stat-value">0</span>
-            </div>
-            <div class="stat-item-row">
-                <span class="stat-label">Podania</span>
-                <span id="stat-val-passes" class="stat-value">0</span>
-            </div>
-            <div class="stat-item-row">
-                <span class="stat-label">Gole</span>
-                <span id="stat-val-goals" class="stat-value">0</span>
-            </div>
-            <div class="stat-item-row">
-                <span class="stat-label">Asysty</span>
-                <span id="stat-val-assists" class="stat-value">0</span>
-            </div>
+        <div class="hud-timer-container">
+            <span id="hud-timer">00:00</span>
         </div>
     </div>
 
-    <!-- ANIMACJA GOLA -->
     <div id="goal-overlay" style="visibility: hidden;">
         <div class="goal-tv-card">
-            <img id="goal-bg-logo" class="hidden" src="" alt="BG">
-            <h1 class="goal-title">GOL!</h1>
-            <div id="goal-scorer">ZAWODNIK</div>
-            <div id="goal-team">DRUŻYNA</div>
-            <div id="goal-time">00:00</div>
+            <h1 class="goal-title">GOAL!</h1>
+            <p id="goal-scorer">10. MESSI</p>
+            <p id="goal-team">BARCELONA</p>
+            <div id="goal-time">MINUTA MUK</div>
             <div id="goal-card-accent"></div>
+            <img id="goal-bg-logo" src="" class="hidden" alt="Goal BG Crest">
         </div>
     </div>
 
-    <!-- PREZENTACJA SKŁADU -->
     <div id="tactical-lineups-overlay" style="visibility: hidden;">
         <div class="tactical-card">
             <div class="tactical-header">
-                <img id="tactical-top-logo" class="hidden" src="" alt="Crest">
+                <img id="tactical-top-logo" src="" class="hidden" alt="Top Logo">
                 <div class="header-text">
-                    <h1 id="tactical-team-name">TORINO</h1>
-                    <p id="tactical-coach-name">TRENER: PEP GUARDIOLA</p>
+                    <h1 id="tactical-team-name">DRUŻYNA GOSPODARZY</h1>
+                    <p>WYJŚCIOWY SKŁAD MECZOWY</p>
                 </div>
             </div>
             <div class="pitch-container">
-                <img id="tactical-bg-logo" class="pitch-watermark hidden" src="" alt="WM">
                 <div class="pitch-line center-line"></div>
                 <div class="pitch-line center-circle"></div>
                 <div class="pitch-line penalty-area-left"></div>
-                <div class="tactical-player" id="tactical-p1" style="left: 12%; top: 50%; transform: translate(-50%, -50%);">
+                <img id="tactical-bg-logo" class="pitch-watermark hidden" src="" alt="Watermark Logo">
+                
+                <div id="tactical-p1" class="tactical-player">
                     <div class="player-shirt"><span class="player-number">1</span></div>
                     <div class="player-name">ZAWODNIK 1</div>
                 </div>
-                <div class="tactical-player" id="tactical-p2" style="left: 35%; top: 28%; transform: translate(-50%, -50%);">
+                <div id="tactical-p2" class="tactical-player">
                     <div class="player-shirt"><span class="player-number">2</span></div>
                     <div class="player-name">ZAWODNIK 2</div>
                 </div>
-                <div class="tactical-player" id="tactical-p3" style="left: 35%; top: 72%; transform: translate(-50%, -50%);">
+                <div id="tactical-p3" class="tactical-player">
                     <div class="player-shirt"><span class="player-number">3</span></div>
                     <div class="player-name">ZAWODNIK 3</div>
                 </div>
-                <div class="tactical-player" id="tactical-p4" style="left: 58%; top: 44%; transform: translate(-50%, -50%);">
+                <div id="tactical-p4" class="tactical-player">
                     <div class="player-shirt"><span class="player-number">4</span></div>
                     <div class="player-name">ZAWODNIK 4</div>
                 </div>
-                <div class="tactical-player" id="tactical-p5" style="left: 78%; top: 56%; transform: translate(-50%, -50%);">
+                <div id="tactical-p5" class="tactical-player">
                     <div class="player-shirt"><span class="player-number">5</span></div>
                     <div class="player-name">ZAWODNIK 5</div>
                 </div>
+            </div>
+            <div class="tactical-coach-bar">
+                <div id="tactical-coach-name" class="tactical-coach">TRENER: -</div>
             </div>
             <div class="tactical-subs-bar">
                 <span class="subs-label">REZERWOWI:</span>
@@ -225,7 +184,34 @@
         </div>
     </div>
 
-    <!-- NOWOŚĆ: PLANSZA ZMIANY ZAWODNIKA -->
+    <div id="player-stats-overlay" style="visibility: hidden;">
+        <div class="stats-tv-card">
+            <div class="stats-header">
+                <div id="stats-player-accent"></div>
+                <span id="stats-player-name" class="stats-title">ZAWODNIK</span>
+                <span class="stats-subtitle">INDYWIDUALNE STATYSTYKI MECZOWE</span>
+            </div>
+            <div class="stats-body">
+                <div class="stat-row">
+                    <span class="stat-label">STRZAŁY ODDANE</span>
+                    <span id="stat-val-shots" class="stat-value">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">KLUCZOWE PODANIA</span>
+                    <span id="stat-val-passes" class="stat-value">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">GOLE</span>
+                    <span id="stat-val-goals" class="stat-value">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">ASYSTY</span>
+                    <span id="stat-val-assists" class="stat-value">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="sub-overlay" style="visibility: hidden;">
         <div class="sub-tv-card">
             <div class="sub-team-header">
@@ -246,9 +232,33 @@
         </div>
     </div>
 
+    <div id="summary-overlay" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9); opacity: 0; visibility: hidden; z-index: 95; pointer-events: none;">
+        <div class="summary-tv-card" style="width: 700px; background: #0d0f14; border: 2px solid #232731; border-radius: 14px; padding: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); font-family: 'Montserrat', sans-serif; color: white;">
+            <div class="summary-title" id="summary-txt-title" style="text-align: center; font-size: 16px; font-weight: 700; color: #838996; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px;">POSIADANIE PIŁKI</div>
+            <div class="summary-core" style="display: flex; align-items: center; justify-content: space-between; gap: 20px;">
+                <div class="summary-team-val home" style="display: flex; align-items: center; gap: 15px; width: 120px;">
+                    <span id="summary-home-team-name" style="font-size: 14px; font-weight: 800; color: #838996; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70px;">HOME</span>
+                    <span id="summary-txt-home" style="font-size: 28px; font-weight: 900; color: #ffffff; margin-left: auto;">50</span>
+                </div>
+                <div class="summary-progress-wrapper" style="flex: 1; height: 16px; background: #1c2130; border-radius: 8px; overflow: hidden; display: flex; border: 1px solid #232731;">
+                    <div id="summary-bar-home" style="width: 50%; height: 100%; background: #0052cc; transition: width 0.5s ease;"></div>
+                    <div id="summary-bar-away" style="width: 50%; height: 100%; background: #ff0044; transition: width 0.5s ease;"></div>
+                </div>
+                <div class="summary-team-val away" style="display: flex; align-items: center; gap: 15px; width: 120px; flex-direction: row-reverse;">
+                    <span id="summary-away-team-name" style="font-size: 14px; font-weight: 800; color: #838996; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70px;">AWAY</span>
+                    <span id="summary-txt-away" style="font-size: 28px; font-weight: 900; color: #ffffff; margin-right: auto;">50</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="app.js"></script>
-    <script>window.addEventListener('DOMContentLoaded', () => initOverlayView());</script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            initOverlayView();
+        });
+    </script>
 </body>
 </html>
