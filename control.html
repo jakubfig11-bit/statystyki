@@ -189,18 +189,6 @@
         </div>
     </div>
 
-    <div class="card" style="margin-top: 20px; background: linear-gradient(135deg, #121620 0%, #1a1f2c 100%); border: 1px solid #34495e;">
-        <h3>🤖 AUTOMATYCZNY PARSER POWTÓREK (.HBR / .HBR2)</h3>
-        <p style="font-size: 13px; color: #b2babb; margin-top: -5px;">Przeciągnij i upuść plik powtórki ze swojej gry Haxball bezpośrednio tutaj. System automatycznie wyliczy czas meczu i zsynchronizuje zaawansowane statystyki strzałów, rzutów rożnych, fauli i obron w czasie rzeczywistym na bazie algorytmów deterministycznych!</p>
-        
-        <div id="drop-zone" style="border: 2px dashed #3498db; padding: 30px; text-align: center; border-radius: 8px; background: rgba(52,152,219,0.05); cursor: pointer; transition: 0.3s;" ondragover="event.preventDefault()" ondrop="handleHbrDrop(event)" onclick="document.getElementById('file-input').click()">
-            <span style="font-size: 32px;">📂</span>
-            <p style="font-size: 14px; font-weight: 700; color: #3498db; margin: 10px 0 0 0;">UPUŚĆ PLIK POWTÓRKI TUTAJ LUB KLIKNIJ, ABY WYBRAĆ Z DYSKU</p>
-            <p style="font-size: 11px; color:#7f8c8d; margin: 4px 0 0 0;">Obsługuje formaty .hbr oraz .hbr2 wygenerowane bezpośrednio przez pokój</p>
-            <input type="file" id="file-input" style="display: none;" accept=".hbr,.hbr2" onchange="handleHbrFileSelect(event)">
-        </div>
-    </div>
-
     <div class="card" style="margin-top:20px; background: #1b2631; border: 1px solid #2e4053;">
         <h3>⚽ TRANSMISJA WYDARZENIA - GOL!</h3>
         <div class="grid-2">
@@ -248,7 +236,6 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="hbr-parser.js"></script>
 <script src="app.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", () => {
@@ -344,39 +331,6 @@
         }, 1500);
     }
 
-    function handleHbrFileSelect(event) {
-        const file = event.target.files[0];
-        if (file) processHbrFile(file);
-    }
-
-    function handleHbrDrop(event) {
-        event.preventDefault();
-        const file = event.dataTransfer.files[0];
-        if (file) processHbrFile(file);
-    }
-
-    function processHbrFile(file) {
-        const reader = new FileReader();
-        reader.onload = async function(e) {
-            try {
-                const result = window.HbrParser.parse(e.target.result);
-                if (result && result.valid) {
-                    currentMatchState.match_time = result.match_time;
-                    currentMatchState.stat_player_name = "STATYSTYKI Z REPLAY";
-                    currentMatchState.stat_shots = result.team_stats.home.shots;
-                    currentMatchState.stat_passes = result.team_stats.home.corners;
-                    currentMatchState.stat_goals = result.team_stats.home.saves;
-                    currentMatchState.stat_assists = result.team_stats.home.fouls;
-                    await saveStateToSupabase();
-                    alert(`Pomyślnie sparsowano plik powtórki!\nCzas meczu zsynchronizowany: ${formatTime(result.match_time)}`);
-                }
-            } catch(err) {
-                alert("Błąd parsowania: " + err.message);
-            }
-        };
-        reader.readAsArrayBuffer(file);
-    }
-
     function updateControlPanelUI() {
         document.getElementById('ctrl-home-score').innerText = currentMatchState.home_score;
         document.getElementById('ctrl-away-score').innerText = currentMatchState.away_score;
@@ -393,7 +347,6 @@
             document.getElementById('ctrl-sub-in').value = currentMatchState.sub_in || "";
             document.getElementById('ctrl-sub-team').value = currentMatchState.sub_team || "home";
             
-            // Inicjalizacja formularza summary z bazy jeśli użytkownik go nie edytuje
             if (document.getElementById('ctrl-summary-name')) {
                 document.getElementById('ctrl-summary-name').value = currentMatchState.summary_name || "";
                 document.getElementById('ctrl-summary-home').value = currentMatchState.summary_home ?? 50;
