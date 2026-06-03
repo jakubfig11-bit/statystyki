@@ -64,14 +64,11 @@ function handleStateUpdate(data) {
     if (data.show_player_stats !== currentMatchState.show_player_stats) toggleGSAPPlayerStats(data.show_player_stats);
     if (data.show_summary_bar !== currentMatchState.show_summary_bar) toggleGSAPSummaryBar(data.show_summary_bar);
     
-    // Dynamiczna aktualizacja samego tekstu na żywo, gdy pasek jest włączony
-    if (data.summary_bar_text !== currentMatchState.summary_bar_text && data.show_summary_bar) {
+    // Live przeładowanie samego tekstu bez chowania całego paska
+    if (data.summary_bar_text !== currentMatchState.summary_bar_text) {
         const txtField = document.getElementById('summary-text-field');
         if(txtField) {
-            gsap.to(txtField, { opacity: 0, duration: 0.2, onComplete: () => {
-                txtField.innerText = data.summary_bar_text || "";
-                gsap.to(txtField, { opacity: 1, duration: 0.2 });
-            }});
+            txtField.innerText = data.summary_bar_text || "";
         }
     }
 
@@ -159,7 +156,6 @@ function updateSummaryUI() {
     if(document.getElementById('summary-text-field')) {
         document.getElementById('summary-text-field').innerText = currentMatchState.summary_bar_text || "";
     }
-    // Opcjonalne przypisanie koloru paska pod gospodarzy dla spójności grafik
     const barAccent = document.getElementById('summary-bar-accent');
     if(barAccent && currentMatchState.home_color) {
         barAccent.style.backgroundColor = currentMatchState.home_color;
@@ -205,12 +201,11 @@ async function fetchInitialState() {
     let { data } = await supabaseClient.from('match_state').select('*').eq('id', 'live_match').single();
     if (data) {
         currentMatchState = data;
-        // Sprawdzenie na starcie stanu summary bar dla overlay OBS
         if(document.getElementById('summary-overlay')) {
             if(currentMatchState.show_summary_bar) {
-                gsap.set(document.getElementById('summary-overlay'), { visibility: 'visible', y: 0, opacity: 1 });
+                gsap.set(document.getElementById('summary-overlay'), { autoAlpha: 1, y: 0 });
             } else {
-                gsap.set(document.getElementById('summary-overlay'), { visibility: 'hidden', y: 100, opacity: 0 });
+                gsap.set(document.getElementById('summary-overlay'), { autoAlpha: 0, y: 120 });
             }
         }
     }
@@ -307,7 +302,7 @@ async function triggerSubAnimation() {
 }
 
 // ==========================================
-// LOGIKA WYŚWIETLANIA I ANIMACJI GSAP
+// LOGIKA ANIMACJI GSAP (POPRAWIONE AUTOALPHA)
 // ==========================================
 
 function toggleGSAPSummaryBar(show) {
@@ -320,12 +315,19 @@ function toggleGSAPSummaryBar(show) {
     }
 
     if (show) {
-        gsap.set(container, { visibility: 'visible', y: 120, opacity: 0 });
-        gsap.to(container, { y: 0, opacity: 1, duration: 0.6, ease: "power4.out" });
+        gsap.to(container, { 
+            y: 0, 
+            autoAlpha: 1, 
+            duration: 0.6, 
+            ease: "power4.out" 
+        });
     } else {
-        gsap.to(container, { y: 120, opacity: 0, duration: 0.5, ease: "power4.in", onComplete: () => {
-            gsap.set(container, { visibility: 'hidden' });
-        }});
+        gsap.to(container, { 
+            y: 120, 
+            autoAlpha: 0, 
+            duration: 0.5, 
+            ease: "power4.in"
+        });
     }
 }
 
@@ -380,19 +382,6 @@ function toggleGSAPTacticalLineups(show) {
         gsap.to(container, { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(1.2)" });
     } else {
         gsap.to(container, { scale: 0.85, opacity: 0, duration: 0.4, ease: "power3.in", onComplete: () => {
-            gsap.set(container, { visibility: 'hidden' });
-        }});
-    }
-}
-
-function toggleGSAPPlayerStats(show) {
-    const container = document.getElementById('player-stats-overlay');
-    if (!container) return;
-    if (show) {
-        gsap.set(container, { visibility: 'visible', x: -400, opacity: 0 });
-        gsap.to(container, { x: 0, opacity: 1, duration: 0.6, ease: "power3.out" });
-    } else {
-        gsap.to(container, { x: -400, opacity: 0, duration: 0.5, ease: "power3.in", onComplete: () => {
             gsap.set(container, { visibility: 'hidden' });
         }});
     }
