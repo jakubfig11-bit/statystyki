@@ -144,26 +144,24 @@ body, html {
     text-align: center;
     box-shadow: 0 24px 48px rgba(0,0,0,0.6);
     min-width: 380px;
-    position: relative; /* Wymagane do pozycjonowania tła */
-    overflow: hidden; /* Ukrywa wystające części logotypu */
+    position: relative;
+    overflow: hidden;
 }
 
-/* Wodne logo drużyny w tle cieszynki */
 .goal-card-bg-crest {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    max-height: 130%; /* Duże, widowiskowe logo */
+    max-height: 130%;
     width: auto;
     object-fit: contain;
-    opacity: 0.3 !important; /* Dokładnie 30% przezroczystości */
+    opacity: 0.3 !important;
     z-index: 1;
     pointer-events: none;
 }
 .goal-card-bg-crest.hidden { display: none !important; }
 
-/* Kontener trzymający teksty nad logiem */
 .goal-card-content {
     position: relative;
     z-index: 2;
@@ -200,7 +198,7 @@ body, html {
 }
 
 /* ==========================================================================
-   NOWE STYLE: TELEWIZYJNA PLANSZA ZMIANY ZAWODNIKA (GSAP)
+   TELEWIZYJNA PLANSZA ZMIANY ZAWODNIKA (GSAP)
    ========================================================================== */
 #sub-overlay {
     position: fixed;
@@ -368,7 +366,7 @@ button.btn-success { flex: 1; background: #10b981; color: white; border: none; p
 button.btn-danger { flex: 1; background: #ef4444; color: white; border: none; padding: 14px; font-weight: 600; cursor: pointer; border-radius: 6px; font-size: 14px; }
 
 /* ==========================================================================
-   DODANE STYLE: RESPONSYWNOŚĆ SUMMARY BAR DLA OBS / BROWSER SOURCE
+   RESPONSYWNOŚĆ SUMMARY BAR DLA OBS / BROWSER SOURCE
    ========================================================================== */
 @media (max-width: 1920px) {
     #summary-overlay {
