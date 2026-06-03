@@ -252,7 +252,7 @@
         alert("Ustawienia drużyn zsynchronizowane z bazą!");
     }
 
-    async function switchLineupsControlTeam() {
+    function switchLineupsControlTeam() {
         const activeTeam = document.getElementById('ctrl-lineups-team').value;
         const prefix = activeTeam === 'home' ? 'home' : 'away';
         document.getElementById('ctrl-coach').value = currentMatchState[`${prefix}_coach`] || "";
@@ -373,9 +373,9 @@
         document.getElementById('ctrl-away-score').innerText = currentMatchState.away_score;
         document.getElementById('ctrl-timer').innerText = formatTime(currentMatchState.match_time);
         
-        if (!document.activeElement || document.activeElement.tagName !== 'INPUT') {
-            document.getElementById('ctrl-home-name').value = currentMatchState.home_name;
-            document.getElementById('ctrl-away-name').value = currentMatchState.away_name;
+        if (!document.activeElement || document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'SELECT') {
+            document.getElementById('ctrl-home-name').value = currentMatchState.home_name || "";
+            document.getElementById('ctrl-away-name').value = currentMatchState.away_name || "";
             document.getElementById('ctrl-home-logo').value = currentMatchState.home_logo || "";
             document.getElementById('ctrl-away-logo').value = currentMatchState.away_logo || "";
             document.getElementById('ctrl-home-color').value = currentMatchState.home_color || "#0052cc";
