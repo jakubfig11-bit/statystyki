@@ -145,7 +145,7 @@ body, html {
     box-shadow: 0 24px 48px rgba(0,0,0,0.6);
     min-width: 380px;
     position: relative; /* Wymagane do pozycjonowania tła */
-    overflow: hidden;   /* Ukrywa wystające części logotypu */
+    overflow: hidden; /* Ukrywa wystające części logotypu */
 }
 
 /* Wodne logo drużyny w tle cieszynki */
@@ -183,66 +183,180 @@ body, html {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    font-size: 15px;
+    gap: 12px;
+}
+
+.goal-tv-player {
+    font-size: 19px;
+    font-weight: 800;
+    color: #ffffff;
+}
+
+.goal-tv-team {
+    font-size: 13px;
     font-weight: 700;
-    color: #94a3b8;
+    color: rgba(255,255,255,0.6);
     text-transform: uppercase;
 }
 
-#goal-scorer { color: #ffffff; }
-#goal-team { color: #94a3b8; font-weight: 500; }
+/* ==========================================================================
+   NOWE STYLE: TELEWIZYJNA PLANSZA ZMIANY ZAWODNIKA (GSAP)
+   ========================================================================== */
+#sub-overlay {
+    position: fixed;
+    bottom: 60px;
+    right: 50px;
+    z-index: 100;
+}
 
-.goal-time-badge {
-    background: rgba(255, 255, 255, 0.1);
+.sub-tv-card {
+    width: 360px;
+    background: #0d0f14;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 12px;
+    padding: 16px 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.65);
+    position: relative;
+    overflow: hidden;
+}
+
+#sub-card-accent {
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 5px;
+    background: #e67e22;
+}
+
+.sub-team-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+}
+
+.sub-team-title {
+    font-size: 14px;
+    font-weight: 800;
     color: #ffffff;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sub-label-badge {
+    font-size: 10px;
+    font-weight: 700;
+    color: #e67e22;
+    background: rgba(230,126,34,0.1);
     padding: 2px 8px;
     border-radius: 4px;
-    font-size: 13px;
-    margin-left: 4px;
+}
+
+.sub-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sub-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sub-icon {
+    font-size: 14px;
+    font-weight: 900;
+}
+.sub-icon.out { color: #ff4444; }
+.sub-icon.in { color: #00c851; }
+
+.sub-player-text {
+    font-size: 15px;
+    font-weight: 700;
+    color: #ffffff;
+    text-transform: uppercase;
 }
 
 /* ==========================================================================
-   SKŁADY (Lineups)
+   PANEL STEROWANIA (BACK-OFFICE CONTROL PANEL)
    ========================================================================== */
-.lineups-container {
-    position: fixed;
-    bottom: 40px; left: 40px; right: 40px;
-    height: 60%; display: flex; justify-content: space-between;
-    z-index: 5; opacity: 0; visibility: hidden;
+.control-grid {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 25px;
+    height: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 20px;
+    box-sizing: border-box;
 }
-.lineup-col {
-    width: 48%; background: var(--glass-bg); backdrop-filter: blur(20px);
-    border: 1px solid var(--glass-border); border-radius: 12px; padding: 24px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-}
-.lineup-col h2 { font-size: 18px; color: #ffffff; margin-top: 0; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px; text-transform: uppercase; }
-.lineup-col ul { list-style: none; padding: 0; margin: 0; }
-.lineup-col li { font-size: 14px; color: #e2e8f0; padding: 8px 0; font-weight: 500; border-bottom: 1px solid rgba(255,255,255,0.02); display: flex; align-items: center; }
-.lineup-col li span { color: rgba(255,255,255,0.25); margin-right: 10px; }
 
-/* ==========================================================================
-   UI CONTROL PANEL
-   ========================================================================== */
-.control-panel { max-width: 1000px; margin: 0 auto; padding: 30px 20px; }
-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1f2331; padding-bottom: 20px; }
-header h1 { font-size: 22px; font-weight: 800; margin: 0; }
-.status-badge { background: #ffaa00; color: #000; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
-.status-badge.connected { background: #10b981; color: white; }
-.panel-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; margin-top: 25px;}
-.panel-card { background: var(--bg-card); border: 1px solid #1f2331; padding: 25px; border-radius: 12px; }
+.panel-card {
+    background: var(--bg-card);
+    border: 1px solid #1e2230;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
 .panel-card.full-width { grid-column: span 2; }
-.panel-card h3 { margin-top: 0; font-size: 13px; color: #64748b; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px; }
-.team-control-row { display: flex; align-items: flex-start; justify-content: space-between; }
-.team-input-group { width: 44%; display: flex; flex-direction: column; gap: 10px; }
-.team-input-group label { font-size: 12px; font-weight: 700; color: #94a3b8; }
-.team-input-group input[type="text"] { width: 100%; background: #090a0f; border: 1px solid #262c3e; color: white; padding: 12px; font-size: 15px; border-radius: 6px; box-sizing: border-box; font-weight: 600; }
-.color-picker-wrapper { display: flex; align-items: center; gap: 10px; font-size: 14px; margin-top: 5px; }
-.color-picker-wrapper input[type="color"] { border: none; width: 40px; height: 30px; background: transparent; cursor: pointer; }
-.score-actions { display: flex; justify-content: center; align-items: center; gap: 20px; background: #090a0f; padding: 10px; border-radius: 8px; border: 1px solid #262c3e; margin-top: 10px; }
-.score-actions button { width: 36px; height: 36px; background: #262c3e; border: none; color: white; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: 6px; }
-.score-actions button:hover { background: #38415c; }
-.score-val { font-size: 32px; font-weight: 800; min-width: 40px; text-align: center; }
+
+.panel-card h3 {
+    margin-top: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #94a3b8;
+    border-bottom: 1px solid #1e2230;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.teams-inputs-flex {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.team-section-title {
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+}
+
+.team-control-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.team-input-group {
+    width: 44%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.team-input-group label { font-size: 12px; font-weight: 600; color: #64748b; }
+
+.action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.goal-trigger-box, .lineup-trigger-box { background: #161924; border: 1px solid #222738; padding: 15px; border-radius: 8px; }
+.goal-trigger-box h4, .lineup-trigger-box h4 { margin-top: 0; font-size: 14px; color: #ffffff; }
+
+.btn-neon-yellow { width: 100%; background: #eab308; color: #000000; border: none; padding: 14px; font-weight: 700; cursor: pointer; border-radius: 6px; font-size: 14px; text-transform: uppercase; }
+.btn-purple { width: 100%; background: #7c3aed; color: white; border: none; padding: 14px; font-weight: 700; cursor: pointer; border-radius: 6px; font-size: 14px; text-transform: uppercase; }
+
+.match-identity-strip { display: flex; justify-content: space-between; align-items: center; background: #161924; border: 1px solid #222738; border-radius: 8px; padding: 12px 20px; margin-bottom: 15px; }
+.identity-team-block { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 15px; }
+.identity-team-block.home { color: #3b82f6; }
+.identity-team-block.away { color: #ef4444; }
+.identity-logo-preview { width: 30px; height: 30px; object-fit: contain; background: #090a0f; border-radius: 4px; padding: 2px; }
+
+.ctrl-score-wrapper { display: flex; align-items: center; gap: 14px; background: #090a0f; border: 1px solid #222738; padding: 6px 14px; border-radius: 8px; }
+.ctrl-score-value { font-size: 32px; font-weight: 800; min-width: 40px; text-align: center; }
 .vs-label { font-size: 20px; color: #475569; font-weight: 800; align-self: center; margin-top: 40px; }
 .timer-display { font-size: 72px; font-weight: 800; text-align: center; margin: 15px 0; color: #ffffff; letter-spacing: -1px; }
 .timer-buttons { display: flex; gap: 12px; }
@@ -251,6 +365,23 @@ header h1 { font-size: 22px; font-weight: 800; margin: 0; }
 button.btn-primary { width: 100%; background: #262c3e; color: white; border: none; padding: 14px; font-weight: 600; cursor: pointer; border-radius: 6px; font-size: 14px; }
 button.btn-primary:hover { background: #323a52; }
 button.btn-success { flex: 1; background: #10b981; color: white; border: none; padding: 14px; font-weight: 600; cursor: pointer; border-radius: 6px; font-size: 14px; }
-button.btn-danger { background: #ef4444; color: white; border: none; padding: 14px; font-weight: 600; cursor: pointer; border-radius: 6px; font-size: 14px; }
-button.btn-neon-yellow { width: 100%; background: #ffffff; color: #000000; border: none; padding: 14px; font-weight: 700; font-size: 14px; cursor: pointer; border-radius: 6px; text-transform: uppercase; }
-button.btn-purple { width: 100%; background: #6366f1; color: white; border: none; padding: 14px; font-weight: 600; cursor: pointer; border-radius: 6px; font-size: 14px; text-transform: uppercase; }
+button.btn-danger { flex: 1; background: #ef4444; color: white; border: none; padding: 14px; font-weight: 600; cursor: pointer; border-radius: 6px; font-size: 14px; }
+
+/* ==========================================================================
+   DODANE STYLE: RESPONSYWNOŚĆ SUMMARY BAR DLA OBS / BROWSER SOURCE
+   ========================================================================== */
+@media (max-width: 1920px) {
+    #summary-overlay {
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+@media (max-width: 1600px) {
+    #summary-overlay {
+        transform: translate(-50%, -50%) scale(0.85);
+    }
+}
+@media (max-width: 1366px) {
+    #summary-overlay {
+        transform: translate(-50%, -50%) scale(0.75);
+    }
+}
