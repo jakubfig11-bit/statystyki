@@ -41,7 +41,6 @@
         <div id="db-status" class="status-badge">ŁĄCZENIE...</div>
     </div>
 
-    <!-- WYNIK I CZAS -->
     <div class="grid-2">
         <div class="card">
             <h3>📊 TABLICA WYNIKÓW</h3>
@@ -65,135 +64,107 @@
                 </div>
             </div>
         </div>
-
         <div class="card">
-            <h3>⏱️ KONTROLA CZASU</h3>
+            <h3>⏱️ ZEGAREK TRANSMISJI</h3>
             <div id="ctrl-timer" class="timer-display">00:00</div>
-            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px;">
-                <button class="btn btn-success" onclick="toggleTimer()">START / PAUZA</button>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button class="btn btn-primary" onclick="toggleTimer()">START / PAUZA</button>
                 <button class="btn btn-danger" onclick="resetTimer()">RESET</button>
             </div>
         </div>
     </div>
 
-    <!-- DRUŻYNY -->
     <div class="card" style="margin-bottom: 20px;">
         <h3>⚙️ USTAWIENIA DRUŻYN</h3>
         <div class="grid-2">
             <div>
-                <h4>GOSPODARZE</h4>
-                <label>Nazwa:</label> <input type="text" id="ctrl-home-name">
-                <label>URL Logo:</label> <input type="text" id="ctrl-home-logo">
-                <label>Kolor:</label> <input type="color" id="ctrl-home-color" value="#0052cc">
+                <h4>GOSPODARZE (HOME)</h4>
+                <label>Nazwa drużyny:</label>
+                <input type="text" id="ctrl-home-name" placeholder="np. REAL MADRYT">
+                <label>Logo URL:</label>
+                <input type="text" id="ctrl-home-logo" placeholder="URL do obrazka">
+                <label>Kolor główny:</label>
+                <input type="color" id="ctrl-home-color" value="#0052cc">
             </div>
             <div>
-                <h4>GOŚCIE</h4>
-                <label>Nazwa:</label> <input type="text" id="ctrl-away-name">
-                <label>URL Logo:</label> <input type="text" id="ctrl-away-logo">
-                <label>Kolor:</label> <input type="color" id="ctrl-away-color" value="#ff0044">
+                <h4>GOŚCIE (AWAY)</h4>
+                <label>Nazwa drużyny:</label>
+                <input type="text" id="ctrl-away-name" placeholder="np. BARCELONA">
+                <label>Logo URL:</label>
+                <input type="text" id="ctrl-away-logo" placeholder="URL do obrazka">
+                <label>Kolor główny:</label>
+                <input type="color" id="ctrl-away-color" value="#ff0044">
             </div>
         </div>
-        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-top: 10px;">
-            <button class="btn btn-primary" onclick="updateMatchNames()">Zapisz dane drużyn</button>
-            <button class="btn btn-warning" onclick="swapTeams()" style="font-weight: 800;">🔄 SWAP (ZAMIEŃ)</button>
-        </div>
+        <button class="btn btn-success" onclick="updateTeamsSettings()">ZAPISZ I ZAKTUALIZUJ USTAWIENIA</button>
     </div>
 
-    <!-- SKŁADY -->
     <div class="grid-2">
         <div class="card">
-            <h3>🏠 SKŁAD: GOSPODARZE</h3>
-            <label>Trener:</label> <input type="text" id="ctrl-home-coach">
-            <label>Rezerwowi:</label> <input type="text" id="ctrl-home-subs">
-            <label>Wyjściowa 5 (Format: 1. NAZWISKO):</label>
-            <input type="text" id="ctrl-home-p1" placeholder="1. GK" style="margin-bottom:5px;">
-            <input type="text" id="ctrl-home-p2" placeholder="2. DEF P" style="margin-bottom:5px;">
-            <input type="text" id="ctrl-home-p3" placeholder="3. DEF L" style="margin-bottom:5px;">
-            <input type="text" id="ctrl-home-p4" placeholder="4. MID" style="margin-bottom:5px;">
-            <input type="text" id="ctrl-home-p5" placeholder="5. ATT">
-        </div>
-
-        <div class="card">
-            <h3>🚀 SKŁAD: GOŚCIE</h3>
-            <label>Trener:</label> <input type="text" id="ctrl-away-coach">
-            <label>Rezerwowi:</label> <input type="text" id="ctrl-away-subs">
-            <label>Wyjściowa 5 (Format: 1. NAZWISKO):</label>
-            <input type="text" id="ctrl-away-p1" placeholder="1. GK" style="margin-bottom:5px;">
-            <input type="text" id="ctrl-away-p2" placeholder="2. DEF P" style="margin-bottom:5px;">
-            <input type="text" id="ctrl-away-p3" placeholder="3. DEF L" style="margin-bottom:5px;">
-            <input type="text" id="ctrl-away-p4" placeholder="4. MID" style="margin-bottom:5px;">
-            <input type="text" id="ctrl-away-p5" placeholder="5. ATT">
-        </div>
-    </div>
-    <div class="card" style="margin-bottom:20px; text-align: center;">
-        <button class="btn btn-primary" style="width:50%;" onclick="updateMatchNames()">Zapisz składy obu drużyn</button>
-    </div>
-
-    <!-- TRANSMISJA LIVE & SKŁAD -->
-    <div class="grid-2" style="margin-bottom: 20px;">
-        <div class="card">
-            <h3>🔥 TRANSMISJA LIVE GOLA</h3>
-            <label>Strzelec gola:</label> <input type="text" id="ctrl-scorer-name">
-            <label>Drużyna:</label>
-            <select id="ctrl-scorer-team">
+            <h3>📋 PREZENTACJA SKŁADÓW (TV MUK)</h3>
+            <label>Wybierz drużynę do wyświetlenia:</label>
+            <select id="ctrl-lineups-team" onchange="switchLineupsControlTeam()">
                 <option value="home">Gospodarze</option>
                 <option value="away">Goście</option>
             </select>
-            <button class="btn btn-danger" style="background:#f1c40f; color:#000;" onclick="triggerGoalAnimation()">⚽ TRANSMITUJ GOL!</button>
-        </div>
-        
-        <div class="card">
-            <h3>📋 KONTROLA SKŁADU NA EKRANIE</h3>
-            <label>Który skład pokazać na overlayu?</label>
-            <select id="ctrl-lineups-team" onchange="updateMatchNames()">
-                <option value="home">Pokazuj skład Gospodarzy</option>
-                <option value="away">Pokazuj skład Gości</option>
-            </select>
-            <button class="btn btn-purple" style="margin-top:25px; padding:20px;" onclick="toggleLineups()">WŁĄCZ / WYŁĄCZ SKŁAD</button>
-        </div>
-    </div>
 
-    <!-- STATYSTYKI INDYWIDUALNE -->
-    <div class="card" style="margin-bottom: 20px;">
-        <h3>📊 INDYWIDUALNE STATYSTYKI ZAWODNIKA</h3>
-        <div class="grid-2">
-            <div>
-                <label>Nick / Nazwisko zawodnika:</label>
-                <input type="text" id="ctrl-stat-player-name" placeholder="np. KOWALSKI">
+            <div id="lineups-fields-box" style="margin-top: 10px; border-top: 1px solid #232731; padding-top: 10px;">
+                <label>Trener:</label>
+                <input type="text" id="ctrl-coach" placeholder="Nazwisko trenera">
+                <label>Zawodnik 1 (Bramkarz):</label>
+                <input type="text" id="ctrl-p1" placeholder="np. 1. KOWALSKI">
+                <label>Zawodnik 2:</label>
+                <input type="text" id="ctrl-p2" placeholder="np. 2. NOWAK">
+                <label>Zawodnik 3:</label>
+                <input type="text" id="ctrl-p3" placeholder="np. 3. ZIELIŃSKI">
+                <label>Zawodnik 4:</label>
+                <input type="text" id="ctrl-p4" placeholder="np. 4. LEWANDOWSKI">
+                <label>Zawodnik 5:</label>
+                <input type="text" id="ctrl-p5" placeholder="np. 5. MAZUR">
+                <label>Rezerwowi (lista oddzielona przecinkami):</label>
+                <input type="text" id="ctrl-subs" placeholder="np. 12. BOREK, 15. DUDEK">
             </div>
-            <div>
-                <label>Drużyna zawodnika (kolorystyka):</label>
-                <select id="ctrl-stat-player-team">
-                    <option value="home">Gospodarze</option>
-                    <option value="away">Goście</option>
-                </select>
-            </div>
-        </div>
-        <div class="grid-4">
-            <div>
-                <label>Strzały na bramkę:</label>
-                <input type="number" id="ctrl-stat-shots" value="0" min="0">
-            </div>
-            <div>
-                <label>Podania:</label>
-                <input type="number" id="ctrl-stat-passes" value="0" min="0">
-            </div>
-            <div>
-                <label>Gole:</label>
-                <input type="number" id="ctrl-stat-goals" value="0" min="0">
-            </div>
-            <div>
-                <label>Asysty:</label>
-                <input type="number" id="ctrl-stat-assists" value="0" min="0">
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
+                <button class="btn btn-primary" onclick="saveLineupsData()">ZAPISZ SKŁAD</button>
+                <button id="btn-ctrl-lineups-toggle" class="btn btn-purple" onclick="toggleLineupsOverlay()">POKAŻ NA OBS</button>
             </div>
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
-            <button class="btn btn-primary" onclick="updatePlayerStatsData()">Zapisz wartości statystyk</button>
+
+        <div class="card">
+            <h3>👤 PANEL STATYSTYK INDYWIDUALNYCH</h3>
+            <label>Nazwisko / Numer zawodnika:</label>
+            <input type="text" id="ctrl-stat-name" placeholder="np. 9. LEWANDOWSKI">
+            <label>Przynależność:</label>
+            <select id="ctrl-stat-team">
+                <option value="home">Gospodarze (HOME)</option>
+                <option value="away">Goście (AWAY)</option>
+            </select>
+            
+            <div class="grid-4" style="margin-top: 15px;">
+                <div>
+                    <label>STRZAŁY</label>
+                    <input type="number" id="ctrl-stat-shots" value="0">
+                </div>
+                <div>
+                    <label>PODANIA</label>
+                    <input type="number" id="ctrl-stat-passes" value="0">
+                </div>
+                <div>
+                    <label>GOLE</label>
+                    <input type="number" id="ctrl-stat-goals" value="0">
+                </div>
+                <div>
+                    <label>ASYSTY</label>
+                    <input type="number" id="ctrl-stat-assists" value="0">
+                </div>
+            </div>
+
+            <button class="btn btn-warning" onclick="updatePlayerStatsData()">ZAKTUALIZUJ DANE ZAWODNIKA</button>
             <button class="btn btn-purple" style="background: #20b2aa;" onclick="togglePlayerStatsOverlay()">WŁĄCZ / WYŁĄCZ STATYSTYKI NA OBS</button>
         </div>
     </div>
 
-    <!-- NOWOŚĆ: ANIMACJA ZMIAN ZAWODNIKÓW -->
     <div class="card">
         <h3>🔄 TRANSMISJA ZMIANY ZAWODNIKA</h3>
         <div class="grid-2">
@@ -217,10 +188,246 @@
             <button class="btn btn-success" style="background: #e67e22; margin-top: 28px;" onclick="triggerSubAnimation()">🔄 TRANSMITUJ ZMIANĘ!</button>
         </div>
     </div>
+
+    <div class="card" style="margin-top: 20px; background: linear-gradient(135deg, #121620 0%, #1a1f2c 100%); border: 1px solid #34495e;">
+        <h3>🤖 AUTOMATYCZNY PARSER POWTÓREK (.HBR / .HBR2)</h3>
+        <p style="font-size: 13px; color: #b2babb; margin-top: -5px;">Przeciągnij i upuść plik powtórki ze swojej gry Haxball bezpośrednio tutaj. System automatycznie wyliczy czas meczu i zsynchronizuje zaawansowane statystyki strzałów, rzutów rożnych, fauli i obron w czasie rzeczywistym na bazie algorytmów deterministycznych!</p>
+        
+        <div id="drop-zone" style="border: 2px dashed #3498db; padding: 30px; text-align: center; border-radius: 8px; background: rgba(52,152,219,0.05); cursor: pointer; transition: 0.3s;" ondragover="event.preventDefault()" ondrop="handleHbrDrop(event)" onclick="document.getElementById('file-input').click()">
+            <span style="font-size: 32px;">📂</span>
+            <p style="font-size: 14px; font-weight: 700; color: #3498db; margin: 10px 0 0 0;">UPUŚĆ PLIK POWTÓRKI TUTAJ LUB KLIKNIJ, ABY WYBRAĆ Z DYSKU</p>
+            <p style="font-size: 11px; color:#7f8c8d; margin: 4px 0 0 0;">Obsługuje formaty .hbr oraz .hbr2 wygenerowane bezpośrednio przez pokój</p>
+            <input type="file" id="file-input" style="display: none;" accept=".hbr,.hbr2" onchange="handleHbrFileSelect(event)">
+        </div>
+    </div>
+
+    <div class="card" style="margin-top:20px; background: #1b2631; border: 1px solid #2e4053;">
+        <h3>⚽ TRANSMISJA WYDARZENIA - GOL!</h3>
+        <div class="grid-2">
+            <div>
+                <label>Strzelec bramki:</label>
+                <input type="text" id="ctrl-scorer-name" placeholder="np. 10. MESSI">
+            </div>
+            <div>
+                <label>Drużyna strzelców:</label>
+                <select id="ctrl-scorer-team">
+                    <option value="home">Gospodarze (HOME)</option>
+                    <option value="away">Goście (AWAY)</option>
+                </select>
+            </div>
+        </div>
+        <button class="btn btn-success" onclick="triggerGoalAnimation()">⚽ TRANSMITUJ GOLA NA EKRANIE (LIVE ANIMATION)</button>
+    </div>
+
+    <div class="card" style="margin-top: 20px; background: linear-gradient(135deg, #121620 0%, #152238 100%); border: 1px solid #1a365d;">
+        <h3>⚽ SUMMARY BAR MANAGER (PODSUMOWANIE MECZU)</h3>
+        <p style="font-size: 13px; color: #b2babb; margin-top: -5px;">Zarządzaj profesjonalnym telewizyjnym paskiem podsumowania statystyk meczu wyświetlanym na środku ekranu OBS.</p>
+        <div class="grid-2">
+            <div>
+                <label>Nazwa statystyki:</label>
+                <input type="text" id="ctrl-summary-name" placeholder="np. Posiadanie Piłki, Strzały, xG">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div>
+                    <label>Wartość HOME:</label>
+                    <input type="number" id="ctrl-summary-home" value="50">
+                </div>
+                <div>
+                    <label>Wartość AWAY:</label>
+                    <input type="number" id="ctrl-summary-away" value="50">
+                </div>
+            </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 15px;">
+            <button class="btn btn-success" style="background: #2e7d32;" onclick="updateSummaryData(true)">🟢 SHOW SUMMARY</button>
+            <button class="btn btn-danger" style="background: #c62828;" onclick="hideSummaryOverlay()">🔴 HIDE SUMMARY</button>
+            <button class="btn btn-primary" style="background: #1565c0;" onclick="updateSummaryData(false)">🔄 UPDATE SUMMARY</button>
+        </div>
+    </div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="hbr-parser.js"></script>
 <script src="app.js"></script>
-<script>window.addEventListener('DOMContentLoaded', () => initControlPanel());</script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        initControlPanel();
+    });
+
+    async function changeScore(team, val) {
+        if (team === 'home') {
+            currentMatchState.home_score = Math.max(0, currentMatchState.home_score + val);
+        } else {
+            currentMatchState.away_score = Math.max(0, currentMatchState.away_score + val);
+        }
+        document.getElementById('ctrl-home-score').innerText = currentMatchState.home_score;
+        document.getElementById('ctrl-away-score').innerText = currentMatchState.away_score;
+        await saveStateToSupabase();
+    }
+
+    async function updateTeamsSettings() {
+        currentMatchState.home_name = document.getElementById('ctrl-home-name').value || "HOME";
+        currentMatchState.away_name = document.getElementById('ctrl-away-name').value || "AWAY";
+        currentMatchState.home_logo = document.getElementById('ctrl-home-logo').value;
+        currentMatchState.away_logo = document.getElementById('ctrl-away-logo').value;
+        currentMatchState.home_color = document.getElementById('ctrl-home-color').value;
+        currentMatchState.away_color = document.getElementById('ctrl-away-color').value;
+        await saveStateToSupabase();
+        alert("Ustawienia drużyn zsynchronizowane z bazą!");
+    }
+
+    async function switchLineupsControlTeam() {
+        const activeTeam = document.getElementById('ctrl-lineups-team').value;
+        const prefix = activeTeam === 'home' ? 'home' : 'away';
+        document.getElementById('ctrl-coach').value = currentMatchState[`${prefix}_coach`] || "";
+        document.getElementById('ctrl-subs').value = currentMatchState[`${prefix}_subs`] || "";
+        for (let i = 1; i <= 5; i++) {
+            document.getElementById(`ctrl-p${i}`).value = currentMatchState[`${prefix}_p${i}`] || "";
+        }
+    }
+
+    async function saveLineupsData() {
+        const activeTeam = document.getElementById('ctrl-lineups-team').value;
+        const prefix = activeTeam === 'home' ? 'home' : 'away';
+        currentMatchState[`${prefix}_coach`] = document.getElementById('ctrl-coach').value;
+        currentMatchState[`${prefix}_subs`] = document.getElementById('ctrl-subs').value;
+        for (let i = 1; i <= 5; i++) {
+            currentMatchState[`${prefix}_p${i}`] = document.getElementById(`ctrl-p${i}`).value;
+        }
+        await saveStateToSupabase();
+        alert("Skład drużyny zapisany lokalnie i w chmurze!");
+    }
+
+    async function toggleLineupsOverlay() {
+        currentMatchState.show_lineups = !currentMatchState.show_lineups;
+        currentMatchState.lineups_team = document.getElementById('ctrl-lineups-team').value;
+        await saveStateToSupabase();
+    }
+
+    async function updatePlayerStatsData() {
+        currentMatchState.stat_player_name = document.getElementById('ctrl-stat-name').value || "ZAWODNIK";
+        currentMatchState.stat_player_team = document.getElementById('ctrl-stat-team').value;
+        currentMatchState.stat_shots = parseInt(document.getElementById('ctrl-stat-shots').value) || 0;
+        currentMatchState.stat_passes = parseInt(document.getElementById('ctrl-stat-passes').value) || 0;
+        currentMatchState.stat_goals = parseInt(document.getElementById('ctrl-stat-goals').value) || 0;
+        currentMatchState.stat_assists = parseInt(document.getElementById('ctrl-stat-assists').value) || 0;
+        await saveStateToSupabase();
+        alert("Statystyki zawodnika zaktualizowane!");
+    }
+
+    async function togglePlayerStatsOverlay() {
+        currentMatchState.show_player_stats = !currentMatchState.show_player_stats;
+        await saveStateToSupabase();
+    }
+
+    async function triggerGoalAnimation() {
+        currentMatchState.scorer_name = document.getElementById('ctrl-scorer-name').value || "NIEZNANY ZAWODNIK";
+        currentMatchState.scorer_team = document.getElementById('ctrl-scorer-team').value;
+        currentMatchState.show_goal_trigger = true;
+        await saveStateToSupabase();
+        setTimeout(async () => {
+            currentMatchState.show_goal_trigger = false;
+            await saveStateToSupabase();
+        }, 1500);
+    }
+
+    async function triggerSubAnimation() {
+        currentMatchState.sub_out = document.getElementById('ctrl-sub-out').value || "ZAWODNIK SCHODZĄCY";
+        currentMatchState.sub_in = document.getElementById('ctrl-sub-in').value || "ZAWODNIK WCHODZĄCY";
+        currentMatchState.sub_team = document.getElementById('ctrl-sub-team').value;
+        currentMatchState.show_sub_trigger = true;
+        await saveStateToSupabase();
+        setTimeout(async () => {
+            currentMatchState.show_sub_trigger = false;
+            await saveStateToSupabase();
+        }, 1500);
+    }
+
+    function handleHbrFileSelect(event) {
+        const file = event.target.files[0];
+        if (file) processHbrFile(file);
+    }
+
+    function handleHbrDrop(event) {
+        event.preventDefault();
+        const file = event.dataTransfer.files[0];
+        if (file) processHbrFile(file);
+    }
+
+    function processHbrFile(file) {
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            try {
+                const result = window.HbrParser.parse(e.target.result);
+                if (result && result.valid) {
+                    currentMatchState.match_time = result.match_time;
+                    currentMatchState.stat_player_name = "STATYSTYKI Z REPLAY";
+                    currentMatchState.stat_shots = result.team_stats.home.shots;
+                    currentMatchState.stat_passes = result.team_stats.home.corners;
+                    currentMatchState.stat_goals = result.team_stats.home.saves;
+                    currentMatchState.stat_assists = result.team_stats.home.fouls;
+                    await saveStateToSupabase();
+                    alert(`Pomyślnie sparsowano plik powtórki!\nCzas meczu zsynchronizowany: ${formatTime(result.match_time)}`);
+                }
+            } catch(err) {
+                alert("Błąd parsowania: " + err.message);
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    function updateControlPanelUI() {
+        document.getElementById('ctrl-home-score').innerText = currentMatchState.home_score;
+        document.getElementById('ctrl-away-score').innerText = currentMatchState.away_score;
+        document.getElementById('ctrl-timer').innerText = formatTime(currentMatchState.match_time);
+        
+        if (!document.activeElement || document.activeElement.tagName !== 'INPUT') {
+            document.getElementById('ctrl-home-name').value = currentMatchState.home_name;
+            document.getElementById('ctrl-away-name').value = currentMatchState.away_name;
+            document.getElementById('ctrl-home-logo').value = currentMatchState.home_logo || "";
+            document.getElementById('ctrl-away-logo').value = currentMatchState.away_logo || "";
+            document.getElementById('ctrl-home-color').value = currentMatchState.home_color || "#0052cc";
+            document.getElementById('ctrl-away-color').value = currentMatchState.away_color || "#ff0044";
+            document.getElementById('ctrl-sub-out').value = currentMatchState.sub_out || "";
+            document.getElementById('ctrl-sub-in').value = currentMatchState.sub_in || "";
+            document.getElementById('ctrl-sub-team').value = currentMatchState.sub_team || "home";
+            
+            // Inicjalizacja formularza summary z bazy jeśli użytkownik go nie edytuje
+            if (document.getElementById('ctrl-summary-name')) {
+                document.getElementById('ctrl-summary-name').value = currentMatchState.summary_name || "";
+                document.getElementById('ctrl-summary-home').value = currentMatchState.summary_home ?? 50;
+                document.getElementById('ctrl-summary-away').value = currentMatchState.summary_away ?? 50;
+            }
+        }
+        
+        const btnToggle = document.getElementById('btn-ctrl-lineups-toggle');
+        if (btnToggle) {
+            if (currentMatchState.show_lineups) {
+                btnToggle.innerText = "UKRYJ NA OBS";
+                btnToggle.style.background = "#ff4444";
+            } else {
+                btnToggle.innerText = "POKAŻ NA OBS";
+                btnToggle.style.background = "#aa00ff";
+            }
+        }
+    }
+
+    async function updateSummaryData(shouldShow) {
+        currentMatchState.summary_name = document.getElementById('ctrl-summary-name').value || "STATYSTYKA";
+        currentMatchState.summary_home = parseFloat(document.getElementById('ctrl-summary-home').value) || 0;
+        currentMatchState.summary_away = parseFloat(document.getElementById('ctrl-summary-away').value) || 0;
+        if (shouldShow) {
+            currentMatchState.show_summary = true;
+        }
+        await saveStateToSupabase();
+    }
+
+    async function hideSummaryOverlay() {
+        currentMatchState.show_summary = false;
+        await saveStateToSupabase();
+    }
+</script>
+
 </body>
 </html>
