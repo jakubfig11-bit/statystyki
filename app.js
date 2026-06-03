@@ -16,10 +16,10 @@ let currentMatchState = {
     stat_player_name: "ZAWODNIK", stat_player_team: "home", show_player_stats: false,
     stat_shots: 0, stat_passes: 0, stat_goals: 0, stat_assists: 0,
     sub_out: "", sub_in: "", sub_team: "home", show_sub_trigger: false,
-    summary_name: "POSIADANIE PIŁKI", summary_home: 50, summary_away: 50, show_summary: false
+    summary_name: "HALFTIME", show_summary: false, goals_history: []
 };
 
-let timerInterval = null; let realtimeChannel = null; let isAnimationPlaying = false; let isSubAnimationPlaying = false; let isSummaryAnimationPlaying = false;
+let timerInterval = null; let realtimeChannel = null; let isAnimationPlaying = false; let isSubAnimationPlaying = false;
 
 // ==========================================
 // INICJALIZACJA SYSTEMU
@@ -153,26 +153,49 @@ function updatePlayerStatsUI() {
     if(accent) { accent.style.backgroundColor = currentMatchState.stat_player_team === 'home' ? currentMatchState.home_color : currentMatchState.away_color; }
 }
 
+// PRZEROBIONA FUNKCJA GENEROWANIA PODSUMOWANIA ZE STRZELCAMI (UEFA STYLE)
 function updateSummaryUI() {
-    if(document.getElementById('summary-txt-title')) document.getElementById('summary-txt-title').innerText = (currentMatchState.summary_name || "STATYSTYKA").toUpperCase();
-    if(document.getElementById('summary-txt-home')) document.getElementById('summary-txt-home').innerText = currentMatchState.summary_home ?? 50;
-    if(document.getElementById('summary-txt-away')) document.getElementById('summary-txt-away').innerText = currentMatchState.summary_away ?? 50;
-    if(document.getElementById('summary-home-team-name')) document.getElementById('summary-home-team-name').innerText = currentMatchState.home_name;
-    if(document.getElementById('summary-away-team-name')) document.getElementById('summary-away-team-name').innerText = currentMatchState.away_name;
+    const titleBox = document.getElementById('summary-txt-title');
+    if (titleBox) titleBox.innerText = currentMatchState.summary_name === "FULLTIME" ? "FULLTIME MATCH SUMMARY" : "HALFTIME MATCH SUMMARY";
 
-    const barHome = document.getElementById('summary-bar-home');
-    const barAway = document.getElementById('summary-bar-away');
-    if(barHome) barHome.style.backgroundColor = currentMatchState.home_color || "#0052cc";
-    if(barAway) barAway.style.backgroundColor = currentMatchState.away_color || "#ff0044";
+    if(document.getElementById('summary-board-name-home')) document.getElementById('summary-board-name-home').innerText = currentMatchState.home_name;
+    if(document.getElementById('summary-board-name-away')) document.getElementById('summary-board-name-away').innerText = currentMatchState.away_name;
+    if(document.getElementById('summary-board-score-home')) document.getElementById('summary-board-score-home').innerText = currentMatchState.home_score;
+    if(document.getElementById('summary-board-score-away')) document.getElementById('summary-board-score-away').innerText = currentMatchState.away_score;
 
-    const total = (currentMatchState.summary_home || 0) + (currentMatchState.summary_away || 0);
-    let homePct = 50; let awayPct = 50;
-    if (total > 0) {
-        homePct = (currentMatchState.summary_home / total) * 100;
-        awayPct = (currentMatchState.summary_away / total) * 100;
+    setupCrest('summary-board-logo-home', currentMatchState.home_logo);
+    setupCrest('summary-board-logo-away', currentMatchState.away_logo);
+
+    if(document.getElementById('summary-footer-accent-home')) document.getElementById('summary-footer-accent-home').style.backgroundColor = currentMatchState.home_color || "#0052cc";
+    if(document.getElementById('summary-footer-accent-away')) document.getElementById('summary-footer-accent-away').style.backgroundColor = currentMatchState.away_color || "#ff0044";
+
+    const homeList = document.getElementById('summary-scorers-list-home');
+    const awayList = document.getElementById('summary-scorers-list-away');
+    
+    if (homeList && awayList) {
+        homeList.innerHTML = "";
+        awayList.innerHTML = "";
+        
+        const history = currentMatchState.goals_history || [];
+        
+        history.forEach(goal => {
+            // Jeśli wybrano tryb HALFTIME, filtrujemy tylko bramki do 45 minuty włącznie
+            if (currentMatchState.summary_name === "HALFTIME" && goal.minute > 45) {
+                return;
+            }
+
+            const row = document.createElement('div');
+            row.className = "summary-scorer-row";
+            
+            if (goal.team === 'home') {
+                row.innerHTML = `<span>${goal.name}</span> <span class="minute">${goal.minute}'</span>`;
+                homeList.appendChild(row);
+            } else {
+                row.innerHTML = `<span class="minute">${goal.minute}'</span> <span>${goal.name}</span>`;
+                awayList.appendChild(row);
+            }
+        });
     }
-    if(barHome) barHome.style.width = `${homePct}%`;
-    if(barAway) barAway.style.width = `${awayPct}%`;
 }
 
 // ==========================================
@@ -266,7 +289,6 @@ function toggleGSAPTacticalLineups(show) {
     }
 }
 
-// WYKLUCZONE PARSERY HBR - CZYSTA KONTROLA BEZPOŚREDNIA PRZEZ DANE SUPABASE
 function toggleGSAPPlayerStats(show) {
     const container = document.getElementById('player-stats-overlay'); if (!container) return;
     if (show) {
