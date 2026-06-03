@@ -204,32 +204,19 @@
                 </select>
             </div>
         </div>
-        <button class="btn btn-success" onclick="triggerGoalAnimation()">⚽ TRANSMITUJ GOLA NA EKRANIE (LIVE ANIMATION)</button>
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-top: 10px;">
+            <button class="btn btn-success" onclick="triggerGoalAnimation()">⚽ TRANSMITUJ GOLA NA EKRANIE (LIVE ANIMATION)</button>
+            <button class="btn btn-danger" style="margin-top: 10px;" onclick="clearGoalHistory()">Wyczyść historię goli</button>
+        </div>
     </div>
 
     <div class="card" style="margin-top: 20px; background: linear-gradient(135deg, #121620 0%, #152238 100%); border: 1px solid #1a365d;">
-        <h3>⚽ SUMMARY BAR MANAGER (PODSUMOWANIE MECZU)</h3>
-        <p style="font-size: 13px; color: #b2babb; margin-top: -5px;">Zarządzaj profesjonalnym telewizyjnym paskiem podsumowania statystyk meczu wyświetlanym na środku ekranu OBS.</p>
-        <div class="grid-2">
-            <div>
-                <label>Nazwa statystyki:</label>
-                <input type="text" id="ctrl-summary-name" placeholder="np. Posiadanie Piłki, Strzały, xG">
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div>
-                    <label>Wartość HOME:</label>
-                    <input type="number" id="ctrl-summary-home" value="50">
-                </div>
-                <div>
-                    <label>Wartość AWAY:</label>
-                    <input type="number" id="ctrl-summary-away" value="50">
-                </div>
-            </div>
-        </div>
+        <h3>⚽ MATCH SUMMARY OVERLAY MANAGER</h3>
+        <p style="font-size: 13px; color: #b2babb; margin-top: -5px;">Zarządzaj profesjonalną, telewizyjną planszą podsumowania meczu, pobierającą automatycznie strzelców bramkowych.</p>
         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 15px;">
-            <button class="btn btn-success" style="background: #2e7d32;" onclick="updateSummaryData(true)">🟢 SHOW SUMMARY</button>
+            <button class="btn btn-success" style="background: #2e7d32;" onclick="setSummaryMode('HALFTIME')">🟢 SHOW HALFTIME</button>
+            <button class="btn btn-success" style="background: #1565c0;" onclick="setSummaryMode('FULLTIME')">🔵 SHOW FULLTIME</button>
             <button class="btn btn-danger" style="background: #c62828;" onclick="hideSummaryOverlay()">🔴 HIDE SUMMARY</button>
-            <button class="btn btn-primary" style="background: #1565c0;" onclick="updateSummaryData(false)">🔄 UPDATE SUMMARY</button>
         </div>
     </div>
 
@@ -309,14 +296,44 @@
     }
 
     async function triggerGoalAnimation() {
-        currentMatchState.scorer_name = document.getElementById('ctrl-scorer-name').value || "NIEZNANY ZAWODNIK";
-        currentMatchState.scorer_team = document.getElementById('ctrl-scorer-team').value;
+        const name = document.getElementById('ctrl-scorer-name').value || "Nieznany Zawodnik";
+        const team = document.getElementById('ctrl-scorer-team').value;
+        
+        currentMatchState.scorer_name = name;
+        currentMatchState.scorer_team = team;
         currentMatchState.show_goal_trigger = true;
+
+        if (!currentMatchState.goals_history) currentMatchState.goals_history = [];
+        const currentMin = Math.floor(currentMatchState.match_time / 60);
+        
+        currentMatchState.goals_history.push({
+            name: name,
+            minute: currentMin,
+            team: team
+        });
+
+        if (team === 'home') {
+            currentMatchState.home_score++;
+        } else {
+            currentMatchState.away_score++;
+        }
+
         await saveStateToSupabase();
+        
         setTimeout(async () => {
             currentMatchState.show_goal_trigger = false;
             await saveStateToSupabase();
         }, 1500);
+    }
+
+    async function clearGoalHistory() {
+        if(confirm("Czy na pewno chcesz wyczyścić zapisaną historię strzelców?")) {
+            currentMatchState.goals_history = [];
+            currentMatchState.home_score = 0;
+            currentMatchState.away_score = 0;
+            await saveStateToSupabase();
+            alert("Historia wyczyszczona!");
+        }
     }
 
     async function triggerSubAnimation() {
@@ -329,6 +346,17 @@
             currentMatchState.show_sub_trigger = false;
             await saveStateToSupabase();
         }, 1500);
+    }
+
+    async function setSummaryMode(mode) {
+        currentMatchState.summary_name = mode; 
+        currentMatchState.show_summary = true;
+        await saveStateToSupabase();
+    }
+
+    async function hideSummaryOverlay() {
+        currentMatchState.show_summary = false;
+        await saveStateToSupabase();
     }
 
     function updateControlPanelUI() {
@@ -346,12 +374,6 @@
             document.getElementById('ctrl-sub-out').value = currentMatchState.sub_out || "";
             document.getElementById('ctrl-sub-in').value = currentMatchState.sub_in || "";
             document.getElementById('ctrl-sub-team').value = currentMatchState.sub_team || "home";
-            
-            if (document.getElementById('ctrl-summary-name')) {
-                document.getElementById('ctrl-summary-name').value = currentMatchState.summary_name || "";
-                document.getElementById('ctrl-summary-home').value = currentMatchState.summary_home ?? 50;
-                document.getElementById('ctrl-summary-away').value = currentMatchState.summary_away ?? 50;
-            }
         }
         
         const btnToggle = document.getElementById('btn-ctrl-lineups-toggle');
@@ -364,21 +386,6 @@
                 btnToggle.style.background = "#aa00ff";
             }
         }
-    }
-
-    async function updateSummaryData(shouldShow) {
-        currentMatchState.summary_name = document.getElementById('ctrl-summary-name').value || "STATYSTYKA";
-        currentMatchState.summary_home = parseFloat(document.getElementById('ctrl-summary-home').value) || 0;
-        currentMatchState.summary_away = parseFloat(document.getElementById('ctrl-summary-away').value) || 0;
-        if (shouldShow) {
-            currentMatchState.show_summary = true;
-        }
-        await saveStateToSupabase();
-    }
-
-    async function hideSummaryOverlay() {
-        currentMatchState.show_summary = false;
-        await saveStateToSupabase();
     }
 </script>
 
