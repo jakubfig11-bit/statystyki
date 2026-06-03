@@ -28,15 +28,21 @@ let timerInterval = null; let realtimeChannel = null; let isAnimationPlaying = f
 async function initOverlayView() {
     await fetchInitialState(); updateHUDUI(); updateTacticalLineupsUI(); updatePlayerStatsUI(); updateSummaryUI();
     if (currentMatchState.is_running) startLocalTimer();
-    realtimeChannel = supabaseClient.channel('match-broadcast', { config: { broadcast: { ack: false, self: false } } });
+    
+    // Kluczowa poprawka: self: true pozwala na odbieranie eventów z tego samego połączenia na wypadek testów na 1 karcie
+    realtimeChannel = supabaseClient.channel('match-broadcast', { config: { broadcast: { ack: false, self: true } } });
     realtimeChannel.on('broadcast', { event: 'state-change' }, ({ payload }) => handleStateUpdate(payload)).subscribe();
 }
 
 async function initControlPanel() {
-    await fetchInitialState(); updateControlPanelUI(); switchLineupsControlTeam();
+    await fetchInitialState(); 
+    const badge = document.getElementById('db-status');
+    if(badge) { badge.innerText = "POŁĄCZONO"; badge.classList.add('connected'); }
+    
+    updateControlPanelUI(); switchLineupsControlTeam();
     if (currentMatchState.is_running) startLocalTimer();
     
-    realtimeChannel = supabaseClient.channel('match-broadcast', { config: { broadcast: { ack: false, self: false } } }); 
+    realtimeChannel = supabaseClient.channel('match-broadcast', { config: { broadcast: { ack: false, self: true } } }); 
     realtimeChannel.on('broadcast', { event: 'state-change' }, ({ payload }) => {
         if (payload.is_running !== currentMatchState.is_running) {
             if (payload.is_running) startLocalTimer(); else clearInterval(timerInterval);
@@ -44,7 +50,8 @@ async function initControlPanel() {
         if (!payload.is_running && payload.match_time !== currentMatchState.match_time) {
             if(document.getElementById('ctrl-timer')) document.getElementById('ctrl-timer').innerText = formatTime(payload.match_time);
         }
-        currentMatchState = payload; updateControlPanelUI();
+        currentMatchState = payload; 
+        updateControlPanelUI();
     }).subscribe();
 }
 
@@ -75,7 +82,6 @@ function updateSummaryUI() {
     const summaryOverlay = document.getElementById('summary-overlay');
     if (!summaryOverlay) return;
 
-    // Animacja wejścia / wyjścia całej planszy podsumowania przez GSAP
     if (currentMatchState.show_summary) {
         const titleEl = document.getElementById('summary-board-title');
         const homeNameEl = document.getElementById('summary-board-name-home');
@@ -87,26 +93,21 @@ function updateSummaryUI() {
         const accentHome = document.getElementById('summary-footer-accent-home');
         const accentAway = document.getElementById('summary-footer-accent-away');
 
-        // Dynamiczny nagłówek na podstawie trybu pracy menedżera
         if (titleEl) {
             titleEl.innerText = currentMatchState.summary_name === "HALFTIME" ? "PODSUMOWANIE PIERWSZEJ POŁOWY" : "PODSUMOWANIE MECZU";
         }
 
-        // Podstawowa ochrona danych oraz wstrzykiwanie nazw i wyników
         if (homeNameEl) homeNameEl.innerText = (currentMatchState.home_name || "GOSPODARZE").toUpperCase();
         if (awayNameEl) awayNameEl.innerText = (currentMatchState.away_name || "GOŚCIE").toUpperCase();
         if (homeScoreEl) homeScoreEl.innerText = currentMatchState.home_score ?? 0;
         if (awayScoreEl) awayScoreEl.innerText = currentMatchState.away_score ?? 0;
 
-        // Synchronizacja logotypów
         setupCrest('summary-board-logo-home', currentMatchState.home_logo);
         setupCrest('summary-board-logo-away', currentMatchState.away_logo);
 
-        // Zmiana barw akcentujących dolne paski
         if (accentHome) accentHome.style.backgroundColor = currentMatchState.home_color || "#0052cc";
         if (accentAway) accentAway.style.backgroundColor = currentMatchState.away_color || "#ff0044";
 
-        // Generowanie i czyszczenie list strzelców goli
         if (homeList) homeList.innerHTML = "";
         if (awayList) awayList.innerHTML = "";
 
@@ -117,7 +118,6 @@ function updateSummaryUI() {
             if (awayList) awayList.innerHTML = `<div class="summary-scorer-row" style="visibility:hidden;"><span>-</span></div>`;
         } else {
             history.forEach(goal => {
-                // Odrzucenie bramek z drugiej połowy, jeśli emisyjnie włączyliśmy tryb HALFTIME
                 if (currentMatchState.summary_name === "HALFTIME" && parseInt(goal.minute) > 45) {
                     return;
                 }
@@ -134,7 +134,6 @@ function updateSummaryUI() {
                 }
             });
             
-            // Ochrona wysokości boksów po przefiltrowaniu minutowym
             if (homeList && homeList.innerHTML === "") homeList.innerHTML = `<div class="summary-scorer-row" style="visibility:hidden;"><span>-</span></div>`;
             if (awayList && awayList.innerHTML === "") awayList.innerHTML = `<div class="summary-scorer-row" style="visibility:hidden;"><span>-</span></div>`;
         }
@@ -158,10 +157,10 @@ async function fetchInitialState() {
 
 async function saveStateToSupabase() {
     if (!supabaseClient || !realtimeChannel) return;
-    const { error } = await supabaseClient.from('broadcast_state').update(currentMatchState).eq('id', 1);
-    if (!error) {
-        await realtimeChannel.send({ type: 'broadcast', event: 'state-change', payload: currentMatchState });
-    }
+    // Aktualizacja w bazie tabeli realnej
+    await supabaseClient.from('broadcast_state').update(currentMatchState).eq('id', 1);
+    // Natychmiastowa transmisja eventu przez Realtime Channel do podłączonego overlay'u
+    await realtimeChannel.send({ type: 'broadcast', event: 'state-change', payload: currentMatchState });
 }
 
 function startLocalTimer() {
@@ -174,18 +173,6 @@ function startLocalTimer() {
             }
         }
     }, 1000);
-}
-
-async function toggleTimer() {
-    currentMatchState.is_running = !currentMatchState.is_running;
-    if (currentMatchState.is_running) startLocalTimer(); else clearInterval(timerInterval);
-    await saveStateToSupabase();
-}
-
-async function resetTimer() {
-    currentMatchState.is_running = false; clearInterval(timerInterval); currentMatchState.match_time = 0;
-    if(document.getElementById('ctrl-timer')) document.getElementById('ctrl-timer').innerText = "00:00";
-    await saveStateToSupabase();
 }
 
 function formatTime(secs) {
