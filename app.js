@@ -15,17 +15,18 @@ let currentMatchState = {
     away_coach: "", away_subs: "", away_p1: "", away_p2: "", away_p3: "", away_p4: "", away_p5: "",
     stat_player_name: "ZAWODNIK", stat_player_team: "home", show_player_stats: false,
     stat_shots: 0, stat_passes: 0, stat_goals: 0, stat_assists: 0,
-    sub_out: "", sub_in: "", sub_team: "home", show_sub_trigger: false
+    sub_out: "", sub_in: "", sub_team: "home", show_sub_trigger: false,
+    summary_name: "POSIADANIE PIŁKI", summary_home: 50, summary_away: 50, show_summary: false
 };
 
-let timerInterval = null; let realtimeChannel = null; let isAnimationPlaying = false; let isSubAnimationPlaying = false;
+let timerInterval = null; let realtimeChannel = null; let isAnimationPlaying = false; let isSubAnimationPlaying = false; let isSummaryAnimationPlaying = false;
 
 // ==========================================
 // INICJALIZACJA SYSTEMU
 // ==========================================
 
 async function initOverlayView() {
-    await fetchInitialState(); updateHUDUI(); updateTacticalLineupsUI(); updatePlayerStatsUI();
+    await fetchInitialState(); updateHUDUI(); updateTacticalLineupsUI(); updatePlayerStatsUI(); updateSummaryUI();
     if (currentMatchState.is_running) startLocalTimer();
     realtimeChannel = supabaseClient.channel('match-broadcast', { config: { broadcast: { ack: false, self: false } } });
     realtimeChannel.on('broadcast', { event: 'state-change' }, ({ payload }) => handleStateUpdate(payload)).subscribe();
@@ -63,9 +64,10 @@ function handleStateUpdate(data) {
     }
     if (data.show_lineups !== currentMatchState.show_lineups) toggleGSAPTacticalLineups(data.show_lineups);
     if (data.show_player_stats !== currentMatchState.show_player_stats) toggleGSAPPlayerStats(data.show_player_stats);
+    if (data.show_summary !== currentMatchState.show_summary) toggleGSAPSummary(data.show_summary);
     if (data.is_running !== currentMatchState.is_running) { if (data.is_running) startLocalTimer(); else clearInterval(timerInterval); }
     
-    currentMatchState = data; updateHUDUI(); updateTacticalLineupsUI(); updatePlayerStatsUI();
+    currentMatchState = data; updateHUDUI(); updateTacticalLineupsUI(); updatePlayerStatsUI(); updateSummaryUI();
 }
 
 // ==========================================
@@ -149,159 +151,142 @@ function updatePlayerStatsUI() {
     if(document.getElementById('stat-val-passes')) document.getElementById('stat-val-passes').innerText = currentMatchState.stat_passes ?? 0;
     if(document.getElementById('stat-val-goals')) document.getElementById('stat-val-goals').innerText = currentMatchState.stat_goals ?? 0;
     if(document.getElementById('stat-val-assists')) document.getElementById('stat-val-assists').innerText = currentMatchState.stat_assists ?? 0;
-    
     const accent = document.getElementById('stats-player-accent');
-    if(accent) {
-        accent.style.backgroundColor = currentMatchState.stat_player_team === 'home' ? currentMatchState.home_color : currentMatchState.away_color;
+    if(accent) { accent.style.backgroundColor = currentMatchState.stat_player_team === 'home' ? currentMatchState.home_color : currentMatchState.away_color; }
+}
+
+// DODANA FUNKCJA: UPDATE SUMMARY BAR UI
+function updateSummaryUI() {
+    if(document.getElementById('summary-txt-title')) document.getElementById('summary-txt-title').innerText = (currentMatchState.summary_name || "STATYSTYKA").toUpperCase();
+    if(document.getElementById('summary-txt-home')) document.getElementById('summary-txt-home').innerText = currentMatchState.summary_home ?? 50;
+    if(document.getElementById('summary-txt-away')) document.getElementById('summary-txt-away').innerText = currentMatchState.summary_away ?? 50;
+    if(document.getElementById('summary-home-team-name')) document.getElementById('summary-home-team-name').innerText = currentMatchState.home_name;
+    if(document.getElementById('summary-away-team-name')) document.getElementById('summary-away-team-name').innerText = currentMatchState.away_name;
+
+    const barHome = document.getElementById('summary-bar-home');
+    const barAway = document.getElementById('summary-bar-away');
+    if(barHome) barHome.style.backgroundColor = currentMatchState.home_color || "#0052cc";
+    if(barAway) barAway.style.backgroundColor = currentMatchState.away_color || "#ff0044";
+
+    const total = (currentMatchState.summary_home || 0) + (currentMatchState.summary_away || 0);
+    let homePct = 50; let awayPct = 50;
+    if (total > 0) {
+        homePct = (currentMatchState.summary_home / total) * 100;
+        awayPct = (currentMatchState.summary_away / total) * 100;
+    }
+    if(barHome) barHome.style.width = `${homePct}%`;
+    if(barAway) barAway.style.width = `${awayPct}%`;
+}
+
+// ==========================================
+// PERSYSTENCJA SUPABASE REALTIME
+// ==========================================
+
+async function fetchInitialState() {
+    if (!supabaseClient) return;
+    const { data, error } = await supabaseClient.from('broadcast_state').select('state_json').eq('id', 1).single();
+    if (data && data.state_json) {
+        currentMatchState = { ...currentMatchState, ...data.state_json };
+        const statusEl = document.getElementById('db-status');
+        if (statusEl) { statusEl.innerText = "POŁĄCZONO"; statusEl.classList.add('connected'); }
+    } else if (error) {
+        console.error("Błąd ładowania stanu początkowego:", error);
     }
 }
 
-function updateControlPanelUI() {
-    const fields = [
-        'ctrl-home-name', 'ctrl-away-name', 'ctrl-home-logo', 'ctrl-away-logo', 'ctrl-home-color', 'ctrl-away-color', 'ctrl-lineups-team',
-        'ctrl-home-coach', 'ctrl-home-subs', 'ctrl-home-p1', 'ctrl-home-p2', 'ctrl-home-p3', 'ctrl-home-p4', 'ctrl-home-p5',
-        'ctrl-away-coach', 'ctrl-away-subs', 'ctrl-away-p1', 'ctrl-away-p2', 'ctrl-away-p3', 'ctrl-away-p4', 'ctrl-away-p5',
-        'ctrl-stat-player-name', 'ctrl-stat-player-team', 'ctrl-stat-shots', 'ctrl-stat-passes', 'ctrl-stat-goals', 'ctrl-stat-assists',
-        'ctrl-sub-out', 'ctrl-sub-in', 'ctrl-sub-team'
-    ];
-    fields.forEach(field => {
-        const el = document.getElementById(field); if (el) { const key = field.replace('ctrl-', '').replace(/-/g, '_'); el.value = currentMatchState[key] || (el.type === 'number' ? 0 : ""); }
-    });
-    if(document.getElementById('ctrl-home-score')) document.getElementById('ctrl-home-score').innerText = currentMatchState.home_score;
-    if(document.getElementById('ctrl-away-score')) document.getElementById('ctrl-away-score').innerText = currentMatchState.away_score;
-    if(document.getElementById('ctrl-timer')) document.getElementById('ctrl-timer').innerText = formatTime(currentMatchState.match_time);
+async function saveStateToSupabase() {
+    if (!supabaseClient) return;
+    await supabaseClient.from('broadcast_state').upsert({ id: 1, state_json: currentMatchState, updated_at: new Date() });
+    if (realtimeChannel) { await realtimeChannel.send({ type: 'broadcast', event: 'state-change', payload: currentMatchState }); }
 }
 
 // ==========================================
-// SUPABASE REALTIME
+// GSAP SILNIK ANIMACJI (OVERLAY VIEW ENGINE)
 // ==========================================
 
-function sendBroadcastState() { if (realtimeChannel) realtimeChannel.send({ type: 'broadcast', event: 'state-change', payload: currentMatchState }); }
-async function saveStateToSupabase() { sendBroadcastState(); await supabaseClient.from('match_state').update(currentMatchState).eq('id', 'live_match'); }
-async function fetchInitialState() { let { data } = await supabaseClient.from('match_state').select('*').eq('id', 'live_match').single(); if (data) currentMatchState = data; }
+function runGSAPGoalAnimation(player, team, color, logo) {
+    const container = document.getElementById('goal-overlay'); if (!container) return;
+    const txtPlayer = document.getElementById('goal-scorer'); const txtTeam = document.getElementById('goal-team');
+    const txtTime = document.getElementById('goal-time'); const accent = document.getElementById('goal-card-accent');
+    const bgLogo = document.getElementById('goal-bg-logo');
 
-// ==========================================
-// FUNKCJE PANELU
-// ==========================================
-
-function changeScore(team, val) {
-    if (team === 'home') currentMatchState.home_score = Math.max(0, currentMatchState.home_score + val);
-    else currentMatchState.away_score = Math.max(0, currentMatchState.away_score + val);
-    if (document.getElementById(`ctrl-${team}-score`)) document.getElementById(`ctrl-${team}-score`).innerText = currentMatchState[`${team}_score`];
-    saveStateToSupabase();
-}
-
-function swapTeams() {
-    const temp = {
-        name: currentMatchState.home_name, score: currentMatchState.home_score, logo: currentMatchState.home_logo, color: currentMatchState.home_color,
-        coach: currentMatchState.home_coach, subs: currentMatchState.home_subs,
-        p1: currentMatchState.home_p1, p2: currentMatchState.home_p2, p3: currentMatchState.home_p3, p4: currentMatchState.home_p4, p5: currentMatchState.home_p5
-    };
-    currentMatchState.home_name = currentMatchState.away_name; currentMatchState.home_score = currentMatchState.away_score; currentMatchState.home_logo = currentMatchState.away_logo; currentMatchState.home_color = currentMatchState.away_color;
-    currentMatchState.home_coach = currentMatchState.away_coach; currentMatchState.home_subs = currentMatchState.away_subs; currentMatchState.home_p1 = currentMatchState.away_p1; currentMatchState.home_p2 = currentMatchState.away_p2; currentMatchState.home_p3 = currentMatchState.away_p3; currentMatchState.home_p4 = currentMatchState.away_p4; currentMatchState.home_p5 = currentMatchState.away_p5;
-    currentMatchState.away_name = temp.name; currentMatchState.away_score = temp.score; currentMatchState.away_logo = temp.logo; currentMatchState.away_color = temp.color;
-    currentMatchState.away_coach = temp.coach; currentMatchState.away_subs = temp.subs; currentMatchState.away_p1 = temp.p1; currentMatchState.away_p2 = temp.p2; currentMatchState.away_p3 = temp.p3; currentMatchState.away_p4 = temp.p4; currentMatchState.away_p5 = temp.p5;
-    currentMatchState.lineups_team = currentMatchState.lineups_team === 'home' ? 'away' : 'home'; currentMatchState.stat_player_team = currentMatchState.stat_player_team === 'home' ? 'away' : 'home';
-    updateControlPanelUI(); saveStateToSupabase();
-}
-
-function updateMatchNames() {
-    currentMatchState.home_name = document.getElementById('ctrl-home-name').value; currentMatchState.away_name = document.getElementById('ctrl-away-name').value;
-    currentMatchState.home_logo = document.getElementById('ctrl-home-logo').value; currentMatchState.away_logo = document.getElementById('ctrl-away-logo').value;
-    currentMatchState.home_color = document.getElementById('ctrl-home-color').value; currentMatchState.away_color = document.getElementById('ctrl-away-color').value;
-    currentMatchState.lineups_team = document.getElementById('ctrl-lineups-team').value;
-    const fields = ['home_coach', 'home_subs', 'home_p1', 'home_p2', 'home_p3', 'home_p4', 'home_p5', 'away_coach', 'away_subs', 'away_p1', 'away_p2', 'away_p3', 'away_p4', 'away_p5'];
-    fields.forEach(f => { const el = document.getElementById(`ctrl-${f.replace(/_/g, '-')}`); if(el) currentMatchState[f] = el.value; });
-    saveStateToSupabase();
-}
-
-function updatePlayerStatsData() {
-    currentMatchState.stat_player_name = document.getElementById('ctrl-stat-player-name').value; currentMatchState.stat_player_team = document.getElementById('ctrl-stat-player-team').value;
-    currentMatchState.stat_shots = parseInt(document.getElementById('ctrl-stat-shots').value) || 0; currentMatchState.stat_passes = parseInt(document.getElementById('ctrl-stat-passes').value) || 0;
-    currentMatchState.stat_goals = parseInt(document.getElementById('ctrl-stat-goals').value) || 0; currentMatchState.stat_assists = parseInt(document.getElementById('ctrl-stat-assists').value) || 0;
-    saveStateToSupabase();
-}
-
-function toggleLineups() { currentMatchState.show_lineups = !currentMatchState.show_lineups; saveStateToSupabase(); }
-function togglePlayerStatsOverlay() { currentMatchState.show_player_stats = !currentMatchState.show_player_stats; saveStateToSupabase(); }
-
-// ==========================================
-// WYWOŁYWANIE ANIMACJI
-// ==========================================
-
-async function triggerGoalAnimation() {
-    if (currentMatchState.show_goal_trigger || isAnimationPlaying) return;
-    currentMatchState.scorer_name = document.getElementById('ctrl-scorer-name').value; currentMatchState.scorer_team = document.getElementById('ctrl-scorer-team').value;
-    currentMatchState.show_goal_trigger = true;
-    if (currentMatchState.scorer_team === 'home') currentMatchState.home_score++; else currentMatchState.away_score++;
-    updateControlPanelUI(); sendBroadcastState();
-    let dbState = { ...currentMatchState, show_goal_trigger: false };
-    await supabaseClient.from('match_state').update(dbState).eq('id', 'live_match');
-    setTimeout(() => { currentMatchState.show_goal_trigger = false; }, 1000);
-}
-
-async function triggerSubAnimation() {
-    if (currentMatchState.show_sub_trigger || isSubAnimationPlaying) return;
-    currentMatchState.sub_out = document.getElementById('ctrl-sub-out').value;
-    currentMatchState.sub_in = document.getElementById('ctrl-sub-in').value;
-    currentMatchState.sub_team = document.getElementById('ctrl-sub-team').value;
-    currentMatchState.show_sub_trigger = true;
+    if (txtPlayer) txtPlayer.innerText = player.toUpperCase();
+    if (txtTeam) txtTeam.innerText = team.toUpperCase();
+    if (txtTime) txtTime.innerText = `${formatTime(currentMatchState.match_time)} - BRAMKA`;
+    if (accent) accent.style.borderColor = color;
     
-    sendBroadcastState();
-    let dbState = { ...currentMatchState, show_sub_trigger: false };
-    await supabaseClient.from('match_state').update(dbState).eq('id', 'live_match');
-    setTimeout(() => { currentMatchState.show_sub_trigger = false; }, 1000);
+    if (logo && logo.trim() !== \"\") {
+        if (bgLogo) { bgLogo.src = logo; bgLogo.classList.remove('hidden'); }
+    } else {
+        if (bgLogo) bgLogo.classList.add('hidden');
+    }
+
+    isAnimationPlaying = true;
+    gsap.set(container, { visibility: 'visible', y: 200, opacity: 0, scale: 0.8 });
+    
+    let tl = gsap.timeline({ onComplete: () => {
+        setTimeout(() => {
+            gsap.to(container, { y: 200, opacity: 0, scale: 0.8, duration: 0.6, ease: \"power3.in\", onComplete: () => {
+                gsap.set(container, { visibility: 'hidden' }); isAnimationPlaying = false;
+            }});
+        }, 5000);
+    }});
+    
+    tl.to(container, { y: 0, opacity: 1, scale: 1, duration: 0.7, ease: \"elastic.out(1, 0.75)\" });
 }
 
-// ==========================================
-// LOGIKA WYŚWIETLANIA GSAP
-// ==========================================
+function runGSAPSubAnimation(pOut, pIn, teamName, color) {
+    const container = document.getElementById('sub-overlay'); if (!container) return;
+    const txtOut = document.getElementById('sub-txt-out'); const txtIn = document.getElementById('sub-txt-in');
+    const txtTeam = document.getElementById('sub-team-name'); const accent = document.getElementById('sub-card-accent');
 
-function runGSAPGoalAnimation(scorer, teamName, teamColor, teamLogo) {
-    isAnimationPlaying = true; const exactGoalTime = formatTime(currentMatchState.match_time);
-    const scorerEl = document.getElementById('goal-scorer');
-    if (scorerEl) scorerEl.innerText = (scorer && scorer.trim() !== "") ? scorer.toUpperCase() : "ZAWODNIK";
-    if (document.getElementById('goal-team')) document.getElementById('goal-team').innerText = teamName;
-    if (document.getElementById('goal-time')) document.getElementById('goal-time').innerText = exactGoalTime;
-    if (document.getElementById('goal-card-accent')) document.getElementById('goal-card-accent').style.borderBottom = `6px solid ${teamColor}`;
-    const bgLogoImg = document.getElementById('goal-bg-logo');
-    if (bgLogoImg) { if (teamLogo && teamLogo.trim() !== "") { bgLogoImg.src = teamLogo; bgLogoImg.classList.remove('hidden'); } else { bgLogoImg.classList.add('hidden'); } }
-    const overlay = document.getElementById('goal-overlay'); if (!overlay) return; const card = overlay.querySelector('.goal-tv-card');
-    let tl = gsap.timeline({ onStart: () => { gsap.set(overlay, { visibility: 'visible', opacity: 1 }); } });
-    tl.fromTo(card, { y: 150, opacity: 0, scale: 0.95 }, { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: "power4.out" })
-      .to({}, { duration: 8.0 }) 
-      .to(card, { y: 150, opacity: 0, scale: 0.95, duration: 0.5, ease: "power4.in", onComplete: () => { gsap.set(overlay, { visibility: 'hidden' }); isAnimationPlaying = false; currentMatchState.show_goal_trigger = false; }});
-}
+    if (txtOut) txtOut.innerText = pOut.toUpperCase();
+    if (txtIn) txtIn.innerText = pIn.toUpperCase();
+    if (txtTeam) txtTeam.innerText = teamName.toUpperCase();
+    if (accent) accent.style.backgroundColor = color;
 
-function runGSAPSubAnimation(sOut, sIn, teamName, teamColor) {
     isSubAnimationPlaying = true;
-    if (document.getElementById('sub-team-name')) document.getElementById('sub-team-name').innerText = teamName.toUpperCase();
-    if (document.getElementById('sub-txt-out')) document.getElementById('sub-txt-out').innerText = (sOut || "ZAWODNIK").toUpperCase();
-    if (document.getElementById('sub-txt-in')) document.getElementById('sub-txt-in').innerText = (sIn || "ZAWODNIK").toUpperCase();
-    if (document.getElementById('sub-card-accent')) document.getElementById('sub-card-accent').style.backgroundColor = teamColor;
+    gsap.set(container, { visibility: 'visible', x: 400, opacity: 0 });
 
-    const overlay = document.getElementById('sub-overlay'); if (!overlay) return;
-    const card = overlay.querySelector('.sub-tv-card');
-    
-    let tl = gsap.timeline({ onStart: () => { gsap.set(overlay, { visibility: 'visible', opacity: 1 }); } });
-    tl.fromTo(card, { y: 120, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" })
-      .to({}, { duration: 7.0 }) 
-      .to(card, { y: 120, opacity: 0, duration: 0.5, ease: "power3.in", onComplete: () => { gsap.set(overlay, { visibility: 'hidden' }); isSubAnimationPlaying = false; currentMatchState.show_sub_trigger = false; }});
+    let tl = gsap.timeline({ onComplete: () => {
+        setTimeout(() => {
+            gsap.to(container, { x: 400, opacity: 0, duration: 0.5, ease: \"power3.in\", onComplete: () => {
+                gsap.set(container, { visibility: 'hidden' }); isSubAnimationPlaying = false;
+            }});
+        }, 6000);
+    }});
+
+    tl.to(container, { x: 0, opacity: 1, duration: 0.6, ease: \"power3.out\" });
 }
 
 function toggleGSAPTacticalLineups(show) {
     const container = document.getElementById('tactical-lineups-overlay'); if (!container) return;
-    if (show) { gsap.set(container, { visibility: 'visible', opacity: 0 }); gsap.to(container, { opacity: 1, duration: 0.5, ease: "power2.out" }); }
-    else { gsap.to(container, { opacity: 0, duration: 0.4, ease: "power2.in", onComplete: () => { gsap.set(container, { visibility: 'hidden' }); }}); }
+    if (show) {
+        gsap.set(container, { visibility: 'visible', y: -600, opacity: 0, scale: 0.95 });
+        gsap.to(container, { y: 0, opacity: 1, scale: 1, duration: 0.8, ease: \"power4.out\" });
+    } else {
+        gsap.to(container, { y: -600, opacity: 0, scale: 0.95, duration: 0.6, ease: \"power4.in\", onComplete: () => { gsap.set(container, { visibility: 'hidden' }); }});
+    }
 }
 
 function toggleGSAPPlayerStats(show) {
     const container = document.getElementById('player-stats-overlay'); if (!container) return;
     if (show) {
         gsap.set(container, { visibility: 'visible', x: -400, opacity: 0 });
-        gsap.to(container, { x: 0, opacity: 1, duration: 0.6, ease: "power3.out" });
+        gsap.to(container, { x: 0, opacity: 1, duration: 0.6, ease: \"power3.out\" });
     } else {
-        gsap.to(container, { x: -400, opacity: 0, duration: 0.5, ease: "power3.in", onComplete: () => { gsap.set(container, { visibility: 'hidden' }); }});
+        gsap.to(container, { x: -400, opacity: 0, duration: 0.5, ease: \"power3.in\", onComplete: () => { gsap.set(container, { visibility: 'hidden' }); }});
+    }
+}
+
+// DODANA FUNKCJA: GSAP ANIMACJA SUMMARY BAR (SLIDE UP, FADE IN, LEKKI ZOOM)
+function toggleGSAPSummary(show) {
+    const container = document.getElementById('summary-overlay'); if (!container) return;
+    if (show) {
+        gsap.set(container, { visibility: 'visible', yPercent: 50, xPercent: -50, opacity: 0, scale: 0.9 });
+        gsap.to(container, { yPercent: -50, xPercent: -50, opacity: 1, scale: 1, duration: 0.6, ease: \"power3.out\" });
+    } else {
+        gsap.to(container, { yPercent: 50, xPercent: -50, opacity: 0, scale: 0.9, duration: 0.5, ease: \"power3.in\", onComplete: () => { gsap.set(container, { visibility: 'hidden' }); }});
     }
 }
 
@@ -311,7 +296,7 @@ function toggleGSAPPlayerStats(show) {
 
 function parseAndSetPlayer(elementId, playerString) {
     const container = document.getElementById(elementId); if (!container) return;
-    let number = "0", name = "ZAWODNIK";
+    let number = \"0\", name = \"ZAWODNIK\";
     if (playerString && playerString.includes('.')) {
         const parts = playerString.split('.'); number = parts[0].trim(); name = parts.slice(1).join('.').trim();
     } else if (playerString) { name = playerString.trim(); }
@@ -321,7 +306,10 @@ function parseAndSetPlayer(elementId, playerString) {
 
 function setupCrest(elementId, url) {
     const img = document.getElementById(elementId); if (!img) return;
-    if (url && url.trim() !== "") { img.src = url; img.classList.remove('hidden'); } else { img.classList.add('hidden'); }
+    if (url && url.trim() !== \"\") { img.src = url; img.classList.remove('hidden'); } else { img.classList.add('hidden'); }
 }
 
-function formatTime(totalSeconds) { const mins = Math.floor(totalSeconds / 60); const secs = totalSeconds % 60; return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`; }
+function formatTime(sec) {
+    const m = Math.floor(sec / 60); const s = sec % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+}
