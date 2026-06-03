@@ -16,7 +16,7 @@ let currentMatchState = {
     stat_player_name: "ZAWODNIK", stat_player_team: "home", show_player_stats: false,
     stat_shots: 0, stat_passes: 0, stat_goals: 0, stat_assists: 0,
     sub_out: "", sub_in: "", sub_team: "home", show_sub_trigger: false,
-    summary_name: "HALFTIME", show_summary: false, goals_history: []
+    goals_history: [], show_summary: false, summary_name: ""
 };
 
 let timerInterval = null; let realtimeChannel = null; let isAnimationPlaying = false; let isSubAnimationPlaying = false;
@@ -33,7 +33,7 @@ async function initOverlayView() {
 }
 
 async function initControlPanel() {
-    await fetchInitialState(); updateControlPanelUI();
+    await fetchInitialState(); updateControlPanelUI(); switchLineupsControlTeam();
     if (currentMatchState.is_running) startLocalTimer();
     
     realtimeChannel = supabaseClient.channel('match-broadcast', { config: { broadcast: { ack: false, self: false } } }); 
@@ -60,54 +60,139 @@ function handleStateUpdate(data) {
         const teamName = data.sub_team === 'home' ? data.home_name : data.away_name;
         runGSAPSubAnimation(data.sub_out, data.sub_in, teamName, teamColor);
     }
-    if (data.show_lineups !== currentMatchState.show_lineups) toggleGSAPTacticalLineups(data.show_lineups);
-    if (data.show_player_stats !== currentMatchState.show_player_stats) toggleGSAPPlayerStats(data.show_player_stats);
-    if (data.show_summary !== currentMatchState.show_summary) toggleGSAPSummary(data.show_summary);
-    if (data.is_running !== currentMatchState.is_running) { if (data.is_running) startLocalTimer(); else clearInterval(timerInterval); }
-    
-    currentMatchState = data; updateHUDUI(); updateTacticalLineupsUI(); updatePlayerStatsUI(); updateSummaryUI();
+    currentMatchState = data;
+    updateHUDUI();
+    updateTacticalLineupsUI();
+    updatePlayerStatsUI();
+    updateSummaryUI();
 }
 
 // ==========================================
-// KONTROLA CZASU
+// OPERACJE NA SYSTEMIE PODSUMOWANIA (SUMMARY BOARD)
 // ==========================================
+
+function updateSummaryUI() {
+    const summaryOverlay = document.getElementById('summary-overlay');
+    if (!summaryOverlay) return;
+
+    // Animacja wejścia / wyjścia całej planszy podsumowania przez GSAP
+    if (currentMatchState.show_summary) {
+        const titleEl = document.getElementById('summary-board-title');
+        const homeNameEl = document.getElementById('summary-board-name-home');
+        const awayNameEl = document.getElementById('summary-board-name-away');
+        const homeScoreEl = document.getElementById('summary-board-score-home');
+        const awayScoreEl = document.getElementById('summary-board-score-away');
+        const homeList = document.getElementById('summary-scorers-list-home');
+        const awayList = document.getElementById('summary-scorers-list-away');
+        const accentHome = document.getElementById('summary-footer-accent-home');
+        const accentAway = document.getElementById('summary-footer-accent-away');
+
+        // Dynamiczny nagłówek na podstawie trybu pracy menedżera
+        if (titleEl) {
+            titleEl.innerText = currentMatchState.summary_name === "HALFTIME" ? "PODSUMOWANIE PIERWSZEJ POŁOWY" : "PODSUMOWANIE MECZU";
+        }
+
+        // Podstawowa ochrona danych oraz wstrzykiwanie nazw i wyników
+        if (homeNameEl) homeNameEl.innerText = (currentMatchState.home_name || "GOSPODARZE").toUpperCase();
+        if (awayNameEl) awayNameEl.innerText = (currentMatchState.away_name || "GOŚCIE").toUpperCase();
+        if (homeScoreEl) homeScoreEl.innerText = currentMatchState.home_score ?? 0;
+        if (awayScoreEl) awayScoreEl.innerText = currentMatchState.away_score ?? 0;
+
+        // Synchronizacja logotypów
+        setupCrest('summary-board-logo-home', currentMatchState.home_logo);
+        setupCrest('summary-board-logo-away', currentMatchState.away_logo);
+
+        // Zmiana barw akcentujących dolne paski
+        if (accentHome) accentHome.style.backgroundColor = currentMatchState.home_color || "#0052cc";
+        if (accentAway) accentAway.style.backgroundColor = currentMatchState.away_color || "#ff0044";
+
+        // Generowanie i czyszczenie list strzelców goli
+        if (homeList) homeList.innerHTML = "";
+        if (awayList) awayList.innerHTML = "";
+
+        const history = currentMatchState.goals_history || [];
+        
+        if (history.length === 0) {
+            if (homeList) homeList.innerHTML = `<div class="summary-scorer-row" style="visibility:hidden;"><span>-</span></div>`;
+            if (awayList) awayList.innerHTML = `<div class="summary-scorer-row" style="visibility:hidden;"><span>-</span></div>`;
+        } else {
+            history.forEach(goal => {
+                // Odrzucenie bramek z drugiej połowy, jeśli emisyjnie włączyliśmy tryb HALFTIME
+                if (currentMatchState.summary_name === "HALFTIME" && parseInt(goal.minute) > 45) {
+                    return;
+                }
+
+                const row = document.createElement('div');
+                row.className = "summary-scorer-row";
+
+                if (goal.team === 'home') {
+                    row.innerHTML = `<span>${goal.name.toUpperCase()}</span> <span class="minute">${goal.minute}'</span>`;
+                    if (homeList) homeList.appendChild(row);
+                } else {
+                    row.innerHTML = `<span class="minute">${goal.minute}'</span> <span>${goal.name.toUpperCase()}</span>`;
+                    if (awayList) awayList.appendChild(row);
+                }
+            });
+            
+            // Ochrona wysokości boksów po przefiltrowaniu minutowym
+            if (homeList && homeList.innerHTML === "") homeList.innerHTML = `<div class="summary-scorer-row" style="visibility:hidden;"><span>-</span></div>`;
+            if (awayList && awayList.innerHTML === "") awayList.innerHTML = `<div class="summary-scorer-row" style="visibility:hidden;"><span>-</span></div>`;
+        }
+
+        gsap.set(summaryOverlay, { visibility: 'visible' });
+        gsap.to(summaryOverlay, { opacity: 1, duration: 0.5 });
+    } else {
+        gsap.to(summaryOverlay, { opacity: 0, duration: 0.4, onComplete: () => gsap.set(summaryOverlay, { visibility: 'hidden' }) });
+    }
+}
+
+// ==========================================
+// PODSTAWOWE OPERACJE BAZODANOWE & POMOCNICZE
+// ==========================================
+
+async function fetchInitialState() {
+    if (!supabaseClient) return;
+    const { data, error } = await supabaseClient.from('broadcast_state').select('*').eq('id', 1).single();
+    if (data && !error) currentMatchState = data;
+}
+
+async function saveStateToSupabase() {
+    if (!supabaseClient || !realtimeChannel) return;
+    const { error } = await supabaseClient.from('broadcast_state').update(currentMatchState).eq('id', 1);
+    if (!error) {
+        await realtimeChannel.send({ type: 'broadcast', event: 'state-change', payload: currentMatchState });
+    }
+}
 
 function startLocalTimer() {
     clearInterval(timerInterval);
-    timerInterval = setInterval(() => { 
-        currentMatchState.match_time++; 
-        
-        if(document.getElementById('hud-timer')) {
-            document.getElementById('hud-timer').innerText = formatTime(currentMatchState.match_time);
-        }
-        if(document.getElementById('ctrl-timer')) {
-            document.getElementById('ctrl-timer').innerText = formatTime(currentMatchState.match_time);
+    timerInterval = setInterval(async () => {
+        if (currentMatchState.is_running) {
+            currentMatchState.match_time++;
+            if (document.getElementById('ctrl-timer')) {
+                document.getElementById('ctrl-timer').innerText = formatTime(currentMatchState.match_time);
+            }
         }
     }, 1000);
 }
 
-function toggleTimer() { 
-    currentMatchState.is_running = !currentMatchState.is_running; 
-    if (!currentMatchState.is_running) {
-        clearInterval(timerInterval);
-    } else {
-        startLocalTimer();
-    }
-    saveStateToSupabase(); 
+async function toggleTimer() {
+    currentMatchState.is_running = !currentMatchState.is_running;
+    if (currentMatchState.is_running) startLocalTimer(); else clearInterval(timerInterval);
+    await saveStateToSupabase();
 }
 
-function resetTimer() { 
-    clearInterval(timerInterval);
-    currentMatchState.is_running = false; 
-    currentMatchState.match_time = 0; 
-    if(document.getElementById('ctrl-timer')) document.getElementById('ctrl-timer').innerText = "00:00"; 
-    if(document.getElementById('hud-timer')) document.getElementById('hud-timer').innerText = "00:00"; 
-    saveStateToSupabase(); 
+async function resetTimer() {
+    currentMatchState.is_running = false; clearInterval(timerInterval); currentMatchState.match_time = 0;
+    if(document.getElementById('ctrl-timer')) document.getElementById('ctrl-timer').innerText = "00:00";
+    await saveStateToSupabase();
 }
 
-// ==========================================
-// AKTUALIZACJA INTERFEJSU (UI)
-// ==========================================
+function formatTime(secs) {
+    const m = Math.floor(secs / 60).toString().padStart(2, '0');
+    const s = (secs % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+}
 
 function updateHUDUI() {
     if(document.getElementById('hud-home-name')) document.getElementById('hud-home-name').innerText = currentMatchState.home_name;
@@ -115,183 +200,47 @@ function updateHUDUI() {
     if(document.getElementById('hud-home-score')) document.getElementById('hud-home-score').innerText = currentMatchState.home_score;
     if(document.getElementById('hud-away-score')) document.getElementById('hud-away-score').innerText = currentMatchState.away_score;
     if(document.getElementById('hud-timer')) document.getElementById('hud-timer').innerText = formatTime(currentMatchState.match_time);
-    if(document.getElementById('hud-home-accent')) document.getElementById('hud-home-accent').style.backgroundColor = currentMatchState.home_color;
-    if(document.getElementById('hud-away-accent')) document.getElementById('hud-away-accent').style.backgroundColor = currentMatchState.away_color;
-    setupCrest('hud-home-logo', currentMatchState.home_logo); setupCrest('hud-away-logo', currentMatchState.away_logo);
+    setupCrest('hud-home-logo', currentMatchState.home_logo);
+    setupCrest('hud-away-logo', currentMatchState.away_logo);
+    const hAcc = document.getElementById('hud-home-accent'); if(hAcc) hAcc.style.backgroundColor = currentMatchState.home_color;
+    const aAcc = document.getElementById('hud-away-accent'); if(aAcc) aAcc.style.backgroundColor = currentMatchState.away_color;
 }
 
 function updateTacticalLineupsUI() {
-    const activeTeam = currentMatchState.lineups_team || "home";
-    const titleEl = document.getElementById('tactical-team-name');
-    const coachEl = document.getElementById('tactical-coach-name');
-    const subsEl = document.getElementById('tactical-subs-list');
-    const topLogo = document.getElementById('tactical-top-logo');
-    const bgLogo = document.getElementById('tactical-bg-logo');
-    const prefix = activeTeam === "home" ? "home" : "away";
-
-    if (titleEl) titleEl.innerText = currentMatchState[`${prefix}_name`].toUpperCase();
-    if (coachEl) coachEl.innerText = `TRENER: ${currentMatchState[`${prefix}_coach`].toUpperCase()}`;
-    if (subsEl) subsEl.innerText = currentMatchState[`${prefix}_subs`] || "Brak rezerwowych";
-
-    const logoUrl = currentMatchState[`${prefix}_logo`];
-    if (logoUrl && logoUrl.trim() !== "") {
-        if (topLogo) { topLogo.src = logoUrl; topLogo.classList.remove('hidden'); }
-        if (bgLogo) { bgLogo.src = logoUrl; bgLogo.classList.remove('hidden'); }
+    const container = document.getElementById('tactical-lineups-overlay'); if (!container) return;
+    if (currentMatchState.show_lineups) {
+        const team = currentMatchState.lineups_team;
+        if(document.getElementById('tactical-team-name')) document.getElementById('tactical-team-name').innerText = team === 'home' ? currentMatchState.home_name : currentMatchState.away_name;
+        const coach = currentMatchState[team + '_coach'] || "BRAK";
+        const subs = currentMatchState[team + '_subs'] || "BRAK REZERWOWYCH";
+        const topLogo = team === 'home' ? currentMatchState.home_logo : currentMatchState.away_logo;
+        setupCrest('tactical-top-logo', topLogo); setupCrest('tactical-bg-logo', topLogo);
+        const cardEl = container.querySelector('.tactical-card'); if(cardEl) cardEl.style.borderTop = `6px solid ${team === 'home' ? currentMatchState.home_color : currentMatchState.away_color}`;
+        const sList = document.getElementById('tactical-subs-list'); if(sList) sList.innerText = subs.toUpperCase();
+        const coachEl = document.getElementById('tactical-coach-name'); if(coachEl) coachEl.innerText = coach.toUpperCase();
+        
+        for (let i = 1; i <= 5; i++) {
+            parseAndSetPlayer(`tactical-p${i}`, currentMatchState[team + '_p' + i]);
+            const shirt = document.querySelector(`#tactical-p${i} .player-shirt`);
+            if (shirt) shirt.style.backgroundColor = team === 'home' ? currentMatchState.home_color : currentMatchState.away_color;
+        }
+        gsap.set(container, { visibility: 'visible', yPercent: -50, xPercent: -50, opacity: 0, scale: 0.9 });
+        gsap.to(container, { yPercent: -50, xPercent: -50, opacity: 1, scale: 1, duration: 0.6, ease: "power3.out" });
     } else {
-        if (topLogo) topLogo.classList.add('hidden'); if (bgLogo) bgLogo.classList.add('hidden');
+        gsap.to(container, { yPercent: 50, xPercent: -50, opacity: 0, scale: 0.9, duration: 0.5, ease: "power3.in", onComplete: () => { gsap.set(container, { visibility: 'hidden' }); }});
     }
-    for (let i = 1; i <= 5; i++) { parseAndSetPlayer(`tactical-p${i}`, currentMatchState[`${prefix}_p${i}`]); }
 }
 
 function updatePlayerStatsUI() {
-    if(document.getElementById('stats-player-name')) document.getElementById('stats-player-name').innerText = (currentMatchState.stat_player_name || "ZAWODNIK").toUpperCase();
-    if(document.getElementById('stat-val-shots')) document.getElementById('stat-val-shots').innerText = currentMatchState.stat_shots ?? 0;
-    if(document.getElementById('stat-val-passes')) document.getElementById('stat-val-passes').innerText = currentMatchState.stat_passes ?? 0;
-    if(document.getElementById('stat-val-goals')) document.getElementById('stat-val-goals').innerText = currentMatchState.stat_goals ?? 0;
-    if(document.getElementById('stat-val-assists')) document.getElementById('stat-val-assists').innerText = currentMatchState.stat_assists ?? 0;
-    const accent = document.getElementById('stats-player-accent');
-    if(accent) { accent.style.backgroundColor = currentMatchState.stat_player_team === 'home' ? currentMatchState.home_color : currentMatchState.away_color; }
-}
-
-// PRZEROBIONA FUNKCJA GENEROWANIA PODSUMOWANIA ZE STRZELCAMI (UEFA STYLE)
-function updateSummaryUI() {
-    const titleBox = document.getElementById('summary-txt-title');
-    if (titleBox) titleBox.innerText = currentMatchState.summary_name === "FULLTIME" ? "FULLTIME MATCH SUMMARY" : "HALFTIME MATCH SUMMARY";
-
-    if(document.getElementById('summary-board-name-home')) document.getElementById('summary-board-name-home').innerText = currentMatchState.home_name;
-    if(document.getElementById('summary-board-name-away')) document.getElementById('summary-board-name-away').innerText = currentMatchState.away_name;
-    if(document.getElementById('summary-board-score-home')) document.getElementById('summary-board-score-home').innerText = currentMatchState.home_score;
-    if(document.getElementById('summary-board-score-away')) document.getElementById('summary-board-score-away').innerText = currentMatchState.away_score;
-
-    setupCrest('summary-board-logo-home', currentMatchState.home_logo);
-    setupCrest('summary-board-logo-away', currentMatchState.away_logo);
-
-    if(document.getElementById('summary-footer-accent-home')) document.getElementById('summary-footer-accent-home').style.backgroundColor = currentMatchState.home_color || "#0052cc";
-    if(document.getElementById('summary-footer-accent-away')) document.getElementById('summary-footer-accent-away').style.backgroundColor = currentMatchState.away_color || "#ff0044";
-
-    const homeList = document.getElementById('summary-scorers-list-home');
-    const awayList = document.getElementById('summary-scorers-list-away');
-    
-    if (homeList && awayList) {
-        homeList.innerHTML = "";
-        awayList.innerHTML = "";
-        
-        const history = currentMatchState.goals_history || [];
-        
-        history.forEach(goal => {
-            // Jeśli wybrano tryb HALFTIME, filtrujemy tylko bramki do 45 minuty włącznie
-            if (currentMatchState.summary_name === "HALFTIME" && goal.minute > 45) {
-                return;
-            }
-
-            const row = document.createElement('div');
-            row.className = "summary-scorer-row";
-            
-            if (goal.team === 'home') {
-                row.innerHTML = `<span>${goal.name}</span> <span class="minute">${goal.minute}'</span>`;
-                homeList.appendChild(row);
-            } else {
-                row.innerHTML = `<span class="minute">${goal.minute}'</span> <span>${goal.name}</span>`;
-                awayList.appendChild(row);
-            }
-        });
-    }
-}
-
-// ==========================================
-// PERSYSTENCJA SUPABASE REALTIME
-// ==========================================
-
-async function fetchInitialState() {
-    if (!supabaseClient) return;
-    const { data, error } = await supabaseClient.from('broadcast_state').select('state_json').eq('id', 1).single();
-    if (data && data.state_json) {
-        currentMatchState = { ...currentMatchState, ...data.state_json };
-        const statusEl = document.getElementById('db-status');
-        if (statusEl) { statusEl.innerText = "POŁĄCZONO"; statusEl.classList.add('connected'); }
-    } else if (error) {
-        console.error("Błąd ładowania stanu początkowego:", error);
-    }
-}
-
-async function saveStateToSupabase() {
-    if (!supabaseClient) return;
-    await supabaseClient.from('broadcast_state').upsert({ id: 1, state_json: currentMatchState, updated_at: new Date() });
-    if (realtimeChannel) { await realtimeChannel.send({ type: 'broadcast', event: 'state-change', payload: currentMatchState }); }
-}
-
-// ==========================================
-// GSAP SILNIK ANIMACJI (OVERLAY VIEW ENGINE)
-// ==========================================
-
-function runGSAPGoalAnimation(player, team, color, logo) {
-    const container = document.getElementById('goal-overlay'); if (!container) return;
-    const txtPlayer = document.getElementById('goal-scorer'); const txtTeam = document.getElementById('goal-team');
-    const txtTime = document.getElementById('goal-time'); const accent = document.getElementById('goal-card-accent');
-    const bgLogo = document.getElementById('goal-bg-logo');
-
-    if (txtPlayer) txtPlayer.innerText = player.toUpperCase();
-    if (txtTeam) txtTeam.innerText = team.toUpperCase();
-    if (txtTime) txtTime.innerText = `${formatTime(currentMatchState.match_time)} - BRAMKA`;
-    if (accent) accent.style.borderColor = color;
-    
-    if (logo && logo.trim() !== "") {
-        if (bgLogo) { bgLogo.src = logo; bgLogo.classList.remove('hidden'); }
-    } else {
-        if (bgLogo) bgLogo.classList.add('hidden');
-    }
-
-    isAnimationPlaying = true;
-    gsap.set(container, { visibility: 'visible', y: 200, opacity: 0, scale: 0.8 });
-    
-    let tl = gsap.timeline({ onComplete: () => {
-        setTimeout(() => {
-            gsap.to(container, { y: 200, opacity: 0, scale: 0.8, duration: 0.6, ease: "power3.in", onComplete: () => {
-                gsap.set(container, { visibility: 'hidden' }); isAnimationPlaying = false;
-            }});
-        }, 5000);
-    }});
-    
-    tl.to(container, { y: 0, opacity: 1, scale: 1, duration: 0.7, ease: "elastic.out(1, 0.75)" });
-}
-
-function runGSAPSubAnimation(pOut, pIn, teamName, color) {
-    const container = document.getElementById('sub-overlay'); if (!container) return;
-    const txtOut = document.getElementById('sub-txt-out'); const txtIn = document.getElementById('sub-txt-in');
-    const txtTeam = document.getElementById('sub-team-name'); const accent = document.getElementById('sub-card-accent');
-
-    if (txtOut) txtOut.innerText = pOut.toUpperCase();
-    if (txtIn) txtIn.innerText = pIn.toUpperCase();
-    if (txtTeam) txtTeam.innerText = teamName.toUpperCase();
-    if (accent) accent.style.backgroundColor = color;
-
-    isSubAnimationPlaying = true;
-    gsap.set(container, { visibility: 'visible', x: 400, opacity: 0 });
-
-    let tl = gsap.timeline({ onComplete: () => {
-        setTimeout(() => {
-            gsap.to(container, { x: 400, opacity: 0, duration: 0.5, ease: "power3.in", onComplete: () => {
-                gsap.set(container, { visibility: 'hidden' }); isSubAnimationPlaying = false;
-            }});
-        }, 6000);
-    }});
-
-    tl.to(container, { x: 0, opacity: 1, duration: 0.6, ease: "power3.out" });
-}
-
-function toggleGSAPTacticalLineups(show) {
-    const container = document.getElementById('tactical-lineups-overlay'); if (!container) return;
-    if (show) {
-        gsap.set(container, { visibility: 'visible', y: -600, opacity: 0, scale: 0.95 });
-        gsap.to(container, { y: 0, opacity: 1, scale: 1, duration: 0.8, ease: "power4.out" });
-    } else {
-        gsap.to(container, { y: -600, opacity: 0, scale: 0.95, duration: 0.6, ease: "power4.in", onComplete: () => { gsap.set(container, { visibility: 'hidden' }); }});
-    }
-}
-
-function toggleGSAPPlayerStats(show) {
     const container = document.getElementById('player-stats-overlay'); if (!container) return;
-    if (show) {
+    if (currentMatchState.show_player_stats) {
+        if(document.getElementById('stat-name')) document.getElementById('stat-name').innerText = currentMatchState.stat_player_name.toUpperCase();
+        if(document.getElementById('stat-val-shots')) document.getElementById('stat-val-shots').innerText = currentMatchState.stat_shots;
+        if(document.getElementById('stat-val-passes')) document.getElementById('stat-val-passes').innerText = currentMatchState.stat_passes;
+        if(document.getElementById('stat-val-goals')) document.getElementById('stat-val-goals').innerText = currentMatchState.stat_goals;
+        if(document.getElementById('stat-val-assists')) document.getElementById('stat-val-assists').innerText = currentMatchState.stat_assists;
+        const activeColor = currentMatchState.stat_player_team === 'home' ? currentMatchState.home_color : currentMatchState.away_color;
+        const bar = document.getElementById('stat-player-accent'); if (bar) bar.style.backgroundColor = activeColor;
         gsap.set(container, { visibility: 'visible', x: -400, opacity: 0 });
         gsap.to(container, { x: 0, opacity: 1, duration: 0.6, ease: "power3.out" });
     } else {
@@ -299,14 +248,32 @@ function toggleGSAPPlayerStats(show) {
     }
 }
 
-function toggleGSAPSummary(show) {
-    const container = document.getElementById('summary-overlay'); if (!container) return;
-    if (show) {
-        gsap.set(container, { visibility: 'visible', yPercent: 50, xPercent: -50, opacity: 0, scale: 0.9 });
-        gsap.to(container, { yPercent: -50, xPercent: -50, opacity: 1, scale: 1, duration: 0.6, ease: "power3.out" });
-    } else {
-        gsap.to(container, { yPercent: 50, xPercent: -50, opacity: 0, scale: 0.9, duration: 0.5, ease: "power3.in", onComplete: () => { gsap.set(container, { visibility: 'hidden' }); }});
-    }
+function runGSAPGoalAnimation(scorer, team, color, logo) {
+    isAnimationPlaying = true; const overlay = document.getElementById('goal-overlay'); if (!overlay) return;
+    if(document.getElementById('goal-scorer')) document.getElementById('goal-scorer').innerText = scorer.toUpperCase();
+    if(document.getElementById('goal-team')) document.getElementById('goal-team').innerText = team.toUpperCase();
+    const currentMin = Math.floor(currentMatchState.match_time / 60);
+    if(document.getElementById('goal-time')) document.getElementById('goal-time').innerText = `${currentMin} MINUTA MECZU`;
+    const acc = document.getElementById('goal-card-accent'); if (acc) acc.style.backgroundColor = color;
+    setupCrest('goal-bg-logo', logo);
+    gsap.set(overlay, { visibility: 'visible', opacity: 0, scale: 0.8 });
+    gsap.to(overlay, { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.2)" });
+    setTimeout(() => {
+        gsap.to(overlay, { opacity: 0, scale: 0.8, duration: 0.4, onComplete: () => { gsap.set(overlay, { visibility: 'hidden' }); isAnimationPlaying = false; }});
+    }, 4000);
+}
+
+function runGSAPSubAnimation(outPlayer, inPlayer, teamName, color) {
+    isSubAnimationPlaying = true; const overlay = document.getElementById('sub-overlay'); if(!overlay) return;
+    if(document.getElementById('sub-team-name')) document.getElementById('sub-team-name').innerText = teamName.toUpperCase();
+    if(document.getElementById('sub-txt-out')) document.getElementById('sub-txt-out').innerText = outPlayer.toUpperCase();
+    if(document.getElementById('sub-txt-in')) document.getElementById('sub-txt-in').innerText = inPlayer.toUpperCase();
+    const acc = document.getElementById('sub-card-accent'); if(acc) acc.style.backgroundColor = color;
+    gsap.set(overlay, { visibility: 'visible', y: 150, opacity: 0 });
+    gsap.to(overlay, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" });
+    setTimeout(() => {
+        gsap.to(overlay, { y: 150, opacity: 0, duration: 0.5, ease: "power3.in", onComplete: () => { gsap.set(overlay, { visibility: 'hidden' }); isSubAnimationPlaying = false; }});
+    }, 4500);
 }
 
 // ==========================================
@@ -326,9 +293,4 @@ function parseAndSetPlayer(elementId, playerString) {
 function setupCrest(elementId, url) {
     const img = document.getElementById(elementId); if (!img) return;
     if (url && url.trim() !== "") { img.src = url; img.classList.remove('hidden'); } else { img.classList.add('hidden'); }
-}
-
-function formatTime(sec) {
-    const m = Math.floor(sec / 60); const s = sec % 60;
-    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 }
