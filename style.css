@@ -19,7 +19,7 @@ body, html {
 .control-body { background-color: var(--bg-dark); color: var(--text-main); overflow-y: auto; padding-bottom: 20px; }
 
 /* ==========================================================================
-   SCOREBOARD HUD - LEWY RÓG (ZWIĘKSZONY & MAKSYMALNIE CZYTELNY)
+   SCOREBOARD HUD
    ========================================================================== */
 .scoreboard-wrapper.left-corner {
     position: absolute;
@@ -111,7 +111,7 @@ body, html {
 }
 
 /* ==========================================================================
-   ANIMACJA GOL - DOLNA POZYCJA Z LOGO W TLE (30% OPACITY)
+   ANIMACJA GOL
    ========================================================================== */
 .goal-overlay-container.bottom-position {
     position: fixed;
@@ -162,224 +162,21 @@ body, html {
 }
 .goal-card-bg-crest.hidden { display: none !important; }
 
-.goal-card-content {
-    position: relative;
-    z-index: 2;
-}
-
-.goal-tv-title {
-    font-size: 34px;
-    font-weight: 900;
-    margin: 0;
-    letter-spacing: 3px;
-    color: #ffffff;
-    text-transform: uppercase;
-}
-
-.goal-tv-details {
-    margin-top: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-}
-
-.goal-tv-player {
-    font-size: 19px;
-    font-weight: 800;
-    color: #ffffff;
-}
-
-.goal-tv-team {
-    font-size: 13px;
-    font-weight: 700;
-    color: rgba(255,255,255,0.6);
-    text-transform: uppercase;
-}
+.goal-card-content { position: relative; z-index: 2; }
+.goal-tv-title { font-size: 34px; font-weight: 900; margin: 0; letter-spacing: 3px; color: #ffffff; text-transform: uppercase; }
+.goal-tv-details { margin-top: 6px; display: flex; align-items: center; justify-content: center; gap: 12px; }
+.goal-tv-player { font-size: 19px; font-weight: 800; color: #ffffff; }
+.goal-tv-team { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.6); text-transform: uppercase; }
 
 /* ==========================================================================
-   TELEWIZYJNA PLANSZA ZMIANY ZAWODNIKA (GSAP)
-   ========================================================================== */
-#sub-overlay {
-    position: fixed;
-    bottom: 60px;
-    right: 50px;
-    z-index: 100;
-}
-
-.sub-tv-card {
-    width: 360px;
-    background: #0d0f14;
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 12px;
-    padding: 16px 20px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.65);
-    position: relative;
-    overflow: hidden;
-}
-
-#sub-card-accent {
-    position: absolute;
-    top: 0; left: 0; bottom: 0;
-    width: 5px;
-    background: #e67e22;
-}
-
-.sub-team-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-    padding-bottom: 8px;
-    margin-bottom: 12px;
-}
-
-.sub-team-title {
-    font-size: 14px;
-    font-weight: 800;
-    color: #ffffff;
-    margin: 0;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.sub-label-badge {
-    font-size: 10px;
-    font-weight: 700;
-    color: #e67e22;
-    background: rgba(230,126,34,0.1);
-    padding: 2px 8px;
-    border-radius: 4px;
-}
-
-.sub-body {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.sub-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.sub-icon {
-    font-size: 14px;
-    font-weight: 900;
-}
-.sub-icon.out { color: #ff4444; }
-.sub-icon.in { color: #00c851; }
-
-.sub-player-text {
-    font-size: 15px;
-    font-weight: 700;
-    color: #ffffff;
-    text-transform: uppercase;
-}
-
-/* ==========================================================================
-   PANEL STEROWANIA (BACK-OFFICE CONTROL PANEL)
-   ========================================================================== */
-.control-grid {
-    display: grid;
-    grid-template-columns: 340px 1fr;
-    gap: 25px;
-    height: 100%;
-    max-width: 1600px;
-    margin: 0 auto;
-    padding: 20px;
-    box-sizing: border-box;
-}
-
-.panel-card {
-    background: var(--bg-card);
-    border: 1px solid #1e2230;
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 20px;
-}
-.panel-card.full-width { grid-column: span 2; }
-
-.panel-card h3 {
-    margin-top: 0;
-    font-size: 16px;
-    font-weight: 700;
-    color: #94a3b8;
-    border-bottom: 1px solid #1e2230;
-    padding-bottom: 10px;
-    margin-bottom: 15px;
-}
-
-.teams-inputs-flex {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.team-section-title {
-    font-size: 13px;
-    color: #64748b;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    margin-bottom: 20px;
-}
-
-.team-control-row {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-}
-
-.team-input-group {
-    width: 44%;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-.team-input-group label { font-size: 12px; font-weight: 600; color: #64748b; }
-
-.action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.goal-trigger-box, .lineup-trigger-box { background: #161924; border: 1px solid #222738; padding: 15px; border-radius: 8px; }
-.goal-trigger-box h4, .lineup-trigger-box h4 { margin-top: 0; font-size: 14px; color: #ffffff; }
-
-.btn-neon-yellow { width: 100%; background: #eab308; color: #000000; border: none; padding: 14px; font-weight: 700; cursor: pointer; border-radius: 6px; font-size: 14px; text-transform: uppercase; }
-.btn-purple { width: 100%; background: #7c3aed; color: white; border: none; padding: 14px; font-weight: 700; cursor: pointer; border-radius: 6px; font-size: 14px; text-transform: uppercase; }
-
-.match-identity-strip { display: flex; justify-content: space-between; align-items: center; background: #161924; border: 1px solid #222738; border-radius: 8px; padding: 12px 20px; margin-bottom: 15px; }
-.identity-team-block { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 15px; }
-.identity-team-block.home { color: #3b82f6; }
-.identity-team-block.away { color: #ef4444; }
-.identity-logo-preview { width: 30px; height: 30px; object-fit: contain; background: #090a0f; border-radius: 4px; padding: 2px; }
-
-.ctrl-score-wrapper { display: flex; align-items: center; gap: 14px; background: #090a0f; border: 1px solid #222738; padding: 6px 14px; border-radius: 8px; }
-.ctrl-score-value { font-size: 32px; font-weight: 800; min-width: 40px; text-align: center; }
-.vs-label { font-size: 20px; color: #475569; font-weight: 800; align-self: center; margin-top: 40px; }
-.timer-display { font-size: 72px; font-weight: 800; text-align: center; margin: 15px 0; color: #ffffff; letter-spacing: -1px; }
-.timer-buttons { display: flex; gap: 12px; }
-.goal-trigger-box input, .goal-trigger-box select { width: 100%; padding: 12px; margin-bottom: 12px; background: #090a0f; border: 1px solid #262c3e; color: white; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
-
-button.btn-primary { width: 100%; background: #262c3e; color: white; border: none; padding: 14px; font-weight: 600; cursor: pointer; border-radius: 6px; font-size: 14px; }
-button.btn-primary:hover { background: #323a52; }
-button.btn-success { flex: 1; background: #10b981; color: white; border: none; padding: 14px; font-weight: 600; cursor: pointer; border-radius: 6px; font-size: 14px; }
-button.btn-danger { flex: 1; background: #ef4444; color: white; border: none; padding: 14px; font-weight: 600; cursor: pointer; border-radius: 6px; font-size: 14px; }
-
-/* ==========================================================================
-   RESPONSYWNOŚĆ SUMMARY BAR DLA OBS / BROWSER SOURCE
+   SUMMARY SCREEN RESPONSIVENESS
    ========================================================================== */
 @media (max-width: 1920px) {
-    #summary-overlay {
-        transform: translate(-50%, -50%) scale(1);
-    }
+    #summary-overlay { transform: translate(-50%, -50%) scale(1); }
 }
 @media (max-width: 1600px) {
-    #summary-overlay {
-        transform: translate(-50%, -50%) scale(0.85);
-    }
+    #summary-overlay { transform: translate(-50%, -50%) scale(0.85); }
 }
 @media (max-width: 1366px) {
-    #summary-overlay {
-        transform: translate(-50%, -50%) scale(0.75);
-    }
+    #summary-overlay { transform: translate(-50%, -50%) scale(0.75); }
 }
