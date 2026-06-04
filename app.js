@@ -11,10 +11,8 @@ let currentMatchState = {
     scorer_name: "", scorer_team: "home", show_goal_trigger: false, show_lineups: false,
     home_logo: "", away_logo: "", home_color: "#0052cc", away_color: "#ff0044",
     lineups_team: "home",
-    home_coach: "", home_subs: "", home_p1: "", home_p2: "", home_p3: "", home_p4: "",
-    home_p5: "", home_p6: "", home_p7: "", home_p8: "", home_p9: "", home_p10: "", home_p11: "",
-    away_coach: "", away_subs: "", away_p1: "", away_p2: "", away_p3: "", away_p4: "",
-    away_p5: "", away_p6: "", away_p7: "", away_p8: "", away_p9: "", away_p10: "", away_p11: "",
+    home_coach: "", home_subs: "", home_p1: "", home_p2: "", home_p3: "", home_p4: "", home_p5: "",
+    away_coach: "", away_subs: "", away_p1: "", away_p2: "", away_p3: "", away_p4: "", away_p5: "",
     sub_out: "", sub_in: "", sub_team: "home", show_sub_trigger: false,
     show_summary_ht: false, show_summary_ft: false,
     home_scorers_list: "", away_scorers_list: ""
@@ -185,7 +183,6 @@ function swapTeams() {
 
     const tempState = { ...currentMatchState };
 
-    // Zamiana podstawowych danych
     currentMatchState.home_name = tempState.away_name;
     currentMatchState.away_name = tempState.home_name;
     currentMatchState.home_score = tempState.away_score;
@@ -195,23 +192,19 @@ function swapTeams() {
     currentMatchState.home_color = tempState.away_color;
     currentMatchState.away_color = tempState.home_color;
 
-    // Zamiana list strzelców bramek
     currentMatchState.home_scorers_list = tempState.away_scorers_list;
     currentMatchState.away_scorers_list = tempState.home_scorers_list;
 
-    // Zamiana sztabu i rezerwowych
     currentMatchState.home_coach = tempState.away_coach;
     currentMatchState.away_coach = tempState.home_coach;
     currentMatchState.home_subs = tempState.away_subs;
     currentMatchState.away_subs = tempState.home_subs;
 
-    // Zamiana wyjściowych jedenastek (p1 do p11)
-    for (let i = 1; i <= 11; i++) {
+    for (let i = 1; i <= 5; i++) {
         currentMatchState[`home_p${i}`] = tempState[`away_p${i}`];
         currentMatchState[`away_p${i}`] = tempState[`home_p${i}`];
     }
 
-    // Odwrócenie aktywnej drużyny w selektorach panelu (żeby widok dopasował się do nowej strony)
     if (tempState.sub_team === 'home') currentMatchState.sub_team = 'away';
     if (tempState.sub_team === 'away') currentMatchState.sub_team = 'home';
     if (tempState.lineups_team === 'home') currentMatchState.lineups_team = 'away';
