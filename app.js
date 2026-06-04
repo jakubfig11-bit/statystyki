@@ -153,7 +153,7 @@ function updatePlayerStatsUI() {
     if(accent) { accent.style.backgroundColor = currentMatchState.stat_player_team === 'home' ? currentMatchState.home_color : currentMatchState.away_color; }
 }
 
-// PRZEROBIONA FUNKCJA GENEROWANIA PODSUMOWANIA ZE STRZELCAMI (UEFA STYLE)
+// ZAKTUALIZOWANA FUNKCJA PODZIAŁU NA POŁOWY W PODSUMOWANIU
 function updateSummaryUI() {
     const titleBox = document.getElementById('summary-txt-title');
     if (titleBox) titleBox.innerText = currentMatchState.summary_name === "FULLTIME" ? "FULLTIME MATCH SUMMARY" : "HALFTIME MATCH SUMMARY";
@@ -178,15 +178,14 @@ function updateSummaryUI() {
         
         const history = currentMatchState.goals_history || [];
         
-        history.forEach(goal => {
-            // Jeśli wybrano tryb HALFTIME, filtrujemy tylko bramki do 45 minuty włącznie
-            if (currentMatchState.summary_name === "HALFTIME" && goal.minute > 45) {
-                return;
-            }
+        // Rozdzielenie goli na pierwszą (<= 45) i drugą (> 45) połowę
+        const firstHalfGoals = history.filter(goal => goal.minute <= 45);
+        const secondHalfGoals = history.filter(goal => goal.minute > 45);
 
+        // Funkcja pomocnicza do renderowania pojedynczego strzelca
+        const appendGoalRow = (goal) => {
             const row = document.createElement('div');
             row.className = "summary-scorer-row";
-            
             if (goal.team === 'home') {
                 row.innerHTML = `<span>${goal.name}</span> <span class="minute">${goal.minute}'</span>`;
                 homeList.appendChild(row);
@@ -194,7 +193,29 @@ function updateSummaryUI() {
                 row.innerHTML = `<span class="minute">${goal.minute}'</span> <span>${goal.name}</span>`;
                 awayList.appendChild(row);
             }
-        });
+        };
+
+        // 1. Renderowanie bramek z I połowy
+        firstHalfGoals.forEach(appendGoalRow);
+
+        // 2. Dodanie przegrody i bramek z II połowy (tylko w trybie FULLTIME i gdy są bramki z II połowy)
+        if (currentMatchState.summary_name === "FULLTIME" && secondHalfGoals.length > 0) {
+            
+            // Przegroda dla kolumny gospodarzy
+            const homeDivider = document.createElement('div');
+            homeDivider.className = "summary-half-divider";
+            homeDivider.innerHTML = "<span>━━━ II POŁOWA ━━━</span>";
+            homeList.appendChild(homeDivider);
+
+            // Przegroda dla kolumny gości
+            const awayDivider = document.createElement('div');
+            awayDivider.className = "summary-half-divider";
+            awayDivider.innerHTML = "<span>━━━ II POŁOWA ━━━</span>";
+            awayList.appendChild(awayDivider);
+
+            // 3. Renderowanie bramek z II połowy
+            secondHalfGoals.forEach(appendGoalRow);
+        }
     }
 }
 
