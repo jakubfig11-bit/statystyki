@@ -29,7 +29,7 @@ async function initOverlayView() {
     await fetchInitialState(); updateHUDUI(); updateTacticalLineupsUI(); updatePlayerStatsUI(); updateSummaryUI();
     if (currentMatchState.is_running) startLocalTimer();
     
-    // Wymuszenie stanu początkowego overlays przed transmisją live
+    // Stan początkowy overlays przed transmisją live
     toggleGSAPTacticalLineups(currentMatchState.show_lineups);
     toggleGSAPPlayerStats(currentMatchState.show_player_stats);
     toggleGSAPSummary(currentMatchState.show_summary);
@@ -307,15 +307,49 @@ function toggleGSAPPlayerStats(show) {
 }
 
 function toggleGSAPSummary(show) {
-    const container = document.getElementById('match-summary-overlay'); if (!container) return;
+    const container = document.getElementById('match-summary-overlay'); 
+    if (!container) return;
+    
     if (show) {
-        // Wymuszenie fizycznej widoczności, wyzerowanie starych transformacji i płynny wjazd od dołu ekranu na środek
         gsap.killTweensOf(container);
-        gsap.set(container, { visibility: 'visible', display: 'block', yPercent: 100, xPercent: -50, top: "50%", left: "50%", opacity: 0, scale: 0.9 });
-        gsap.to(container, { yPercent: -50, xPercent: -50, opacity: 1, scale: 1, duration: 0.8, ease: "power3.out" });
+        
+        // Dynamiczne wyczyszczenie blokad CSS inline i nadpisanie ich priorytetem
+        container.style.setProperty('display', 'block', 'important');
+        container.style.setProperty('visibility', 'visible', 'important');
+        container.style.zIndex = "9999"; 
+        
+        // Bezpieczna baza transformacji: wyśrodkowanie na osi X, zrzucenie pod dół ekranu 1080p
+        gsap.set(container, { 
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            xPercent: -50,
+            yPercent: 150, 
+            opacity: 0,
+            scale: 0.9
+        });
+        
+        // Wjazd na środek ekranu (yPercent -50 oznacza idealne wycentrowanie)
+        gsap.to(container, { 
+            yPercent: -50, 
+            opacity: 1, 
+            scale: 1, 
+            duration: 1.0, 
+            ease: "power3.out" 
+        });
     } else {
         gsap.killTweensOf(container);
-        gsap.to(container, { yPercent: 100, opacity: 0, scale: 0.9, duration: 0.6, ease: "power3.in", onComplete: () => { gsap.set(container, { visibility: 'hidden' }); }});
+        gsap.to(container, { 
+            yPercent: 150, 
+            opacity: 0, 
+            scale: 0.9, 
+            duration: 0.6, 
+            ease: "power3.in", 
+            onComplete: () => { 
+                container.style.setProperty('display', 'none');
+                container.style.setProperty('visibility', 'hidden');
+            }
+        });
     }
 }
 
