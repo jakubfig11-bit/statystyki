@@ -153,7 +153,6 @@ function updatePlayerStatsUI() {
     if(accent) { accent.style.backgroundColor = currentMatchState.stat_player_team === 'home' ? currentMatchState.home_color : currentMatchState.away_color; }
 }
 
-// PRZEROBIONA FUNKCJA GENEROWANIA PODSUMOWANIA ZE STRZELCAMI (UEFA STYLE)
 function updateSummaryUI() {
     const titleBox = document.getElementById('summary-txt-title');
     if (titleBox) titleBox.innerText = currentMatchState.summary_name === "FULLTIME" ? "FULLTIME MATCH SUMMARY" : "HALFTIME MATCH SUMMARY";
@@ -179,7 +178,6 @@ function updateSummaryUI() {
         const history = currentMatchState.goals_history || [];
         
         history.forEach(goal => {
-            // Jeśli wybrano tryb HALFTIME, filtrujemy tylko bramki do 45 minuty włącznie
             if (currentMatchState.summary_name === "HALFTIME" && goal.minute > 45) {
                 return;
             }
@@ -199,7 +197,7 @@ function updateSummaryUI() {
 }
 
 // ==========================================
-// PERSYSTENCJA SUPABASE REALTIME
+// PERSYSTENCJA SUPABASE REALTIME & SWAP SIDE
 // ==========================================
 
 async function fetchInitialState() {
@@ -218,6 +216,69 @@ async function saveStateToSupabase() {
     if (!supabaseClient) return;
     await supabaseClient.from('broadcast_state').upsert({ id: 1, state_json: currentMatchState, updated_at: new Date() });
     if (realtimeChannel) { await realtimeChannel.send({ type: 'broadcast', event: 'state-change', payload: currentMatchState }); }
+}
+
+// IMPLEMENTACJA ZMIANY POŁÓW (SWAP SIDES)
+async function swapSides() {
+    // 1. Zamiana podstawowych danych (Nazwy, Wyniki, Logo, Kolory)
+    const tempName = currentMatchState.home_name;
+    currentMatchState.home_name = currentMatchState.away_name;
+    currentMatchState.away_name = tempName;
+
+    const tempScore = currentMatchState.home_score;
+    currentMatchState.home_score = currentMatchState.away_score;
+    currentMatchState.away_score = tempScore;
+
+    const tempLogo = currentMatchState.home_logo;
+    currentMatchState.home_logo = currentMatchState.away_logo;
+    currentMatchState.away_logo = tempLogo;
+
+    const tempColor = currentMatchState.home_color;
+    currentMatchState.home_color = currentMatchState.away_color;
+    currentMatchState.away_color = tempColor;
+
+    // 2. Zamiana trenerów i rezerwowych
+    const tempCoach = currentMatchState.home_coach;
+    currentMatchState.home_coach = currentMatchState.away_coach;
+    currentMatchState.away_coach = tempCoach;
+
+    const tempSubs = currentMatchState.home_subs;
+    currentMatchState.home_subs = currentMatchState.away_subs;
+    currentMatchState.away_subs = tempSubs;
+
+    // 3. Zamiana zawodników z pierwszych piątek (p1 do p5)
+    for (let i = 1; i <= 5; i++) {
+        const tempPlayer = currentMatchState[`home_p${i}`];
+        currentMatchState[`home_p${i}`] = currentMatchState[`away_p${i}`];
+        currentMatchState[`away_p${i}`] = tempPlayer;
+    }
+
+    // 4. Przepisanie historii goli (żeby strzelcy przesunęli się na planszy podsumowania)
+    if (currentMatchState.goals_history && currentMatchState.goals_history.length > 0) {
+        currentMatchState.goals_history = currentMatchState.goals_history.map(goal => {
+            return {
+                ...goal,
+                team: goal.team === 'home' ? 'away' : 'home'
+            };
+        });
+    }
+
+    // 5. Opcjonalna korekta aktywnego selecta prezentacji składów
+    const lineupSelect = document.getElementById('ctrl-lineups-team');
+    if (lineupSelect) {
+        currentMatchState.lineups_team = lineupSelect.value;
+    }
+
+    // 6. Zapis, broadcast i aktualizacja lokalnego UI
+    await saveStateToSupabase();
+
+    if (typeof updateControlPanelUI === 'function') {
+        updateControlPanelUI();
+        if (typeof switchLineupsControlTeam === 'function') {
+            switchLineupsControlTeam();
+        }
+    }
+    alert("Strony (Gospodarze <-> Goście) zostały zamienione miejscami!");
 }
 
 // ==========================================
