@@ -1,45 +1,19 @@
-// ==========================================================================
-// CONFIGURACJA SUPABASE (WPISZ SWOJE DANE!)
-// ==========================================================================
 const SUPABASE_URL = "https://puhnsjqbqmojjouhsjnk.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1aG5zanFicW1vampvdWhzam5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyMjg4MDgsImV4cCI6MjA5NTgwNDgwOH0.fBFk7OyEeQ8T_v-tzXAffcDb1xfvgeVZfOvq2WqDC7k";
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let currentMatchState = {
-    home_name: "HOME", away_name: "AWAY", home_score: 0, away_score: 0, match_time: 0, is_running: false,
-    scorer_name: "", scorer_team: "home", show_goal_trigger: false, show_lineups: false,
-    home_logo: "", away_logo: "", home_color: "#0052cc", away_color: "#ff0044",
-    lineups_team: "home", goals_history: [], current_half: 1, summary_name: "HALFTIME", show_summary: false,
-    home_coach: "", home_subs: "", home_p1: "", home_p2: "", home_p3: "", home_p4: "", home_p5: "",
-    away_coach: "", away_subs: "", away_p1: "", away_p2: "", away_p3: "", away_p4: "", away_p5: "",
-    stat_player_name: "ZAWODNIK", stat_player_team: "home", show_player_stats: false,
-    stat_shots: 0, stat_passes: 0, stat_goals: 0, stat_assists: 0,
-    sub_out: "", sub_in: "", sub_team: "home", show_sub_trigger: false
-};
-
+let currentMatchState = null;
 let localTimerInterval = null;
 
 async function initOverlayView() {
-    try {
-        const { data, error } = await supabase
-            .from('broadcast_state')
-            .select('state_json')
-            .eq('id', 1)
-            .maybeSingle();
-            
-        if (error) throw error;
-            
-        if (data && data.state_json) {
-            currentMatchState = data.state_json;
-            renderAllUI();
-            manageLocalTimer();
-        }
-    } catch (err) {
-        console.error("Overlay nie pobrał danych startowych:", err);
+    let { data, error } = await supabase.from('broadcast_state').select('state_json').eq('id', 1).single();
+    if (!error && data) {
+        currentMatchState = data.state_json;
+        renderAllUI();
+        manageLocalTimer();
     }
 
-    // Subskrypcja zmian na żywo
     supabase
         .channel('public:broadcast_state')
         .on('postgres_changes', { event: 'UPDATE', filter: 'id=eq.1', schema: 'public', table: 'broadcast_state' }, payload => {
@@ -53,7 +27,7 @@ async function initOverlayView() {
 }
 
 function manageLocalTimer() {
-    if (currentMatchState.is_running) {
+    if (currentMatchState && currentMatchState.is_running) {
         if (!localTimerInterval) {
             localTimerInterval = setInterval(() => {
                 currentMatchState.match_time++;
