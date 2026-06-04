@@ -23,40 +23,32 @@ let updateCallback = null;
 
 async function initLiveSync(onUpdateFn) {
     updateCallback = onUpdateFn;
-    if (!supabaseClient) return;
+    if (!supabaseClient) {
+        console.error("Supabase Client nie został zainicjalizowany!");
+        return;
+    }
 
+    // Pobranie stanu początkowego
     const { data, error } = await supabaseClient.from('match_state').select('*').eq('id', 1).single();
     if (!error && data) {
         currentMatchState = data;
         if (updateCallback) updateCallback(currentMatchState);
         handleTimerInterval();
+    } else if (error) {
+        console.error("Błąd pobierania stanu początkowego:", error);
     }
 
+    // Subskrypcja zmian w czasie rzeczywistym
     supabaseClient.channel('public:match_state')
         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'match_state', filter: 'id=eq.1' }, payload => {
             currentMatchState = payload.new;
             if (updateCallback) updateCallback(currentMatchState);
             handleTimerInterval();
         })
-        .subscribe();
-}
-
-// Automatyczny start po pełnym załadowaniu okna przeglądarki
-window.onload = function() {
-    // Sprawdzamy czy jesteśmy w panelu sterowania czy overlayu
-    if (typeof updateControlPanelUI === 'function') {
-        initLiveSync((state) => {
-            const statusBadge = document.getElementById('connection-status');
-            if (statusBadge) {
-                statusBadge.innerText = "POŁĄCZONY";
-                statusBadge.className = "status-badge connected";
-            }
-            updateControlPanelUI();
+        .subscribe((status) => {
+            console.log("Status subskrypcji kanału:", status);
         });
-    } else if (typeof initOverlayHUD === 'function') {
-        initOverlayHUD();
-    }
-};
+}
 
 function handleTimerInterval() {
     if (currentMatchState.is_running) {
