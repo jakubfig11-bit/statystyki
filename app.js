@@ -28,6 +28,12 @@ let timerInterval = null; let realtimeChannel = null; let isAnimationPlaying = f
 async function initOverlayView() {
     await fetchInitialState(); updateHUDUI(); updateTacticalLineupsUI(); updatePlayerStatsUI(); updateSummaryUI();
     if (currentMatchState.is_running) startLocalTimer();
+    
+    // Wymuszenie stanu początkowego overlays przed transmisją live
+    toggleGSAPTacticalLineups(currentMatchState.show_lineups);
+    toggleGSAPPlayerStats(currentMatchState.show_player_stats);
+    toggleGSAPSummary(currentMatchState.show_summary);
+
     realtimeChannel = supabaseClient.channel('match-broadcast', { config: { broadcast: { ack: false, self: false } } });
     realtimeChannel.on('broadcast', { event: 'state-change' }, ({ payload }) => handleStateUpdate(payload)).subscribe();
 }
@@ -49,6 +55,7 @@ async function initControlPanel() {
 }
 
 function handleStateUpdate(data) {
+    // 1. Obsługa wyzwalaczy jednorazowych animacji (GOL i ZMIANA)
     if (data.show_goal_trigger === true && currentMatchState.show_goal_trigger === false && !isAnimationPlaying) {
         const teamColor = data.scorer_team === 'home' ? data.home_color : data.away_color;
         const teamName = data.scorer_team === 'home' ? data.home_name : data.away_name;
@@ -60,12 +67,30 @@ function handleStateUpdate(data) {
         const teamName = data.sub_team === 'home' ? data.home_name : data.away_name;
         runGSAPSubAnimation(data.sub_out, data.sub_in, teamName, teamColor);
     }
-    if (data.show_lineups !== currentMatchState.show_lineups) toggleGSAPTacticalLineups(data.show_lineups);
-    if (data.show_player_stats !== currentMatchState.show_player_stats) toggleGSAPPlayerStats(data.show_player_stats);
-    if (data.show_summary !== currentMatchState.show_summary) toggleGSAPSummary(data.show_summary);
-    if (data.is_running !== currentMatchState.is_running) { if (data.is_running) startLocalTimer(); else clearInterval(timerInterval); }
     
-    currentMatchState = data; updateHUDUI(); updateTacticalLineupsUI(); updatePlayerStatsUI(); updateSummaryUI();
+    // 2. Obsługa zegara lokalnego overlay
+    if (data.is_running !== currentMatchState.is_running) { 
+        if (data.is_running) startLocalTimer(); else clearInterval(timerInterval); 
+    }
+
+    // Zapamiętanie starych stanów widoczności do porównania przed przypisaniem nowego payloadu
+    const oldShowLineups = currentMatchState.show_lineups;
+    const oldShowStats = currentMatchState.show_player_stats;
+    const oldShowSummary = currentMatchState.show_summary;
+
+    // Przypisanie świeżych danych z bazy danych
+    currentMatchState = data; 
+
+    // 3. Natychmiastowa aktualizacja struktury HTML i tekstów w dokumentach obiektowych overlay
+    updateHUDUI(); 
+    updateTacticalLineupsUI(); 
+    updatePlayerStatsUI(); 
+    updateSummaryUI();
+
+    // 4. Wyzwolenie odpowiednich animacji wejścia/wyjścia na podstawie porównania stanów widoczności
+    if (data.show_lineups !== oldShowLineups) toggleGSAPTacticalLineups(data.show_lineups);
+    if (data.show_player_stats !== oldShowStats) toggleGSAPPlayerStats(data.show_player_stats);
+    if (data.show_summary !== oldShowSummary) toggleGSAPSummary(data.show_summary);
 }
 
 // ==========================================
@@ -76,23 +101,14 @@ function startLocalTimer() {
     clearInterval(timerInterval);
     timerInterval = setInterval(() => { 
         currentMatchState.match_time++; 
-        
-        if(document.getElementById('hud-timer')) {
-            document.getElementById('hud-timer').innerText = formatTime(currentMatchState.match_time);
-        }
-        if(document.getElementById('ctrl-timer')) {
-            document.getElementById('ctrl-timer').innerText = formatTime(currentMatchState.match_time);
-        }
+        if(document.getElementById('hud-timer')) document.getElementById('hud-timer').innerText = formatTime(currentMatchState.match_time);
+        if(document.getElementById('ctrl-timer')) document.getElementById('ctrl-timer').innerText = formatTime(currentMatchState.match_time);
     }, 1000);
 }
 
 function toggleTimer() { 
     currentMatchState.is_running = !currentMatchState.is_running; 
-    if (!currentMatchState.is_running) {
-        clearInterval(timerInterval);
-    } else {
-        startLocalTimer();
-    }
+    if (!currentMatchState.is_running) clearInterval(timerInterval); else startLocalTimer();
     saveStateToSupabase(); 
 }
 
@@ -174,17 +190,12 @@ function updateSummaryUI() {
     if (homeList && awayList) {
         homeList.innerHTML = "";
         awayList.innerHTML = "";
-        
         const history = currentMatchState.goals_history || [];
         
         history.forEach(goal => {
-            if (currentMatchState.summary_name === "HALFTIME" && goal.minute > 45) {
-                return;
-            }
-
+            if (currentMatchState.summary_name === "HALFTIME" && goal.minute > 45) return;
             const row = document.createElement('div');
             row.className = "summary-scorer-row";
-            
             if (goal.team === 'home') {
                 row.innerHTML = `<span>${goal.name}</span> <span class="minute">${goal.minute}'</span>`;
                 homeList.appendChild(row);
@@ -249,7 +260,6 @@ function runGSAPGoalAnimation(player, team, color, logo) {
             }});
         }, 5000);
     }});
-    
     tl.to(container, { y: 0, opacity: 1, scale: 1, duration: 0.7, ease: "elastic.out(1, 0.75)" });
 }
 
@@ -273,7 +283,6 @@ function runGSAPSubAnimation(pOut, pIn, teamName, color) {
             }});
         }, 6000);
     }});
-
     tl.to(container, { x: 0, opacity: 1, duration: 0.6, ease: "power3.out" });
 }
 
@@ -300,10 +309,13 @@ function toggleGSAPPlayerStats(show) {
 function toggleGSAPSummary(show) {
     const container = document.getElementById('match-summary-overlay'); if (!container) return;
     if (show) {
-        gsap.set(container, { visibility: 'visible', yPercent: 50, xPercent: -50, opacity: 0, scale: 0.9 });
-        gsap.to(container, { yPercent: -50, xPercent: -50, opacity: 1, scale: 1, duration: 0.6, ease: "power3.out" });
+        // Wymuszenie fizycznej widoczności, wyzerowanie starych transformacji i płynny wjazd od dołu ekranu na środek
+        gsap.killTweensOf(container);
+        gsap.set(container, { visibility: 'visible', display: 'block', yPercent: 100, xPercent: -50, top: "50%", left: "50%", opacity: 0, scale: 0.9 });
+        gsap.to(container, { yPercent: -50, xPercent: -50, opacity: 1, scale: 1, duration: 0.8, ease: "power3.out" });
     } else {
-        gsap.to(container, { yPercent: 50, xPercent: -50, opacity: 0, scale: 0.9, duration: 0.5, ease: "power3.in", onComplete: () => { gsap.set(container, { visibility: 'hidden' }); }});
+        gsap.killTweensOf(container);
+        gsap.to(container, { yPercent: 100, opacity: 0, scale: 0.9, duration: 0.6, ease: "power3.in", onComplete: () => { gsap.set(container, { visibility: 'hidden' }); }});
     }
 }
 
@@ -328,7 +340,6 @@ function updateControlPanelUI() {
         if(document.getElementById('ctrl-sub-team')) document.getElementById('ctrl-sub-team').value = currentMatchState.sub_team || "home";
     }
     
-    // Odświeżenie przycisku składów
     const btnToggle = document.getElementById('btn-ctrl-lineups-toggle');
     if (btnToggle) {
         if (currentMatchState.show_lineups) {
@@ -338,7 +349,6 @@ function updateControlPanelUI() {
         }
     }
 
-    // Odświeżenie przycisku statystyk
     const btnStats = document.getElementById('btn-ctrl-stats-toggle');
     if (btnStats) {
         if (currentMatchState.show_player_stats) {
@@ -348,7 +358,6 @@ function updateControlPanelUI() {
         }
     }
 
-    // AKTUALIZACJA STATUSU I PRZYCISKÓW SUMMARY OVERLAY W PANELU STEROWANIA
     const summaryStatusText = document.getElementById('ctrl-summary-status');
     const btnSummaryHalf = document.getElementById('btn-summary-half');
     const btnSummaryFull = document.getElementById('btn-summary-full');
@@ -357,14 +366,13 @@ function updateControlPanelUI() {
     if (summaryStatusText) {
         if (currentMatchState.show_summary) {
             summaryStatusText.innerText = "WŁĄCZONA (" + currentMatchState.summary_name + ")";
-            summaryStatusText.classList.add('active');
+            summaryStatusText.style.color = "#00c851";
         } else {
             summaryStatusText.innerText = "UKRYTA";
-            summaryStatusText.classList.remove('active');
+            summaryStatusText.style.color = "#ff4444";
         }
     }
 
-    // Efekt "aktywnego przycisku" (podświetlenie krawędzi / przezroczystość) dla pełnej kontroli operatora
     if(btnSummaryHalf && btnSummaryFull && btnSummaryHide) {
         btnSummaryHalf.style.outline = (currentMatchState.show_summary && currentMatchState.summary_name === 'HALFTIME') ? "3px solid white" : "none";
         btnSummaryFull.style.outline = (currentMatchState.show_summary && currentMatchState.summary_name === 'FULLTIME') ? "3px solid white" : "none";
