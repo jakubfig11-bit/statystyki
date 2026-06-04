@@ -4,118 +4,172 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Match Broadcast Overlay</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;800;900&display=swap" rel="stylesheet">\n    <style>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;800;900&display=swap" rel="stylesheet">
+    <style>
         * { box-sizing: border-box; }
         body { margin: 0; padding: 0; width: 1920px; height: 1080px; overflow: hidden; background: transparent; font-family: 'Montserrat', sans-serif; }
 
-        /* ==========================================\n           1. SCOREBOARD\n           ========================================== */
-        .hud-wrapper {
-            position: absolute; top: 30px; left: 50%; transform: translateX(-50%);
-            display: flex; flex-direction: column; align-items: center; z-index: 10;
+        /* ==========================================
+           1. SCOREBOARD (PRZYWRÓCONY PIERWOTNY STYL)
+           ========================================== */
+        .scoreboard-wrapper {
+            position: absolute;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
         }
-        .hud-main-scoreboard {
-            display: flex; align-items: center;
-            background: #0d0f14; border: 2px solid #232731; border-radius: 12px;
-            height: 65px; min-width: 650px; overflow: hidden;
+        .scoreboard {
+            display: flex;
+            align-items: center;
+            background: rgba(13, 15, 20, 0.95);
+            border: 2px solid #232731;
+            border-radius: 12px;
+            height: 65px;
+            min-width: 650px;
+            overflow: hidden;
             box-shadow: 0 12px 24px rgba(0,0,0,0.6);
+            position: relative;
         }
-        .hud-crest-box { width: 70px; height: 100%; display: flex; align-items: center; justify-content: center; background: #161a23; padding: 12px; }
-        .hud-crest-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
-        .hud-crest-box img.hidden { display: none; }
-        .hud-team-name { font-size: 20px; font-weight: 800; color: #ffffff; padding: 0 25px; letter-spacing: 1px; text-transform: uppercase; flex: 1; }
-        .hud-team-name.home-side { text-align: right; }
-        .hud-team-name.away-side { text-align: left; }
-        .hud-score-container { display: flex; align-items: center; justify-content: center; background: #1c202b; height: 100%; padding: 0 30px; border-left: 1px solid #232731; border-right: 1px solid #232731; gap: 15px; }
-        .hud-score-digit { font-size: 34px; font-weight: 900; color: #ffffff; min-width: 30px; text-align: center; font-variant-numeric: tabular-nums; }
-        .hud-score-divider { font-size: 24px; font-weight: 700; color: #ffbb33; }
-        .hud-timer-box { background: #0d0f14; height: 100%; display: flex; align-items: center; justify-content: center; padding: 0 25px; min-width: 110px; }
-        .hud-timer-text { font-size: 22px; font-weight: 800; color: #ffbb33; font-variant-numeric: tabular-nums; letter-spacing: 0.5px; }
-        .hud-bottom-accent { display: flex; width: 100%; height: 4px; }
-        .hud-accent-half { flex: 1; }
+        .badge-accent {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            display: flex;
+        }
+        .accent-half-home { flex: 1; background-color: #0052cc; }
+        .accent-half-away { flex: 1; background-color: #ff0044; }
 
-        /* ==========================================\n           2. GOAL CARD ANIMATION\n           ========================================== */
+        .team {
+            font-size: 20px;
+            font-weight: 800;
+            color: #ffffff;
+            padding: 0 25px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            flex: 1;
+        }
+        .team.home { text-align: right; }
+        .team.away { text-align: left; }
+
+        .score {
+            font-size: 34px;
+            font-weight: 900;
+            color: #ffffff;
+            min-width: 50px;
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+            background: #1c202b;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 15px;
+        }
+        .divider {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ffbb33;
+            background: #1c202b;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .timer-box {
+            background: #0d0f14;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 25px;
+            min-width: 120px;
+            border-left: 1px solid #232731;
+        }
+        .timer-box span {
+            font-size: 22px;
+            font-weight: 800;
+            color: #ffbb33;
+            font-variant-numeric: tabular-nums;
+        }
+        
+        /* Loga dołożone estetycznie do starego układu */
+        .crest-img { max-width: 35px; max-height: 35px; object-fit: contain; vertical-align: middle; margin: 0 10px; }
+        .crest-img.hidden { display: none; }
+
+        /* ==========================================
+           2. GOAL CARD ANIMATION
+           ========================================== */
         .goal-trigger-container { position: absolute; top: 180px; left: 50%; transform: translateX(-50%); z-index: 5; visibility: hidden; }
         .goal-card-modern {
             background: #0d0f14; border: 2px solid #232731; border-radius: 16px;
             padding: 22px 50px; text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.7);
             min-width: 450px; position: relative; overflow: hidden;
         }
-        .goal-card-modern::before {
-            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 5px;
-            background: linear-gradient(90deg, #ffbb33, #ff8800);
-        }
-        .goal-title-main { font-size: 42px; font-weight: 900; margin: 0; letter-spacing: 4px; color: #ffffff; text-transform: uppercase; font-style: italic; text-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+        .goal-card-modern::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 5px; background: linear-gradient(90deg, #ffbb33, #ff8800); }
+        .goal-title-main { font-size: 42px; font-weight: 900; margin: 0; letter-spacing: 4px; color: #ffffff; text-transform: uppercase; font-style: italic; }
         .goal-meta-row { margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 14px; }
         .goal-player-text { font-size: 23px; font-weight: 800; color: #ffbb33; text-transform: uppercase; }
-        .goal-team-text { font-size: 16px; font-weight: 700; color: #8a94a6; text-transform: uppercase; letter-spacing: 1px; }
+        .goal-team-text { font-size: 16px; font-weight: 700; color: #8a94a6; text-transform: uppercase; }
         .goal-bullet { color: #232731; font-size: 20px; }
 
-        /* ==========================================\n           3. SUBSTITUTION OVERLAY\n           ========================================== */
+        /* ==========================================
+           3. SUBSTITUTION OVERLAY
+           ========================================== */
         .sub-trigger-container { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 5; visibility: hidden; }
-        .sub-card {
-            background: #0d0f14; border: 2px solid #232731; border-radius: 14px;
-            width: 520px; padding: 16px 24px; box-shadow: 0 24px 48px rgba(0,0,0,0.6);
-            position: relative; overflow: hidden;
-        }
+        .sub-card { background: #0d0f14; border: 2px solid #232731; border-radius: 14px; width: 520px; padding: 16px 24px; box-shadow: 0 24px 48px rgba(0,0,0,0.6); position: relative; overflow: hidden; }
         .sub-accent-bar { position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: #ff8800; }
         .sub-header-title { font-size: 13px; font-weight: 800; color: #ff8800; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; text-align: center; }
-        .sub-row { display: flex; align-items: center; justify-content: space-between; position: relative; }
+        .sub-row { display: flex; align-items: center; justify-content: space-between; }
         .sub-player-box { display: flex; flex-direction: column; width: 42%; }
         .sub-player-box.out-side { text-align: right; }
         .sub-player-box.in-side { text-align: left; }
-        .sub-label { font-size: 10px; font-weight: 700; color: #8a94a6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
-        .sub-name { font-size: 18px; font-weight: 800; color: #ffffff; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sub-label { font-size: 10px; font-weight: 700; color: #8a94a6; text-transform: uppercase; }
+        .sub-name { font-size: 18px; font-weight: 800; color: #ffffff; text-transform: uppercase; }
         .sub-player-box.out-side .sub-name { color: #ff4444; }
         .sub-player-box.in-side .sub-name { color: #00c851; }
         .sub-icon-center { width: 16%; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 22px; font-weight: 900; }
-        .sub-icon-arrow { color: #ff8800; line-height: 1; margin: 2px 0; font-style: normal; }
 
-        /* ==========================================\n           4. LINEUPS CARD\n           ========================================== */
+        /* ==========================================
+           4. LINEUPS CARD (HAXBALL 5 ZAWODNIKÓW)
+           ========================================== */
         .lineups-trigger-container { position: absolute; bottom: 80px; left: 80px; z-index: 4; visibility: hidden; }
-        .lineups-card {
-            background: #0d0f14; border: 2px solid #232731; border-radius: 16px;
-            width: 450px; padding: 25px; box-shadow: 0 30px 60px rgba(0,0,0,0.7);
-            position: relative; overflow: hidden;
-        }
+        .lineups-card { background: #0d0f14; border: 2px solid #232731; border-radius: 16px; width: 450px; padding: 25px; box-shadow: 0 30px 60px rgba(0,0,0,0.7); position: relative; overflow: hidden; }
         .lineups-header { display: flex; align-items: center; gap: 15px; border-bottom: 2px solid #232731; padding-bottom: 15px; margin-bottom: 18px; }
         .lineups-crest { width: 55px; height: 55px; object-fit: contain; }
         .lineups-crest.hidden { display: none; }
         .lineups-header-text { display: flex; flex-direction: column; }
-        .lineups-team-title { font-size: 24px; font-weight: 900; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px; }
-        .lineups-subtitle { font-size: 12px; font-weight: 700; color: #ffbb33; text-transform: uppercase; letter-spacing: 2px; margin-top: 2px; }
-        .lineups-player-row { display: flex; align-items: center; height: 34px; border-bottom: 1px solid rgba(35,39,49,0.4); font-size: 16px; }
-        .lineups-player-row:last-child { border-bottom: none; }
-        .player-number { width: 35px; font-weight: 800; color: #ffbb33; font-size: 15px; }
-        .player-name { font-weight: 700; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px; }
+        .lineups-team-title { font-size: 24px; font-weight: 900; color: #ffffff; text-transform: uppercase; }
+        .lineups-subtitle { font-size: 12px; font-weight: 700; color: #ffbb33; text-transform: uppercase; letter-spacing: 2px; }
+        .lineups-player-row { display: flex; align-items: center; height: 36px; border-bottom: 1px solid rgba(35,39,49,0.4); font-size: 16px; }
+        .player-number { width: 35px; font-weight: 800; color: #ffbb33; }
+        .player-name { font-weight: 700; color: #ffffff; text-transform: uppercase; }
         .lineups-coach-row { display: flex; align-items: center; margin-top: 15px; padding-top: 12px; border-top: 2px solid #232731; }
-        .coach-label { font-size: 11px; font-weight: 800; color: #8a94a6; text-transform: uppercase; width: 75px; letter-spacing: 1px; }
-        .coach-name { font-weight: 700; color: #ffffff; text-transform: uppercase; font-size: 15px; }
+        .coach-label { font-size: 11px; font-weight: 800; color: #8a94a6; text-transform: uppercase; width: 85px; }
+        .coach-name { font-weight: 700; color: #ffffff; text-transform: uppercase; }
         .lineups-subs-box { margin-top: 12px; padding: 10px 12px; background: #161a23; border: 1px solid #232731; border-radius: 8px; }
-        .subs-label { font-size: 10px; font-weight: 800; color: #8a94a6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
-        .subs-list { font-size: 13px; font-weight: 600; color: #d1d5db; line-height: 1.4; text-transform: uppercase; }
+        .subs-label { font-size: 10px; font-weight: 800; color: #8a94a6; text-transform: uppercase; }
+        .subs-list { font-size: 13px; font-weight: 600; color: #d1d5db; text-transform: uppercase; }
         .lineups-side-accent { position: absolute; top: 0; left: 0; width: 6px; height: 100%; }
 
-        /* ==========================================\n           5. MATCH SUMMARY BOARD\n           ========================================== */
+        /* ==========================================
+           5. MATCH SUMMARY BOARD
+           ========================================== */
         .summary-board-container { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; visibility: hidden; }
-        .summary-board-card {
-            background: #0d0f14; border: 2px solid #232731; border-radius: 24px;
-            width: 850px; padding: 40px; box-shadow: 0 40px 80px rgba(0,0,0,0.8);
-            position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center;
-        }
-        .summary-board-card::before {
-            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 6px;
-            background: linear-gradient(90deg, #673ab7, #3f51b5);
-        }
+        .summary-board-card { background: #0d0f14; border: 2px solid #232731; border-radius: 24px; width: 850px; padding: 40px; box-shadow: 0 40px 80px rgba(0,0,0,0.8); position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; }
+        .summary-board-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 6px; background: linear-gradient(90deg, #673ab7, #3f51b5); }
         .summary-board-title { font-size: 16px; font-weight: 900; color: #ffbb33; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 30px; border: 1px solid rgba(255,187,51,0.3); padding: 6px 16px; border-radius: 30px; background: rgba(255,187,51,0.05); }
         .summary-board-teams-row { display: flex; align-items: center; justify-content: center; width: 100%; margin-bottom: 35px; gap: 20px; }
         .summary-board-team { display: flex; align-items: center; gap: 20px; width: 38%; }
         .summary-board-team.home-side { justify-content: flex-end; }
         .summary-board-team.away-side { justify-content: flex-start; }
-        .summary-board-team-name { font-size: 28px; font-weight: 900; color: #ffffff; text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .summary-board-team-name { font-size: 28px; font-weight: 900; color: #ffffff; text-transform: uppercase; }
         .summary-board-team img { width: 65px; height: 65px; object-fit: contain; }
         .summary-board-team img.hidden { display: none; }
-        .summary-board-score-center { background: #161a23; border: 2px solid #232731; border-radius: 16px; padding: 10px 30px; font-size: 54px; font-weight: 900; color: #ffffff; min-width: 160px; text-align: center; font-variant-numeric: tabular-nums; box-shadow: inset 0 4px 12px rgba(0,0,0,0.4); }
-        .summary-board-scorers-area { display: flex; width: 100%; gap: 40px; border-top: 1px solid #232731; padding-top: 25px; margin-bottom: 10px; }
+        .summary-board-score-center { background: #161a23; border: 2px solid #232731; border-radius: 16px; padding: 10px 30px; font-size: 54px; font-weight: 900; color: #ffffff; min-width: 160px; text-align: center; font-variant-numeric: tabular-nums; }
+        .summary-board-scorers-area { display: flex; width: 100%; gap: 40px; border-top: 1px solid #232731; padding-top: 25px; }
         .summary-scorers-column { flex: 1; display: flex; flex-direction: column; gap: 8px; font-size: 15px; font-weight: 600; color: #8a94a6; text-transform: uppercase; }
         .summary-scorers-column.home-side { text-align: right; align-items: flex-end; border-right: 1px solid rgba(35,39,49,0.5); padding-right: 20px; }
         .summary-scorers-column.away-side { text-align: left; align-items: flex-start; padding-left: 20px; }
@@ -126,31 +180,30 @@
 </head>
 <body>
 
-    <div class="hud-wrapper" id="hud-container">
-        <div class="hud-main-scoreboard">
-            <div class="hud-crest-box">
-                <img id="hud-logo-home" src="" class="hidden" alt="Home Crest">
-            </div>
-            <div class="hud-team-name home-side" id="hud-name-home">HOME</div>
-            
-            <div class="hud-score-container">
-                <span class="hud-score-digit" id="hud-score-home">0</span>
-                <span class="hud-score-divider">:</span>
-                <span class="hud-score-digit" id="hud-score-away">0</span>
+    <div class="scoreboard-wrapper" id="hud-container">
+        <div class="scoreboard">
+            <div class="badge-accent">
+                <div id="hud-accent-home" class="accent-half-home"></div>
+                <div id="hud-accent-away" class="accent-half-away"></div>
             </div>
             
-            <div class="hud-team-name away-side" id="hud-name-away">AWAY</div>
-            <div class="hud-crest-box">
-                <img id="hud-logo-away" src="" class="hidden" alt="Away Crest">
+            <div class="team home">
+                <img id="hud-logo-home" src="" class="crest-img hidden">
+                <span id="hud-name-home">HOME</span>
             </div>
             
-            <div class="hud-timer-box">
-                <span class="hud-timer-text" id="hud-timer-val">00:00</span>
+            <div class="score"><span id="hud-score-home">0</span></div>
+            <div class="divider">:</div>
+            <div class="score"><span id="hud-score-away">0</span></div>
+            
+            <div class="team away">
+                <span id="hud-name-away">AWAY</span>
+                <img id="hud-logo-away" src="" class="crest-img hidden">
             </div>
-        </div>
-        <div class="hud-bottom-accent">
-            <div id="hud-accent-home" class="hud-accent-half" style="background-color: #0052cc;"></div>
-            <div id="hud-accent-away" class="hud-accent-half" style="background-color: #ff0044;"></div>
+            
+            <div class="timer-box">
+                <span id="hud-timer-val">00:00</span>
+            </div>
         </div>
     </div>
 
@@ -175,8 +228,8 @@
                     <span id="sub-player-out-name" class="sub-name">ZAWODNIK OUT</span>
                 </div>
                 <div class="sub-icon-center">
-                    <i class="sub-icon-arrow" style="color: #ff4444; transform: rotate(0deg);">▼</i>
-                    <i class="sub-icon-arrow" style="color: #00c851; transform: rotate(180deg); margin-top:-5px;">▼</i>
+                    <span style="color: #ff4444; font-size: 14px;">▼ OUT</span>
+                    <span style="color: #00c851; font-size: 14px;">▲ IN</span>
                 </div>
                 <div class="sub-player-box in-side">
                     <span class="sub-label">WCHODZI</span>
@@ -190,10 +243,10 @@
         <div class="lineups-card">
             <div id="lineups-side-color" class="lineups-side-accent" style="background-color: #0052cc;"></div>
             <div class="lineups-header">
-                <img id="lineups-team-crest" src="" class="lineups-crest hidden" alt="Team Crest">
+                <img id="lineups-team-crest" src="" class="lineups-crest hidden">
                 <div class="lineups-header-text">
                     <span id="lineups-title-team" class="lineups-team-title">DRUŻYNA</span>
-                    <span class="lineups-subtitle">WYJŚCIOWA JEDENASTKA</span>
+                    <span class="lineups-subtitle">WYJŚCIOWA PIĄTKA</span>
                 </div>
             </div>
             
@@ -203,21 +256,15 @@
                 <div class="lineups-player-row" id="lineups-r3"><span class="player-number">-</span><span class="player-name">-</span></div>
                 <div class="lineups-player-row" id="lineups-r4"><span class="player-number">-</span><span class="player-name">-</span></div>
                 <div class="lineups-player-row" id="lineups-r5"><span class="player-number">-</span><span class="player-name">-</span></div>
-                <div class="lineups-player-row" id="lineups-r6"><span class="player-number">-</span><span class="player-name">-</span></div>
-                <div class="lineups-player-row" id="lineups-r7"><span class="player-number">-</span><span class="player-name">-</span></div>
-                <div class="lineups-player-row" id="lineups-r8"><span class="player-number">-</span><span class="player-name">-</span></div>
-                <div class="lineups-player-row" id="lineups-r9"><span class="player-number">-</span><span class="player-name">-</span></div>
-                <div class="lineups-player-row" id="lineups-r10"><span class="player-number">-</span><span class="player-name">-</span></div>
-                <div class="lineups-player-row" id="lineups-r11"><span class="player-number">-</span><span class="player-name">-</span></div>
             </div>
             
             <div class="lineups-coach-row">
-                <span class="coach-label">TRENER:</span>
+                <span class="coach-label">KAPITAN:</span>
                 <span id="lineups-coach-name" class="coach-name">-</span>
             </div>
 
             <div class="lineups-subs-box">
-                <div class="subs-label">REZERWOWI:</div>
+                <div class="subs-label">REZERWA:</div>
                 <div id="lineups-subs-list" class="subs-list">-</div>
             </div>
         </div>
@@ -229,7 +276,8 @@
             
             <div class="summary-board-teams-row">
                 <div class="summary-board-team home-side">
-                    <span class="summary-board-team-name" id="summary-board-name-home">HOME</span>\n                    <img id="summary-board-logo-home" src="" class="hidden" alt="Home Logo">
+                    <span class="summary-board-team-name" id="summary-board-name-home">HOME</span>
+                    <img id="summary-board-logo-home" src="" class="hidden">
                 </div>
                 
                 <div class="summary-board-score-center">
@@ -239,7 +287,7 @@
                 </div>
                 
                 <div class="summary-board-team away-side">
-                    <img id="summary-board-logo-away" src="" class="hidden" alt="Away Logo">
+                    <img id="summary-board-logo-away" src="" class="hidden">
                     <span class="summary-board-team-name" id="summary-board-name-away">AWAY</span>
                 </div>
             </div>
@@ -304,7 +352,7 @@
                     toggleOverlayElement('#sub-container', false);
                 }
 
-                // Prezentacja Składów (Lineups)
+                // Prezentacja Składów (Lineups - 5 graczy)
                 if (state.show_lineups && (!lastState.show_lineups || state.lineups_team !== lastState.lineups_team)) {
                     const team = state.lineups_team || 'home';
                     document.getElementById('lineups-title-team').innerText = (team === 'home' ? state.home_name : state.away_name).toUpperCase();
@@ -314,7 +362,7 @@
                     document.getElementById('lineups-coach-name').innerText = (state[`${team}_coach`] || "-").toUpperCase();
                     document.getElementById('lineups-subs-list').innerText = (state[`${team}_subs`] || "-").toUpperCase();
                     
-                    for (let i = 1; i <= 11; i++) {
+                    for (let i = 1; i <= 5; i++) {
                         parseAndSetPlayer(`lineups-r${i}`, state[`${team}_p${i}`]);
                     }
                     if (!lastState.show_lineups) toggleOverlayElement('#lineups-container', true);
@@ -322,7 +370,7 @@
                     toggleOverlayElement('#lineups-container', false);
                 }
 
-                // Plansza Podsumowania Meczu (Summary Boards)
+                // Plansze Podsumowania Meczu
                 const anySummaryOpen = state.show_summary_ht || state.show_summary_ft;
                 const lastSummaryOpen = lastState.show_summary_ht || lastState.show_summary_ft;
 
@@ -338,7 +386,6 @@
                     document.getElementById('summary-footer-accent-home').style.backgroundColor = homeColor;
                     document.getElementById('summary-footer-accent-away').style.backgroundColor = awayColor;
 
-                    // Renderowanie strzelców
                     const homeScorersContainer = document.getElementById('summary-scorers-list-home');
                     const awayScorersContainer = document.getElementById('summary-scorers-list-away');
                     homeScorersContainer.innerHTML = "";
@@ -369,12 +416,12 @@
             if (!container) return;
             if (show) {
                 gsap.killTweensOf(container);
-                gsap.set(container, { visibility: 'visible', y: selector === '#summary-board-container' ? 50 : 30, opacity: 0, scale: 0.95 });
+                gsap.set(container, { visibility: 'visible', y: 30, opacity: 0, scale: 0.95 });
                 gsap.to(container, { y: 0, opacity: 1, scale: 1, duration: 0.5, ease: "power3.out" });
             } else {
                 gsap.killTweensOf(container);
                 gsap.to(container, {
-                    y: selector === '#summary-board-container' ? 30 : -30, opacity: 0, scale: 0.95, duration: 0.4, ease: "power3.in",
+                    y: -30, opacity: 0, scale: 0.95, duration: 0.4, ease: "power3.in",
                     onComplete: () => { gsap.set(container, { visibility: 'hidden' }); }
                 });
             }
