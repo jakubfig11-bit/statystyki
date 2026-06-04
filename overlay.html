@@ -10,7 +10,7 @@
         body { margin: 0; padding: 0; width: 1920px; height: 1080px; overflow: hidden; background: transparent; font-family: 'Montserrat', sans-serif; }
 
         /* ==========================================
-           1. SCOREBOARD (PRZYWRÓCONY PIERWOTNY STYL)
+           1. SCOREBOARD
            ========================================== */
         .scoreboard-wrapper {
             position: absolute;
@@ -95,7 +95,6 @@
             font-variant-numeric: tabular-nums;
         }
         
-        /* Loga dołożone estetycznie do starego układu */
         .crest-img { max-width: 35px; max-height: 35px; object-fit: contain; vertical-align: middle; margin: 0 10px; }
         .crest-img.hidden { display: none; }
 
@@ -180,6 +179,7 @@
 </head>
 <body>
 
+    <!-- 1. TABLICA WYNIKÓW (SCOREBOARD) -->
     <div class="scoreboard-wrapper" id="hud-container">
         <div class="scoreboard">
             <div class="badge-accent">
@@ -207,6 +207,7 @@
         </div>
     </div>
 
+    <!-- 2. WYSKAKUJĄCA BELKA GOLA -->
     <div class="goal-trigger-container" id="goal-container">
         <div class="goal-card-modern">
             <h2 class="goal-title-main">GOOOOOL!</h2>
@@ -218,6 +219,7 @@
         </div>
     </div>
 
+    <!-- 3. BELKA ZMIANY ZAWODNIKA -->
     <div class="sub-trigger-container" id="sub-container">
         <div class="sub-card">
             <div id="sub-accent-line" class="sub-accent-bar" style="background: #ff8800;"></div>
@@ -239,6 +241,7 @@
         </div>
     </div>
 
+    <!-- 4. PREZENTACJA SKŁADÓW -->
     <div class="lineups-trigger-container" id="lineups-container">
         <div class="lineups-card">
             <div id="lineups-side-color" class="lineups-side-accent" style="background-color: #0052cc;"></div>
@@ -270,6 +273,7 @@
         </div>
     </div>
 
+    <!-- 5. PLANSZA PODSUMOWANIA -->
     <div class="summary-board-container" id="summary-board-container">
         <div class="summary-board-card">
             <div id="summary-board-header-title" class="summary-board-title">HALFTIME MATCH SUMMARY</div>
@@ -304,19 +308,20 @@
         </div>
     </div>
 
+    <!-- BIBLIOTEKI SĄ PIERWSZE -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="app.js"></script>
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            let lastState = {
-                show_goal_trigger: false,
-                show_lineups: false,
-                show_sub_trigger: false,
-                show_summary_ht: false,
-                show_summary_ft: false
-            };
+        let lastState = {
+            show_goal_trigger: false,
+            show_lineups: false,
+            show_sub_trigger: false,
+            show_summary_ht: false,
+            show_summary_ft: false
+        };
 
+        function initOverlayHUD() {
             initLiveSync((state) => {
                 document.getElementById('hud-name-home').innerText = state.home_name;
                 document.getElementById('hud-name-away').innerText = state.away_name;
@@ -409,7 +414,7 @@
 
                 lastState = { ...state };
             });
-        });
+        }
 
         function toggleOverlayElement(selector, show) {
             const container = document.querySelector(selector);
