@@ -287,6 +287,7 @@ function toggleGSAPTacticalLineups(show) {
     }
 }
 
+// WYWOŁANIE ANIMACJI PLANSZY ZBIORCZEJ MECZU (SUMMARY BOARDS)
 function toggleGSAPPlayerStats(show) {
     const container = document.getElementById('player-stats-overlay'); if (!container) return;
     if (show) {
@@ -297,7 +298,6 @@ function toggleGSAPPlayerStats(show) {
     }
 }
 
-// WYWOŁANIE ANIMACJI PLANSZY ZBIORCZEJ MECZU (SUMMARY BOARDS)
 function toggleGSAPSummary(show) {
     const container = document.getElementById('summary-overlay'); if (!container) return;
     if (show) {
