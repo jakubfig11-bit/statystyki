@@ -117,7 +117,7 @@
         .sub-player-text { font-size: 15px; font-weight: 700; color: #ffffff; text-transform: uppercase; }
 
         /* ==========================================
-           6. PLANSZA SUMMARY OVERLAY (UEFA / TELEWIZYJNY)
+           6. PRZEROBIONY PLANSZOWY SUMMARY OVERLAY (UEFA / TELEWIZYJNY)
            ========================================== */
         #summary-overlay {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
@@ -158,29 +158,11 @@
         .summary-scorers-column.away-side { align-items: flex-start; text-align: left; }
         
         .summary-scorer-row {
-            display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #e2e8f0; text-transform: uppercase; margin-bottom: 2px;
+            display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #e2e8f0; text-transform: uppercase;
         }
         .summary-scorer-row span.minute { color: #f5b041; font-weight: 800; font-size: 13px; }
         .summary-board-footer-accent { height: 6px; width: 100%; background: #232731; display: flex; }
         .summary-footer-half { flex: 1; height: 100%; }
-
-        /* DEDYKOWANA LINIA PRZEGRODY DLA 2. POŁOWY */
-        .summary-half-divider {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 10px;
-            font-weight: 800;
-            color: rgba(255, 255, 255, 0.3);
-            letter-spacing: 3px;
-            margin: 12px 0;
-            padding: 4px 0;
-            border-top: 1px dashed rgba(255, 255, 255, 0.15);
-            border-bottom: 1px dashed rgba(255, 255, 255, 0.15);
-            text-transform: uppercase;
-            text-align: center;
-        }
     </style>
 </head>
 <body>
@@ -211,9 +193,9 @@
     <div id="goal-overlay" style="visibility: hidden;">
         <div class="goal-tv-card">
             <h1 class="goal-title">GOAL!</h1>
-            <p id="goal-scorer">-</p>
-            <p id="goal-team">-</p>
-            <div id="goal-time">00:00</div>
+            <p id="goal-scorer">10. MESSI</p>
+            <p id="goal-team">BARCELONA</p>
+            <div id="goal-time">MINUTA MUK</div>
             <div id="goal-card-accent"></div>
             <img id="goal-bg-logo" src="" class="hidden" alt="Goal BG Crest">
         </div>
@@ -224,7 +206,7 @@
             <div class="tactical-header">
                 <img id="tactical-top-logo" src="" class="hidden" alt="Top Logo">
                 <div class="header-text">
-                    <h1 id="tactical-team-name">TEAM</h1>
+                    <h1 id="tactical-team-name">DRUŻYNA GOSPODARZY</h1>
                     <p>WYJŚCIOWY SKŁAD MECZOWY</p>
                 </div>
             </div>
@@ -293,26 +275,6 @@
         </div>
     </div>
 
-    <div id="sub-overlay" style="visibility: hidden;">
-        <div class="sub-tv-card">
-            <div id="sub-card-accent"></div>
-            <div class="sub-team-header">
-                <h4 id="sub-team-name" class="sub-team-title">DRUŻYNA</h4>
-                <span class="sub-label-badge">ZMIANA MELDUNKOWA</span>
-            </div>
-            <div class="sub-body">
-                <div class="sub-row">
-                    <span class="sub-icon out">▼</span>
-                    <span id="sub-txt-out" class="sub-player-text">SCHODZI</span>
-                </div>
-                <div class="sub-row">
-                    <span class="sub-icon in">▲</span>
-                    <span id="sub-txt-in" class="sub-player-text">WCHODZI</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div id="summary-overlay">
         <div class="summary-tv-board">
             <div class="summary-board-header" id="summary-txt-title">HALFTIME SUMMARY</div>
@@ -336,8 +298,10 @@
             </div>
             
             <div class="summary-board-scorers-area">
-                <div class="summary-scorers-column home-side" id="summary-scorers-list-home"></div>
-                <div class="summary-scorers-column away-side" id="summary-scorers-list-away"></div>
+                <div class="summary-scorers-column home-side" id="summary-scorers-list-home">
+                    </div>
+                <div class="summary-scorers-column away-side" id="summary-scorers-list-away">
+                    </div>
             </div>
 
             <div class="summary-board-footer-accent">
