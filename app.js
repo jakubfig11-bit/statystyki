@@ -308,6 +308,71 @@ function toggleGSAPSummary(show) {
 }
 
 // ==========================================
+// KONTROLA PANELU STEROWANIA (UI REFRESH)
+// ==========================================
+
+function updateControlPanelUI() {
+    if(document.getElementById('ctrl-home-score')) document.getElementById('ctrl-home-score').innerText = currentMatchState.home_score;
+    if(document.getElementById('ctrl-away-score')) document.getElementById('ctrl-away-score').innerText = currentMatchState.away_score;
+    if(document.getElementById('ctrl-timer')) document.getElementById('ctrl-timer').innerText = formatTime(currentMatchState.match_time);
+    
+    if (!document.activeElement || document.activeElement.tagName !== 'INPUT') {
+        if(document.getElementById('ctrl-home-name')) document.getElementById('ctrl-home-name').value = currentMatchState.home_name;
+        if(document.getElementById('ctrl-away-name')) document.getElementById('ctrl-away-name').value = currentMatchState.away_name;
+        if(document.getElementById('ctrl-home-logo')) document.getElementById('ctrl-home-logo').value = currentMatchState.home_logo || "";
+        if(document.getElementById('ctrl-away-logo')) document.getElementById('ctrl-away-logo').value = currentMatchState.away_logo || "";
+        if(document.getElementById('ctrl-home-color')) document.getElementById('ctrl-home-color').value = currentMatchState.home_color || "#0052cc";
+        if(document.getElementById('ctrl-away-color')) document.getElementById('ctrl-away-color').value = currentMatchState.away_color || "#ff0044";
+        if(document.getElementById('ctrl-sub-out')) document.getElementById('ctrl-sub-out').value = currentMatchState.sub_out || "";
+        if(document.getElementById('ctrl-sub-in')) document.getElementById('ctrl-sub-in').value = currentMatchState.sub_in || "";
+        if(document.getElementById('ctrl-sub-team')) document.getElementById('ctrl-sub-team').value = currentMatchState.sub_team || "home";
+    }
+    
+    // Odświeżenie przycisku składów
+    const btnToggle = document.getElementById('btn-ctrl-lineups-toggle');
+    if (btnToggle) {
+        if (currentMatchState.show_lineups) {
+            btnToggle.innerText = "UKRYJ NA OBS"; btnToggle.style.background = "#ff4444";
+        } else {
+            btnToggle.innerText = "POKAŻ NA OBS"; btnToggle.style.background = "#aa00ff";
+        }
+    }
+
+    // Odświeżenie przycisku statystyk
+    const btnStats = document.getElementById('btn-ctrl-stats-toggle');
+    if (btnStats) {
+        if (currentMatchState.show_player_stats) {
+            btnStats.innerText = "UKRYJ STATYSTYKI"; btnStats.style.background = "#ff4444";
+        } else {
+            btnStats.innerText = "POKAŻ STATYSTYKI"; btnStats.style.background = "#20b2aa";
+        }
+    }
+
+    // AKTUALIZACJA STATUSU I PRZYCISKÓW SUMMARY OVERLAY W PANELU STEROWANIA
+    const summaryStatusText = document.getElementById('ctrl-summary-status');
+    const btnSummaryHalf = document.getElementById('btn-summary-half');
+    const btnSummaryFull = document.getElementById('btn-summary-full');
+    const btnSummaryHide = document.getElementById('btn-summary-hide');
+
+    if (summaryStatusText) {
+        if (currentMatchState.show_summary) {
+            summaryStatusText.innerText = "WŁĄCZONA (" + currentMatchState.summary_name + ")";
+            summaryStatusText.classList.add('active');
+        } else {
+            summaryStatusText.innerText = "UKRYTA";
+            summaryStatusText.classList.remove('active');
+        }
+    }
+
+    // Efekt "aktywnego przycisku" (podświetlenie krawędzi / przezroczystość) dla pełnej kontroli operatora
+    if(btnSummaryHalf && btnSummaryFull && btnSummaryHide) {
+        btnSummaryHalf.style.outline = (currentMatchState.show_summary && currentMatchState.summary_name === 'HALFTIME') ? "3px solid white" : "none";
+        btnSummaryFull.style.outline = (currentMatchState.show_summary && currentMatchState.summary_name === 'FULLTIME') ? "3px solid white" : "none";
+        btnSummaryHide.style.outline = (!currentMatchState.show_summary) ? "3px solid white" : "none";
+    }
+}
+
+// ==========================================
 // POMOCNIKI
 // ==========================================
 
