@@ -24,6 +24,7 @@
 </head>
 <body>
 
+    <!-- LEWA KOLUMNA: WYNIK, CZAS, FAZY MECZU -->
     <div class="col">
         <div class="card">
             <h3>⚽ REJESTRACJA WYNIKU I CZASU</h3>
@@ -44,14 +45,11 @@
             </div>
         </div>
 
-        <div class="card" style="background: linear-gradient(135deg, #131722 0%, #17243a 100%); border: 1px solid #2b3a54;">
+        <div class="card">
             <h3>⏱️ PANEL KONTROLI FAZ MECZU (TV CONTROL)</h3>
-            <p style="font-size: 12px; color: #94a3b8; margin-top: -5px; margin-bottom: 12px;">Kontroluj etapy meczu. Bramki automatycznie trafią do odpowiednich połówek.</p>
-            
             <div style="font-size: 12px; font-weight: 800; color: #f5b041; margin-bottom: 15px; background: #0b0e14; padding: 8px 12px; border-radius: 6px; display: inline-block;">
                 AKTYWNA REJESTRACJA: <span id="ctrl-current-half-display" style="color: #fff; background: #16a34a; padding: 2px 6px; border-radius: 4px; margin-left: 5px;">1. POŁOWA</span>
             </div>
-
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                 <button class="btn" style="background: #16a34a; color: white;" onclick="startMatchPhase()">▶️ 1. Start Meczu</button>
                 <button class="btn" style="background: #ea580c; color: white;" onclick="showHalftimePhase()">⏸️ 2. Show Halftime</button>
@@ -78,6 +76,7 @@
         </div>
     </div>
 
+    <!-- ŚRODKOWA KOLUMNA: USTAWIENIA DRUŻYN, SKŁADY -->
     <div class="col">
         <div class="card">
             <h3>⚙️ NAZWY, LOGOTYPY I KOLORY</h3>
@@ -143,6 +142,7 @@
         </div>
     </div>
 
+    <!-- PRAWA KOLUMNA: ZMIANY, STATYSTYKI -->
     <div class="col">
         <div class="card">
             <h3>🔄 PANEL ZMIAN (SUBSTITUTION)</h3>
@@ -195,9 +195,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // ==========================================================================
-        // CONFIGURACJA SUPABASE (WPISZ SWOJE DANE!)
-        // ==========================================================================
         const SUPABASE_URL = "https://puhnsjqbqmojjouhsjnk.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1aG5zanFicW1vampvdWhzam5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyMjg4MDgsImV4cCI6MjA5NTgwNDgwOH0.fBFk7OyEeQ8T_v-tzXAffcDb1xfvgeVZfOvq2WqDC7k";
 
@@ -206,45 +203,13 @@
         let currentMatchState = null;
         let timerInterval = null;
 
-        // BEZPIECZNE ŁADOWANIE Z AUTO-SEEDEM W RAZIE PUSTEJ BAZY
         window.onload = async () => {
-            try {
-                let { data, error } = await supabase.from('broadcast_state').select('state_json').eq('id', 1).maybeSingle();
-                
-                if (error) throw error;
-                
-                if (!data || !data.state_json) {
-                    console.log("Mecz o ID 1 nie istnieje. Tworzę domyślny stan początkowy...");
-                    const defaultState = {
-                        home_name: "HOME", away_name: "AWAY", home_score: 0, away_score: 0, match_time: 0, is_running: false,
-                        scorer_name: "", scorer_team: "home", show_goal_trigger: false, show_lineups: false,
-                        home_logo: "", away_logo: "", home_color: "#0052cc", away_color: "#ff0044",
-                        lineups_team: "home", goals_history: [], current_half: 1, summary_name: "HALFTIME", show_summary: false,
-                        home_coach: "", home_subs: "", home_p1: "", home_p2: "", home_p3: "", home_p4: "", home_p5: "",
-                        away_coach: "", away_subs: "", away_p1: "", away_p2: "", away_p3: "", away_p4: "", away_p5: "",
-                        stat_player_name: "ZAWODNIK", stat_player_team: "home", show_player_stats: false,
-                        stat_shots: 0, stat_passes: 0, stat_goals: 0, stat_assists: 0,
-                        sub_out: "", sub_in: "", sub_team: "home", show_sub_trigger: false
-                    };
-                    
-                    const { data: inserted, error: insErr } = await supabase
-                        .from('broadcast_state')
-                        .upsert({ id: 1, state_json: defaultState })
-                        .select()
-                        .single();
-                        
-                    if (insErr) throw insErr;
-                    currentMatchState = inserted.state_json;
-                } else {
-                    currentMatchState = data.state_json;
-                }
-
+            let { data, error } = await supabase.from('broadcast_state').select('state_json').eq('id', 1).single();
+            if (!error && data) {
+                currentMatchState = data.state_json;
                 updateControlPanelUI();
                 switchLineupsTeamView();
                 startLocalTimer();
-            } catch (err) {
-                console.error("Krytyczny błąd połączenia z Supabase:", err);
-                alert("BŁĄD SUPABASE:\n" + (err.message || JSON.stringify(err)) + "\n\nUpewnij się, że wyłączyłeś polityki RLS (Row Level Security) dla tabeli 'broadcast_state'!");
             }
         };
 
@@ -270,8 +235,7 @@
 
         async function saveStateToSupabase() {
             if (!currentMatchState) return;
-            const { error } = await supabase.from('broadcast_state').update({ state_json: currentMatchState }).eq('id', 1);
-            if (error) console.error("Błąd zapisu do bazy:", error);
+            await supabase.from('broadcast_state').update({ state_json: currentMatchState }).eq('id', 1);
         }
 
         async function modifyManualScore(team, val) {
@@ -319,19 +283,17 @@
 
         async function startMatchPhase() {
             if (!currentMatchState) return;
-            if(confirm("Czy chcesz ROZPOCZĄĆ MECZ? Wyzeruje to czas, bramki i aktywuje 1. połowę.")) {
-                currentMatchState.match_time = 0;
-                currentMatchState.home_score = 0;
-                currentMatchState.away_score = 0;
-                currentMatchState.goals_history = [];
-                currentMatchState.current_half = 1;
-                currentMatchState.is_running = true;
-                currentMatchState.show_summary = false;
-                
-                updateControlPanelUI();
-                startLocalTimer();
-                await saveStateToSupabase();
-            }
+            currentMatchState.match_time = 0;
+            currentMatchState.home_score = 0;
+            currentMatchState.away_score = 0;
+            currentMatchState.goals_history = [];
+            currentMatchState.current_half = 1;
+            currentMatchState.is_running = true;
+            currentMatchState.show_summary = false;
+            
+            updateControlPanelUI();
+            startLocalTimer();
+            await saveStateToSupabase();
         }
 
         async function showHalftimePhase() {
@@ -347,7 +309,7 @@
         async function startSecondHalfPhase() {
             if (!currentMatchState) return;
             currentMatchState.current_half = 2;
-            if (currentMatchState.match_time < 2700) currentMatchState.match_time = 2700; // 45:00 min
+            currentMatchState.match_time = 2700; // 45:00
             currentMatchState.is_running = true;
             currentMatchState.show_summary = false;
             
