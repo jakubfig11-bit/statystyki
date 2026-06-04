@@ -50,7 +50,6 @@
         </div>
 
         <div class="grid-2">
-            <!-- PANEL DROŻYNOWY GOSPODARZE -->
             <div class="card">
                 <h2>🏠 GOSPODARZE (HOME)</h2>
                 <div class="form-group">
@@ -79,7 +78,6 @@
                 </div>
             </div>
 
-            <!-- PANEL DROŻYNOWY GOŚCIE -->
             <div class="card">
                 <h2>🚀 GOŚCIE (AWAY)</h2>
                 <div class="form-group">
@@ -110,7 +108,6 @@
         </div>
 
         <div class="grid-2">
-            <!-- CZAS I ZARZĄDZANIE MECZEM -->
             <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
                 <h2>⏱️ CZAS I STAN MECZU</h2>
                 <div>
@@ -130,7 +127,6 @@
                 </div>
             </div>
 
-            <!-- EVENTY LIVE (GOL, PODMIANA) -->
             <div class="card">
                 <h2>⚽ AKCJE LIVE</h2>
                 <div style="background: #0d0f14; padding: 15px; border-radius: 8px; border: 1px solid #232731; margin-bottom: 15px;">
@@ -171,7 +167,6 @@
             </div>
         </div>
 
-        <!-- PLANSZE SUMMARY (POŁÓWKA / KONIEC) -->
         <div class="card" style="margin-bottom: 20px;">
             <h2>📊 PLANSZE PODSUMOWANIA (SUMMARY BOARDS)</h2>
             <div class="grid-2">
@@ -186,7 +181,6 @@
             </div>
         </div>
 
-        <!-- SKŁADY (LINEUPS - OGRANICZONE DO 5 OSOBOWYCH SKŁADÓW HAXBALL) -->
         <div class="card">
             <h2>📋 PREZENTACJA SKŁADÓW HAXBALL (5 VS 5)</h2>
             <div style="margin-bottom: 15px; display: flex; gap: 15px; align-items: center; background: #0d0f14; padding: 10px; border-radius: 8px;">
@@ -226,22 +220,9 @@
         </div>
     </div>
 
-    <!-- BIBLIOTEKI ZAŁADOWANE NAJPIERW -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="app.js"></script>
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            // WYWOŁANIE FUNKCJI Z KLUCZAMI I OBSŁUGA POŁĄCZENIA
-            initLiveSync((state) => {
-                const statusBadge = document.getElementById('connection-status');
-                if (statusBadge) {
-                    statusBadge.innerText = "POŁĄCZONY";
-                    statusBadge.className = "status-badge connected";
-                }
-                updateControlPanelUI();
-            });
-        });
-
         function updateControlPanelUI() {
             if (!currentMatchState) return;
             
