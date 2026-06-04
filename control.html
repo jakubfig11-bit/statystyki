@@ -213,10 +213,11 @@
     <div class="card" style="margin-top: 20px; background: linear-gradient(135deg, #121620 0%, #152238 100%); border: 1px solid #1a365d;">
         <h3>⚽ MATCH SUMMARY OVERLAY MANAGER</h3>
         <p style="font-size: 13px; color: #b2babb; margin-top: -5px;">Zarządzaj profesjonalną, telewizyjną planszą podsumowania meczu, pobierającą automatycznie strzelców bramkowych.</p>
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 15px;">
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px;">
             <button class="btn btn-success" style="background: #2e7d32;" onclick="setSummaryMode('HALFTIME')">🟢 SHOW HALFTIME</button>
             <button class="btn btn-success" style="background: #1565c0;" onclick="setSummaryMode('FULLTIME')">🔵 SHOW FULLTIME</button>
             <button class="btn btn-danger" style="background: #c62828;" onclick="hideSummaryOverlay()">🔴 HIDE SUMMARY</button>
+            <button class="btn btn-warning" style="background: #d35400; color: #fff;" onclick="clearMatchSummaryData()">🗑️ CLEAR MATCH DATA</button>
         </div>
     </div>
 
@@ -357,6 +358,14 @@
     async function hideSummaryOverlay() {
         currentMatchState.show_summary = false;
         await saveStateToSupabase();
+    }
+
+    async function clearMatchSummaryData() {
+        if(confirm("Czy na pewno chcesz wyczyścić historię strzelców i osi czasu dla podsumowania meczu?")) {
+            currentMatchState.goals_history = [];
+            await saveStateToSupabase();
+            alert("Dane podsumowania meczu zostały wyczyszczone!");
+        }
     }
 
     function updateControlPanelUI() {
