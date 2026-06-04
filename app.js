@@ -299,16 +299,6 @@ function toggleGSAPPlayerStats(show) {
     }
 }
 
-function toggleGSAPSummary(show) {
-    const container = document.getElementById('summary-overlay'); if (!container) return;
-    if (show) {
-        gsap.set(container, { visibility: 'visible', yPercent: 50, xPercent: -50, opacity: 0, scale: 0.9 });
-        gsap.to(container, { yPercent: -50, xPercent: -50, opacity: 1, scale: 1, duration: 0.6, ease: "power3.out" });
-    } else {
-        gsap.to(container, { yPercent: 50, xPercent: -50, opacity: 0, scale: 0.9, duration: 0.5, ease: "power3.in", onComplete: () => { gsap.set(container, { visibility: 'hidden' }); }});
-    }
-}
-
 // ==========================================
 // POMOCNIKI
 // ==========================================
@@ -331,4 +321,6 @@ function setupCrest(elementId, url) {
 function formatTime(sec) {
     const m = Math.floor(sec / 60); const s = sec % 60;
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+}
+
 }
