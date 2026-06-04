@@ -10,36 +10,36 @@ let currentMatchState = {
     home_name: "HOME", away_name: "AWAY", home_score: 0, away_score: 0, match_time: 0, is_running: false,
     scorer_name: "", scorer_team: "home", show_goal_trigger: false, show_lineups: false,
     home_logo: "", away_logo: "", home_color: "#0052cc", away_color: "#ff0044",
-    lineups_team: "home",
+    lineups_team: "home", goals_history: [], current_half: 1, summary_name: "HALFTIME", show_summary: false,
     home_coach: "", home_subs: "", home_p1: "", home_p2: "", home_p3: "", home_p4: "", home_p5: "",
     away_coach: "", away_subs: "", away_p1: "", away_p2: "", away_p3: "", away_p4: "", away_p5: "",
     stat_player_name: "ZAWODNIK", stat_player_team: "home", show_player_stats: false,
     stat_shots: 0, stat_passes: 0, stat_goals: 0, stat_assists: 0,
-    sub_out: "", sub_in: "", sub_team: "home", show_sub_trigger: false,
-    summary_name: "HALFTIME", show_summary: false, goals_history: [],
-    current_half: 1
+    sub_out: "", sub_in: "", sub_team: "home", show_sub_trigger: false
 };
 
 let localTimerInterval = null;
 
-// ==========================================================================
-// FUNKCJA INICJALIZACJI OVERLAYA
-// ==========================================================================
 async function initOverlayView() {
-    // 1. Pierwsze pobranie danych z bazy
-    const { data, error } = await supabase
-        .from('broadcast_state')
-        .select('state_json')
-        .eq('id', 1)
-        .single();
-        
-    if (data && data.state_json) {
-        currentMatchState = data.state_json;
-        renderAllUI();
-        manageLocalTimer();
+    try {
+        const { data, error } = await supabase
+            .from('broadcast_state')
+            .select('state_json')
+            .eq('id', 1)
+            .maybeSingle();
+            
+        if (error) throw error;
+            
+        if (data && data.state_json) {
+            currentMatchState = data.state_json;
+            renderAllUI();
+            manageLocalTimer();
+        }
+    } catch (err) {
+        console.error("Overlay nie pobrał danych startowych:", err);
     }
 
-    // 2. Subskrypcja zmian Realtime
+    // Subskrypcja zmian na żywo
     supabase
         .channel('public:broadcast_state')
         .on('postgres_changes', { event: 'UPDATE', filter: 'id=eq.1', schema: 'public', table: 'broadcast_state' }, payload => {
@@ -52,7 +52,6 @@ async function initOverlayView() {
         .subscribe();
 }
 
-// Lokalny licznik czasu (zapobiega opóźnieniom i chroni bazę danych)
 function manageLocalTimer() {
     if (currentMatchState.is_running) {
         if (!localTimerInterval) {
@@ -85,11 +84,9 @@ function setupCrest(elementId, url) {
     }
 }
 
-// ==========================================================================
-// GŁÓWNY RENDERER INTERFEJSU
-// ==========================================================================
 function renderAllUI() {
-    // HUD elementarz
+    if(!currentMatchState) return;
+    
     if(document.getElementById('hud-home-name')) document.getElementById('hud-home-name').innerText = currentMatchState.home_name;
     if(document.getElementById('hud-away-name')) document.getElementById('hud-away-name').innerText = currentMatchState.away_name;
     if(document.getElementById('hud-home-score')) document.getElementById('hud-home-score').innerText = currentMatchState.home_score;
@@ -102,7 +99,6 @@ function renderAllUI() {
     if(document.getElementById('hud-home-accent')) document.getElementById('hud-home-accent').style.backgroundColor = currentMatchState.home_color;
     if(document.getElementById('hud-away-accent')) document.getElementById('hud-away-accent').style.backgroundColor = currentMatchState.away_color;
 
-    // Triggery animacji GSAP
     toggleOverlayElement('#goal-overlay', currentMatchState.show_goal_trigger, 'bottom');
     if (currentMatchState.show_goal_trigger) updateGoalCardUI();
 
@@ -119,9 +115,6 @@ function renderAllUI() {
     if (currentMatchState.show_summary) updateSummaryUI();
 }
 
-// ==========================================================================
-// RENDEROWANIE SZCZEGÓŁÓW (GOAL, SUB, LINEUPS, STATS)
-// ==========================================================================
 function updateGoalCardUI() {
     if(document.getElementById('goal-scorer')) document.getElementById('goal-scorer').innerText = currentMatchState.scorer_name;
     const teamName = currentMatchState.scorer_team === 'home' ? currentMatchState.home_name : currentMatchState.away_name;
@@ -181,9 +174,6 @@ function updatePlayerStatsUI() {
     if(document.getElementById('stat-val-assists')) document.getElementById('stat-val-assists').innerText = currentMatchState.stat_assists;
 }
 
-// ==========================================================================
-// PLANSZA GŁÓWNA - WYŚWIETLANIE Z PODZIAŁEM NA POŁOWY I PRZEGRODĄ
-// ==========================================================================
 function updateSummaryUI() {
     const isFull = currentMatchState.summary_name === "FULLTIME";
     if(document.getElementById('summary-txt-title')) {
@@ -197,9 +187,6 @@ function updateSummaryUI() {
 
     setupCrest('summary-board-logo-home', currentMatchState.home_logo);
     setupCrest('summary-board-logo-away', currentMatchState.away_logo);
-
-    if(document.getElementById('summary-footer-accent-home')) document.getElementById('summary-footer-accent-home').style.backgroundColor = currentMatchState.home_color;
-    if(document.getElementById('summary-footer-accent-away')) document.getElementById('summary-footer-accent-away').style.backgroundColor = currentMatchState.away_color;
 
     const homeList = document.getElementById('summary-scorers-list-home');
     const awayList = document.getElementById('summary-scorers-list-away');
@@ -228,7 +215,6 @@ function updateSummaryUI() {
         }
 
         if (!isFull) {
-            // HALFTIME - tylko bramki z 1. połowy (oraz bez określonej połowy)
             history.forEach(g => {
                 if (g.half === 1 || !g.half) {
                     if (g.team === 'home') homeList.appendChild(generateRow(g));
@@ -236,20 +222,14 @@ function updateSummaryUI() {
                 }
             });
         } else {
-            // FULLTIME - Dzielimy i wstrzykujemy linię separatora
-            
-            // --- STRONA GOSPODARZY ---
             const homeH1 = history.filter(g => g.team === 'home' && (g.half === 1 || !g.half));
             const homeH2 = history.filter(g => g.team === 'home' && g.half === 2);
-            
             homeH1.forEach(g => homeList.appendChild(generateRow(g)));
             if (homeH1.length > 0 || homeH2.length > 0) homeList.appendChild(generateDivider());
             homeH2.forEach(g => homeList.appendChild(generateRow(g)));
 
-            // --- STRONA GOŚCI ---
             const awayH1 = history.filter(g => g.team === 'away' && (g.half === 1 || !g.half));
             const awayH2 = history.filter(g => g.team === 'away' && g.half === 2);
-            
             awayH1.forEach(g => awayList.appendChild(generateRow(g)));
             if (awayH1.length > 0 || awayH2.length > 0) awayList.appendChild(generateDivider());
             awayH2.forEach(g => awayList.appendChild(generateRow(g)));
@@ -257,9 +237,6 @@ function updateSummaryUI() {
     }
 }
 
-// ==========================================================================
-// ANIMACJE SILNIKA GSAP
-// ==========================================================================
 function toggleOverlayElement(selector, show, anchor) {
     const el = document.querySelector(selector);
     if (!el) return;
