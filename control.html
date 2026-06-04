@@ -97,6 +97,10 @@
             </div>
         </div>
         <button class="btn btn-success" onclick="updateTeamsSettings()">ZAPISZ I ZAKTUALIZUJ USTAWIENIA</button>
+
+        <button class="btn btn-warning" onclick="swapSides()">
+            🔄 SWAP SIDES (ZMIANA POŁÓW)
+        </button>
     </div>
 
     <div class="grid-2">
@@ -357,6 +361,70 @@
     async function hideSummaryOverlay() {
         currentMatchState.show_summary = false;
         await saveStateToSupabase();
+    }
+
+    // GŁÓWNA, NIEZAWODNA FUNKCJA SWAP SIDES PRZENIESIONA TUTAJ
+    async function swapSides() {
+        // 1. Zamiana podstawowych danych (Nazwy, Wyniki, Logo, Kolory)
+        const tempName = currentMatchState.home_name;
+        currentMatchState.home_name = currentMatchState.away_name;
+        currentMatchState.away_name = tempName;
+
+        const tempScore = currentMatchState.home_score;
+        currentMatchState.home_score = currentMatchState.away_score;
+        currentMatchState.away_score = tempScore;
+
+        const tempLogo = currentMatchState.home_logo;
+        currentMatchState.home_logo = currentMatchState.away_logo;
+        currentMatchState.away_logo = tempLogo;
+
+        const tempColor = currentMatchState.home_color;
+        currentMatchState.home_color = currentMatchState.away_color;
+        currentMatchState.away_color = tempColor;
+
+        // 2. Zamiana trenerów i rezerwowych
+        const tempCoach = currentMatchState.home_coach;
+        currentMatchState.home_coach = currentMatchState.away_coach;
+        currentMatchState.away_coach = tempCoach;
+
+        const tempSubs = currentMatchState.home_subs;
+        currentMatchState.home_subs = currentMatchState.away_subs;
+        currentMatchState.away_subs = tempSubs;
+
+        // 3. Zamiana pierwszych piątek (p1 do p5)
+        for (let i = 1; i <= 5; i++) {
+            const tempPlayer = currentMatchState[`home_p${i}`];
+            currentMatchState[`home_p${i}`] = currentMatchState[`away_p${i}`];
+            currentMatchState[`away_p${i}`] = tempPlayer;
+        }
+
+        // 4. Przepisanie historii goli (zamiana stron strzelców)
+        if (currentMatchState.goals_history && currentMatchState.goals_history.length > 0) {
+            currentMatchState.goals_history = currentMatchState.goals_history.map(goal => {
+                return {
+                    ...goal,
+                    team: goal.team === 'home' ? 'away' : 'home'
+                };
+            });
+        }
+
+        // 5. Wymuszenie zapisu do Supabase oraz rozgłoszenie stanu do OBS Overlay
+        await saveStateToSupabase();
+
+        // BEZWZGLĘDNE, WYMUSZONE NADPISANIE WARTOŚCI W POLACH (Ignoruje blokadę aktywności pola)
+        document.getElementById('ctrl-home-name').value = currentMatchState.home_name;
+        document.getElementById('ctrl-away-name').value = currentMatchState.away_name;
+        document.getElementById('ctrl-home-logo').value = currentMatchState.home_logo || "";
+        document.getElementById('ctrl-away-logo').value = currentMatchState.away_logo || "";
+        document.getElementById('ctrl-home-color').value = currentMatchState.home_color || "#0052cc";
+        document.getElementById('ctrl-away-color').value = currentMatchState.away_color || "#ff0044";
+
+        // Aktualizacja liczników punktowych i czasu
+        updateControlPanelUI();
+        // Przeładowanie pól tekstowych składów w zależności od wybranej aktualnie drużyny w selectie
+        switchLineupsControlTeam();
+
+        alert("Strony (Gospodarze <-> Goście), wyniki, składy i strzelcy goli zostali pomyślnie zamienieni!");
     }
 
     function updateControlPanelUI() {
