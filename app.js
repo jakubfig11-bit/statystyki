@@ -28,7 +28,6 @@ async function initLiveSync(onUpdateFn) {
         return;
     }
 
-    // Pobranie stanu początkowego
     try {
         const { data, error } = await supabaseClient.from('match_state').select('*').eq('id', 1).single();
         if (!error && data) {
@@ -42,7 +41,6 @@ async function initLiveSync(onUpdateFn) {
         console.error("Wyjątek podczas pobierania stanu:", err);
     }
 
-    // Subskrypcja zmian w czasie rzeczywistym z obsługą statusu połączenia sieciowego
     supabaseClient.channel('public:match_state')
         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'match_state', filter: 'id=eq.1' }, payload => {
             if (payload && payload.new) {
@@ -53,7 +51,6 @@ async function initLiveSync(onUpdateFn) {
         })
         .subscribe((status) => {
             console.log("Status subskrypcji kanału:", status);
-            // Jeśli połączono prawidłowo z kanałem realtime, wymuś odświeżenie UI jako POŁĄCZONY
             if (status === 'SUBSCRIBED') {
                 if (updateCallback) updateCallback(currentMatchState);
             }
@@ -85,8 +82,10 @@ async function saveState() {
     }
 }
 
+// Funkcje pomocnicze z wymuszonym odświeżeniem UI
 function updateField(field, value) {
     currentMatchState[field] = value;
+    if (updateCallback) updateCallback(currentMatchState); // UI odświeża się natychmiast
     saveState();
 }
 
@@ -94,6 +93,7 @@ function updateLineupField(fieldKey, value) {
     const currentTeam = currentMatchState.lineups_team || 'home';
     const finalKey = `${currentTeam}_${fieldKey}`;
     currentMatchState[finalKey] = value;
+    if (updateCallback) updateCallback(currentMatchState); // UI odświeża się natychmiast
     saveState();
 }
 
@@ -103,22 +103,26 @@ function modifyScore(team, amount) {
     } else {
         currentMatchState.away_score = Math.max(0, currentMatchState.away_score + amount);
     }
+    if (updateCallback) updateCallback(currentMatchState); // UI odświeża się natychmiast
     saveState();
 }
 
 function toggleTimer() {
     currentMatchState.is_running = !currentMatchState.is_running;
+    if (updateCallback) updateCallback(currentMatchState); // UI odświeża się natychmiast
     saveState();
 }
 
 function resetTimer() {
     currentMatchState.match_time = 0;
     currentMatchState.is_running = false;
+    if (updateCallback) updateCallback(currentMatchState); // UI odświeża się natychmiast
     saveState();
 }
 
 function setMatchTime(seconds) {
     currentMatchState.match_time = seconds;
+    if (updateCallback) updateCallback(currentMatchState);
     saveState();
 }
 
@@ -146,7 +150,8 @@ function triggerGoalAnimation() {
         currentScorers.push(`${scorerName} ${currentMin}'`);
         currentMatchState.away_scorers_list = currentScorers.filter(x => x).join(', ');
     }
-
+    
+    if (updateCallback) updateCallback(currentMatchState); // UI odświeża się natychmiast
     saveState();
     nameInput.value = "";
 
@@ -155,6 +160,7 @@ function triggerGoalAnimation() {
             const { data } = await supabaseClient.from('match_state').select('show_goal_trigger').eq('id', 1).single();
             if (data && data.show_goal_trigger) {
                 currentMatchState.show_goal_trigger = false;
+                if (updateCallback) updateCallback(currentMatchState);
                 saveState();
             }
         } catch (e) {
@@ -165,6 +171,7 @@ function triggerGoalAnimation() {
 
 function triggerSubstitutionAnimation() {
     currentMatchState.show_sub_trigger = true;
+    if (updateCallback) updateCallback(currentMatchState);
     saveState();
 
     setTimeout(async () => {
@@ -172,6 +179,7 @@ function triggerSubstitutionAnimation() {
             const { data } = await supabaseClient.from('match_state').select('show_sub_trigger').eq('id', 1).single();
             if (data && data.show_sub_trigger) {
                 currentMatchState.show_sub_trigger = false;
+                if (updateCallback) updateCallback(currentMatchState);
                 saveState();
             }
         } catch (e) {
@@ -182,6 +190,7 @@ function triggerSubstitutionAnimation() {
 
 function toggleLineupsAnimation() {
     currentMatchState.show_lineups = !currentMatchState.show_lineups;
+    if (updateCallback) updateCallback(currentMatchState);
     saveState();
 }
 
@@ -193,11 +202,12 @@ function toggleSummaryBoard(type) {
         currentMatchState.show_summary_ft = !currentMatchState.show_summary_ft;
         if (currentMatchState.show_summary_ft) currentMatchState.show_summary_ht = false;
     }
+    if (updateCallback) updateCallback(currentMatchState);
     saveState();
 }
 
 function clearMatchData() {
-    if (confirm("Czy na pewno chcesz wyczyścić historię goli, strzelców i minut? (Nazwy drużyn, loga oraz aktualny wynik pozostaną nienaruszone)")) {
+    if (confirm("Czy na pewno chcesz wyczyścić historię goli, strzelców i minut?")) {
         currentMatchState.home_scorers_list = "";
         currentMatchState.away_scorers_list = "";
         currentMatchState.scorer_name = "";
@@ -205,12 +215,13 @@ function clearMatchData() {
         currentMatchState.show_sub_trigger = false;
         currentMatchState.show_summary_ht = false;
         currentMatchState.show_summary_ft = false;
+        if (updateCallback) updateCallback(currentMatchState);
         saveState();
     }
 }
 
 function swapTeams() {
-    if (!confirm("Czy chcesz zamienić drużyny stronami (SWAP)? Wszystkie dane, składy i strzelcy zostaną zamienieni miejscami.")) return;
+    if (!confirm("Czy chcesz zamienić drużyny stronami (SWAP)?")) return;
 
     const tempState = { ...currentMatchState };
 
@@ -222,10 +233,8 @@ function swapTeams() {
     currentMatchState.away_logo = tempState.home_logo;
     currentMatchState.home_color = tempState.away_color;
     currentMatchState.away_color = tempState.home_color;
-
     currentMatchState.home_scorers_list = tempState.away_scorers_list;
     currentMatchState.away_scorers_list = tempState.home_scorers_list;
-
     currentMatchState.home_coach = tempState.away_coach;
     currentMatchState.away_coach = tempState.home_coach;
     currentMatchState.home_subs = tempState.away_subs;
@@ -241,6 +250,7 @@ function swapTeams() {
     if (tempState.lineups_team === 'home') currentMatchState.lineups_team = 'away';
     if (tempState.lineups_team === 'away') currentMatchState.lineups_team = 'home';
 
+    if (updateCallback) updateCallback(currentMatchState);
     saveState();
 }
 
