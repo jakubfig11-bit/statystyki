@@ -18,9 +18,7 @@ body, html {
 .overlay-body { background: transparent !important; overflow: hidden; }
 .control-body { background-color: var(--bg-dark); color: var(--text-main); overflow-y: auto; padding-bottom: 20px; }
 
-/* ==========================================================================
-   SCOREBOARD HUD
-   ========================================================================== */
+/* ==========================================================================\n   SCOREBOARD HUD\n   ========================================================================== */
 .scoreboard-wrapper.left-corner {
     position: absolute;
     top: 30px;
@@ -36,108 +34,112 @@ body, html {
     border: 1px solid var(--glass-border);
     border-radius: 14px;
     height: 58px;
-    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45);
+    box-shadow: 0 16px 36px rgba(0,0,0,0.5);
     overflow: hidden;
+    padding: 0 4px;
+    min-width: 580px;
 }
 
-.tv-team {
+.tv-accent-line {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    width: 100%;
     display: flex;
-    align-items: center;
-    font-size: 18px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    color: #ffffff !important;
-    padding: 0 24px;
-    text-transform: uppercase;
-    height: 100%;
 }
+.tv-accent-half { flex: 1; height: 100%; }
 
-.crest-container {
-    width: 38px;
-    height: 100%;
+.tv-crest-container {
+    width: 48px;
+    height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 6px;
 }
-.tv-team.home .crest-container { margin-right: 12px; }
-.tv-team.away .crest-container { margin-left: 12px; }
-
-.club-crest {
-    max-width: 34px;
-    max-height: 34px;
+.tv-crest-container img {
+    max-width: 100%;
+    max-height: 100%;
     object-fit: contain;
 }
-.club-crest.hidden { display: none !important; }
+.tv-crest-container img.hidden { display: none !important; }
 
-.color-accent {
-    width: 5px;
-    height: 100%;
-    position: absolute;
-    top: 0;
+.tv-team-name {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 21px;
+    font-weight: 700;
+    color: var(--text-main);
+    letter-spacing: 1px;
+    padding: 0 14px;
+    text-transform: uppercase;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
-.tv-team.home .color-accent { left: 0; }
-.tv-team.away .color-accent { right: 0; }
+.tv-team-name.home-side { text-align: right; }
+.tv-team-name.away-side { text-align: left; }
 
-.tv-center-core {
+.tv-score-block {
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: rgba(0, 0, 0, 0.5);
-    height: 100%;
-    padding: 0 24px;
-    border-left: 1px solid rgba(255, 255, 255, 0.1);
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
-    min-width: 90px;
+    background: rgba(255, 255, 255, 0.05);
+    height: 42px;
+    padding: 0 22px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.08);
+    gap: 10px;
+}
+.tv-score-num {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text-main);
+    min-width: 24px;
+    text-align: center;
+}
+.tv-score-colon {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.4);
+    animation: pulseColon 2s infinite;
 }
 
-.tv-score-box {
+@keyframes pulseColon {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+}
+
+.tv-timer-container {
+    padding: 0 16px;
+    min-width: 85px;
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 26px;
-    font-weight: 900;
-    line-height: 1;
-    color: #ffffff !important;
+    justify-content: center;
 }
-.tv-divider { width: 2px; height: 16px; background: rgba(255,255,255,0.3); }
-
-.tv-timer {
-    font-size: 13px;
+.tv-timer-text {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 18px;
     font-weight: 700;
-    color: #ffffff !important;
-    margin-top: 4px;
+    color: #ffbb33;
     letter-spacing: 0.5px;
 }
 
-/* ==========================================================================
-   ANIMACJA GOL
-   ========================================================================== */
-.goal-overlay-container.bottom-position {
-    position: fixed;
-    top: auto;
-    bottom: 60px;
-    left: 0;
-    width: 100%;
-    height: auto;
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
-    z-index: 100;
-    opacity: 0;
+/* ==========================================================================\n   GOAL BROADCAST CARD\n   ========================================================================== */
+.goal-card-wrapper-tv {
+    position: absolute;
+    top: 105px;
+    left: 40px;
+    z-index: 9;
     visibility: hidden;
 }
 
-.goal-bg-flash {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: radial-gradient(circle at bottom, rgba(255,255,255,0.12) 0%, transparent 50%);
-    pointer-events: none;
-    z-index: -1;
-}
-
-.goal-tv-card {
-    background: #090a0e;
+.goal-card-tv {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
     border: 1px solid rgba(255,255,255,0.15);
     border-radius: 14px;
     padding: 18px 45px;
@@ -166,17 +168,5 @@ body, html {
 .goal-tv-title { font-size: 34px; font-weight: 900; margin: 0; letter-spacing: 3px; color: #ffffff; text-transform: uppercase; }
 .goal-tv-details { margin-top: 6px; display: flex; align-items: center; justify-content: center; gap: 12px; }
 .goal-tv-player { font-size: 19px; font-weight: 800; color: #ffffff; }
-.goal-tv-team { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.6); text-transform: uppercase; }
-
-/* ==========================================================================
-   SUMMARY SCREEN RESPONSIVENESS
-   ========================================================================== */
-@media (max-width: 1920px) {
-    #summary-overlay { transform: translate(-50%, -50%) scale(1); }
-}
-@media (max-width: 1600px) {
-    #summary-overlay { transform: translate(-50%, -50%) scale(0.85); }
-}
-@media (max-width: 1366px) {
-    #summary-overlay { transform: translate(-50%, -50%) scale(0.75); }
-}
+.goal-tv-team { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.6); text-transform: uppercase; }
+.goal-tv-bullet { color: #ffbb33; font-size: 16px; }
