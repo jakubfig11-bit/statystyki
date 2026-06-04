@@ -153,7 +153,6 @@ function updatePlayerStatsUI() {
     if(accent) { accent.style.backgroundColor = currentMatchState.stat_player_team === 'home' ? currentMatchState.home_color : currentMatchState.away_color; }
 }
 
-// PRZEROBIONA FUNKCJA GENEROWANIA PODSUMOWANIA ZE STRZELCAMI (UEFA STYLE)
 function updateSummaryUI() {
     const titleBox = document.getElementById('summary-txt-title');
     if (titleBox) titleBox.innerText = currentMatchState.summary_name === "FULLTIME" ? "FULLTIME MATCH SUMMARY" : "HALFTIME MATCH SUMMARY";
@@ -179,7 +178,6 @@ function updateSummaryUI() {
         const history = currentMatchState.goals_history || [];
         
         history.forEach(goal => {
-            // Jeśli wybrano tryb HALFTIME, filtrujemy tylko bramki do 45 minuty włącznie
             if (currentMatchState.summary_name === "HALFTIME" && goal.minute > 45) {
                 return;
             }
@@ -299,6 +297,16 @@ function toggleGSAPPlayerStats(show) {
     }
 }
 
+function toggleGSAPSummary(show) {
+    const container = document.getElementById('match-summary-overlay'); if (!container) return;
+    if (show) {
+        gsap.set(container, { visibility: 'visible', yPercent: 50, xPercent: -50, opacity: 0, scale: 0.9 });
+        gsap.to(container, { yPercent: -50, xPercent: -50, opacity: 1, scale: 1, duration: 0.6, ease: "power3.out" });
+    } else {
+        gsap.to(container, { yPercent: 50, xPercent: -50, opacity: 0, scale: 0.9, duration: 0.5, ease: "power3.in", onComplete: () => { gsap.set(container, { visibility: 'hidden' }); }});
+    }
+}
+
 // ==========================================
 // POMOCNIKI
 // ==========================================
@@ -321,6 +329,4 @@ function setupCrest(elementId, url) {
 function formatTime(sec) {
     const m = Math.floor(sec / 60); const s = sec % 60;
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-}
-
 }
