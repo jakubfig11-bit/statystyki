@@ -29,7 +29,6 @@ async function initOverlayView() {
     await fetchInitialState(); updateHUDUI(); updateTacticalLineupsUI(); updatePlayerStatsUI(); updateSummaryUI();
     if (currentMatchState.is_running) startLocalTimer();
     
-    // Stan początkowy overlays przed transmisją live
     toggleGSAPTacticalLineups(currentMatchState.show_lineups);
     toggleGSAPPlayerStats(currentMatchState.show_player_stats);
     toggleGSAPSummary(currentMatchState.show_summary);
@@ -55,7 +54,6 @@ async function initControlPanel() {
 }
 
 function handleStateUpdate(data) {
-    // 1. Obsługa wyzwalaczy jednorazowych animacji (GOL i ZMIANA)
     if (data.show_goal_trigger === true && currentMatchState.show_goal_trigger === false && !isAnimationPlaying) {
         const teamColor = data.scorer_team === 'home' ? data.home_color : data.away_color;
         const teamName = data.scorer_team === 'home' ? data.home_name : data.away_name;
@@ -68,26 +66,21 @@ function handleStateUpdate(data) {
         runGSAPSubAnimation(data.sub_out, data.sub_in, teamName, teamColor);
     }
     
-    // 2. Obsługa zegara lokalnego overlay
     if (data.is_running !== currentMatchState.is_running) { 
         if (data.is_running) startLocalTimer(); else clearInterval(timerInterval); 
     }
 
-    // Zapamiętanie starych stanów widoczności do porównania przed przypisaniem nowego payloadu
     const oldShowLineups = currentMatchState.show_lineups;
     const oldShowStats = currentMatchState.show_player_stats;
     const oldShowSummary = currentMatchState.show_summary;
 
-    // Przypisanie świeżych danych z bazy danych
     currentMatchState = data; 
 
-    // 3. Natychmiastowa aktualizacja struktury HTML i tekstów w dokumentach obiektowych overlay
     updateHUDUI(); 
     updateTacticalLineupsUI(); 
     updatePlayerStatsUI(); 
     updateSummaryUI();
 
-    // 4. Wyzwolenie odpowiednich animacji wejścia/wyjścia na podstawie porównania stanów widoczności
     if (data.show_lineups !== oldShowLineups) toggleGSAPTacticalLineups(data.show_lineups);
     if (data.show_player_stats !== oldShowStats) toggleGSAPPlayerStats(data.show_player_stats);
     if (data.show_summary !== oldShowSummary) toggleGSAPSummary(data.show_summary);
@@ -131,9 +124,15 @@ function updateHUDUI() {
     if(document.getElementById('hud-home-score')) document.getElementById('hud-home-score').innerText = currentMatchState.home_score;
     if(document.getElementById('hud-away-score')) document.getElementById('hud-away-score').innerText = currentMatchState.away_score;
     if(document.getElementById('hud-timer')) document.getElementById('hud-timer').innerText = formatTime(currentMatchState.match_time);
-    if(document.getElementById('hud-home-accent')) document.getElementById('hud-home-accent').style.backgroundColor = currentMatchState.home_color;
-    if(document.getElementById('hud-away-accent')) document.getElementById('hud-away-accent').style.backgroundColor = currentMatchState.away_color;
-    setupCrest('hud-home-logo', currentMatchState.home_logo); setupCrest('hud-away-logo', currentMatchState.away_logo);
+    
+    // Akcenty kolorystyczne starego scoreboardu
+    const homeAccent = document.getElementById('hud-home-accent');
+    const awayAccent = document.getElementById('hud-away-accent');
+    if (homeAccent) homeAccent.style.backgroundColor = currentMatchState.home_color;
+    if (awayAccent) awayAccent.style.backgroundColor = currentMatchState.away_color;
+
+    setupCrest('hud-home-logo', currentMatchState.home_logo); 
+    setupCrest('hud-away-logo', currentMatchState.away_logo);
 }
 
 function updateTacticalLineupsUI() {
@@ -313,12 +312,11 @@ function toggleGSAPSummary(show) {
     if (show) {
         gsap.killTweensOf(container);
         
-        // Dynamiczne wyczyszczenie blokad CSS inline i nadpisanie ich priorytetem
         container.style.setProperty('display', 'block', 'important');
         container.style.setProperty('visibility', 'visible', 'important');
         container.style.zIndex = "9999"; 
         
-        // Bezpieczna baza transformacji: wyśrodkowanie na osi X, zrzucenie pod dół ekranu 1080p
+        // Centrowanie absolutne GSAP na środku obszaru 1920x1080
         gsap.set(container, { 
             position: "absolute",
             top: "50%",
@@ -329,12 +327,12 @@ function toggleGSAPSummary(show) {
             scale: 0.9
         });
         
-        // Wjazd na środek ekranu (yPercent -50 oznacza idealne wycentrowanie)
+        // Wjazd na idealny środek ekranu
         gsap.to(container, { 
             yPercent: -50, 
             opacity: 1, 
             scale: 1, 
-            duration: 1.0, 
+            duration: 0.8, 
             ease: "power3.out" 
         });
     } else {
