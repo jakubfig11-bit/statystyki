@@ -32,9 +32,7 @@
         .score-btn:hover { background: #3e4861; }
         .timer-display { font-size: 48px; font-weight: 800; text-align: center; color: #f5b041; margin: 10px 0; }
         
-        /* Styl indykatora statusu Summary Panelu */
-        .summary-status-text { font-size: 14px; font-weight: 700; color: #ff4444; text-transform: uppercase; margin-bottom: 10px; display: inline-block; padding: 4px 10px; border-radius: 4px; background: rgba(255,68,68,0.1); }
-        .summary-status-text.active { color: #00c851; background: rgba(0,200,81,0.1); }
+        .summary-status-text { font-size: 14px; font-weight: 700; text-transform: uppercase; padding: 4px 10px; border-radius: 4px; background: rgba(255,255,255,0.05); }
     </style>
 </head>
 <body>
@@ -217,8 +215,8 @@
     <div class="card" style="margin-top: 20px; background: linear-gradient(135deg, #121620 0%, #152238 100%); border: 1px solid #1a365d;">
         <h3>⚽ MATCH SUMMARY OVERLAY MANAGER</h3>
         <p style="font-size: 13px; color: #b2babb; margin-top: -5px;">Zarządzaj profesjonalną, telewizyjną planszą podsumowania meczu, pobierającą automatycznie strzelców bramkowych.</p>
-        <div style="margin-bottom: 10px;">
-            <span>STATUS PLANSZY: </span><span id="ctrl-summary-status" class="summary-status-text">UKRYTA</span>
+        <div style="margin-bottom: 15px;">
+            <span style="font-size:12px; color:#838996; font-weight:700;">STATUS PLANSZY OBS: </span><span id="ctrl-summary-status" class="summary-status-text">ŁADOWANIE...</span>
         </div>
         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 5px;">
             <button id="btn-summary-half" class="btn btn-success" style="background: #2e7d32;" onclick="setSummaryMode('HALFTIME')">🟢 SHOW HALFTIME</button>
@@ -243,8 +241,7 @@
         } else {
             currentMatchState.away_score = Math.max(0, currentMatchState.away_score + val);
         }
-        document.getElementById('ctrl-home-score').innerText = currentMatchState.home_score;
-        document.getElementById('ctrl-away-score').innerText = currentMatchState.away_score;
+        updateControlPanelUI();
         await saveStateToSupabase();
     }
 
@@ -255,6 +252,7 @@
         currentMatchState.away_logo = document.getElementById('ctrl-away-logo').value;
         currentMatchState.home_color = document.getElementById('ctrl-home-color').value;
         currentMatchState.away_color = document.getElementById('ctrl-away-color').value;
+        updateControlPanelUI();
         await saveStateToSupabase();
         alert("Ustawienia drużyn zsynchronizowane z bazą!");
     }
@@ -277,6 +275,7 @@
         for (let i = 1; i <= 5; i++) {
             currentMatchState[`${prefix}_p${i}`] = document.getElementById(`ctrl-p${i}`).value;
         }
+        updateControlPanelUI();
         await saveStateToSupabase();
         alert("Skład drużyny zapisany lokalnie i w chmurze!");
     }
@@ -284,6 +283,7 @@
     async function toggleLineupsOverlay() {
         currentMatchState.show_lineups = !currentMatchState.show_lineups;
         currentMatchState.lineups_team = document.getElementById('ctrl-lineups-team').value;
+        updateControlPanelUI();
         await saveStateToSupabase();
     }
 
@@ -294,12 +294,14 @@
         currentMatchState.stat_passes = parseInt(document.getElementById('ctrl-stat-passes').value) || 0;
         currentMatchState.stat_goals = parseInt(document.getElementById('ctrl-stat-goals').value) || 0;
         currentMatchState.stat_assists = parseInt(document.getElementById('ctrl-stat-assists').value) || 0;
+        updateControlPanelUI();
         await saveStateToSupabase();
         alert("Statystyki zawodnika zaktualizowane!");
     }
 
     async function togglePlayerStatsOverlay() {
         currentMatchState.show_player_stats = !currentMatchState.show_player_stats;
+        updateControlPanelUI();
         await saveStateToSupabase();
     }
 
@@ -326,6 +328,7 @@
             currentMatchState.away_score++;
         }
 
+        updateControlPanelUI();
         await saveStateToSupabase();
         
         setTimeout(async () => {
@@ -339,6 +342,7 @@
             currentMatchState.goals_history = [];
             currentMatchState.home_score = 0;
             currentMatchState.away_score = 0;
+            updateControlPanelUI();
             await saveStateToSupabase();
             alert("Historia wyczyszczona!");
         }
@@ -349,6 +353,7 @@
         currentMatchState.sub_in = document.getElementById('ctrl-sub-in').value || "ZAWODNIK WCHODZĄCY";
         currentMatchState.sub_team = document.getElementById('ctrl-sub-team').value;
         currentMatchState.show_sub_trigger = true;
+        updateControlPanelUI();
         await saveStateToSupabase();
         setTimeout(async () => {
             currentMatchState.show_sub_trigger = false;
@@ -359,17 +364,20 @@
     async function setSummaryMode(mode) {
         currentMatchState.summary_name = mode; 
         currentMatchState.show_summary = true;
+        updateControlPanelUI();
         await saveStateToSupabase();
     }
 
     async function hideSummaryOverlay() {
         currentMatchState.show_summary = false;
+        updateControlPanelUI();
         await saveStateToSupabase();
     }
 
     async function clearMatchSummaryData() {
         if(confirm("Czy na pewno chcesz wyczyścić historię strzelców i osi czasu dla podsumowania meczu?")) {
             currentMatchState.goals_history = [];
+            updateControlPanelUI();
             await saveStateToSupabase();
             alert("Dane podsumowania meczu zostały wyczyszczone!");
         }
