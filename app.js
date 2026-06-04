@@ -41,6 +41,23 @@ async function initLiveSync(onUpdateFn) {
         .subscribe();
 }
 
+// Automatyczny start po pełnym załadowaniu okna przeglądarki
+window.onload = function() {
+    // Sprawdzamy czy jesteśmy w panelu sterowania czy overlayu
+    if (typeof updateControlPanelUI === 'function') {
+        initLiveSync((state) => {
+            const statusBadge = document.getElementById('connection-status');
+            if (statusBadge) {
+                statusBadge.innerText = "POŁĄCZONY";
+                statusBadge.className = "status-badge connected";
+            }
+            updateControlPanelUI();
+        });
+    } else if (typeof initOverlayHUD === 'function') {
+        initOverlayHUD();
+    }
+};
+
 function handleTimerInterval() {
     if (currentMatchState.is_running) {
         if (!timerInterval) {
