@@ -19,7 +19,7 @@ body, html {
 .control-body { background-color: var(--bg-dark); color: var(--text-main); overflow-y: auto; padding-bottom: 20px; }
 
 /* ==========================================================================
-   SCOREBOARD HUD
+   SCOREBOARD HUD (ZACHOWANA PEŁNA STRUKTURA DLA PANELU)
    ========================================================================== */
 .scoreboard-wrapper.left-corner {
     position: absolute;
@@ -36,109 +36,287 @@ body, html {
     border: 1px solid var(--glass-border);
     border-radius: 14px;
     height: 58px;
-    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45);
+    box-shadow: 0 16px 36px rgba(0,0,0,0.5);
     overflow: hidden;
+    padding: 0 8px;
 }
 
-.tv-team {
+.team-block-tv {
     display: flex;
     align-items: center;
-    font-size: 18px;
+    gap: 12px;
+    padding: 0 14px;
+}
+
+.team-name-tv {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 22px;
     font-weight: 700;
-    letter-spacing: 0.5px;
-    color: #ffffff !important;
-    padding: 0 24px;
-    text-transform: uppercase;
-    height: 100%;
+    color: var(--text-main);
+    letter-spacing: 1px;
 }
 
-.crest-container {
-    width: 38px;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.tv-team.home .crest-container { margin-right: 12px; }
-.tv-team.away .crest-container { margin-left: 12px; }
-
-.club-crest {
-    max-width: 34px;
-    max-height: 34px;
-    object-fit: contain;
-}
-.club-crest.hidden { display: none !important; }
-
-.color-accent {
-    width: 5px;
-    height: 100%;
-    position: absolute;
-    top: 0;
-}
-.tv-team.home .color-accent { left: 0; }
-.tv-team.away .color-accent { right: 0; }
-
-.tv-center-core {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.5);
-    height: 100%;
-    padding: 0 24px;
-    border-left: 1px solid rgba(255, 255, 255, 0.1);
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
-    min-width: 90px;
-}
-
-.tv-score-box {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+.score-tv-box {
+    font-family: 'Orbitron', sans-serif;
     font-size: 26px;
-    font-weight: 900;
-    line-height: 1;
-    color: #ffffff !important;
-}
-.tv-divider { width: 2px; height: 16px; background: rgba(255,255,255,0.3); }
-
-.tv-timer {
-    font-size: 13px;
     font-weight: 700;
-    color: #ffffff !important;
-    margin-top: 4px;
-    letter-spacing: 0.5px;
+    color: #ffcc00;
+    min-width: 40px;
+    text-align: center;
+}
+
+.divider-tv {
+    color: rgba(255,255,255,0.4);
+    font-weight: 500;
+    padding: 0 4px;
+}
+
+.timer-tv-box {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--text-main);
+    background: rgba(255,255,255,0.07);
+    padding: 6px 14px;
+    border-radius: 8px;
+    margin-left: 10px;
+    min-width: 80px;
+    text-align: center;
 }
 
 /* ==========================================================================
-   ANIMACJA GOL
+   CONTROL PANEL UI
    ========================================================================== */
-.goal-overlay-container.bottom-position {
-    position: fixed;
-    top: auto;
-    bottom: 60px;
-    left: 0;
-    width: 100%;
-    height: auto;
+.admin-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 30px 20px;
+}
+
+.main-header {
     display: flex;
-    justify-content: center;
-    align-items: flex-end;
-    z-index: 100;
-    opacity: 0;
-    visibility: hidden;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--glass-border);
+    padding-bottom: 20px;
+    margin-bottom: 30px;
 }
 
-.goal-bg-flash {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: radial-gradient(circle at bottom, rgba(255,255,255,0.12) 0%, transparent 50%);
-    pointer-events: none;
-    z-index: -1;
+.main-header h1 {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: 1px;
 }
 
-.goal-tv-card {
-    background: #090a0e;
-    border: 1px solid rgba(255,255,255,0.15);
+.db-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    background: rgba(255,255,255,0.05);
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1px solid var(--glass-border);
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #ff4444;
+}
+.status-dot.online {
+    background-color: #00e676;
+    box-shadow: 0 0 10px #00e676;
+}
+
+.dashboard-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+}
+@media(min-width: 1024px) {
+    .dashboard-layout { grid-template-columns: 350px 1fr; }
+}
+
+.sidebar-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.panel-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 22px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+.panel-card h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: rgba(255,255,255,0.9);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding-bottom: 10px;
+}
+
+.full-width { grid-column: 1 / -1; }
+
+.form-group {
+    margin-bottom: 16px;
+}
+.form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: rgba(255,255,255,0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.form-group input, .form-group select, .form-group textarea {
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: #fff;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    outline: none;
+    border-color: #00e676;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.form-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.ctrl-timer {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 48px;
+    font-weight: 700;
+    text-align: center;
+    margin: 15px 0 25px 0;
+    color: #ffcc00;
+    text-shadow: 0 0 15px rgba(255,204,0,0.2);
+    letter-spacing: 2px;
+}
+
+.timer-buttons, .score-buttons-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+button {
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 12px 18px;
+    border-radius: 8px;
+    border: none;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+button:active { transform: scale(0.98); }
+
+.btn-success { background-color: #00c851; color: #fff; }
+.btn-success:hover { background-color: #007e33; }
+.btn-danger { background-color: #ff4444; color: #fff; }
+.btn-danger:hover { background-color: #cc0000; }
+.btn-primary { background-color: #33b5e5; color: #fff; }
+.btn-primary:hover { background-color: #0099cc; }
+.btn-purple { background-color: #aa00ff; color: #fff; }
+.btn-purple:hover { background-color: #7a00b0; }
+.btn-neon-yellow { background-color: #ffcc00; color: #000; font-weight: 800; }
+.btn-neon-yellow:hover { background-color: #cca300; }
+
+.action-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+}
+@media(min-width: 768px) {
+    .action-grid { grid-template-columns: 1fr 1fr; }
+}
+
+.goal-trigger-box, .lineup-trigger-box {
+    background: rgba(0,0,0,0.2);
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+.goal-trigger-box h4, .lineup-trigger-box h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 16px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.8);
+}
+.goal-trigger-box button, .lineup-trigger-box button {
+    width: 100%;
+    margin-top: 12px;
+}
+
+.lineup-editor-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+}
+@media(min-width: 768px) {
+    .lineup-editor-grid { grid-template-columns: 1fr 1fr; }
+}
+
+.team-editor-section {
+    background: rgba(255,255,255,0.02);
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.04);
+}
+.team-editor-section h4 {
+    margin-top: 0;
+    font-size: 16px;
+    color: #ffcc00;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+}
+
+.players-inputs-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.player-input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.player-input-row span {
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.4);
+    min-width: 30px;
+}
+
+/* ==========================================================================
+   GOAL CARD ANIMATIONS (STYL POPRAWIONY)
+   ========================================================================== */
+.goal-popup-card {
+    background: linear-gradient(135deg, #1e222d 0%, #0d0f14 100%);
+    border: 2px solid rgba(255, 255, 255, 0.15);
     border-radius: 14px;
     padding: 18px 45px;
     text-align: center;
@@ -166,17 +344,4 @@ body, html {
 .goal-tv-title { font-size: 34px; font-weight: 900; margin: 0; letter-spacing: 3px; color: #ffffff; text-transform: uppercase; }
 .goal-tv-details { margin-top: 6px; display: flex; align-items: center; justify-content: center; gap: 12px; }
 .goal-tv-player { font-size: 19px; font-weight: 800; color: #ffffff; }
-.goal-tv-team { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.6); text-transform: uppercase; }
-
-/* ==========================================================================
-   SUMMARY SCREEN RESPONSIVENESS
-   ========================================================================== */
-@media (max-width: 1920px) {
-    #summary-overlay { transform: translate(-50%, -50%) scale(1); }
-}
-@media (max-width: 1600px) {
-    #summary-overlay { transform: translate(-50%, -50%) scale(0.85); }
-}
-@media (max-width: 1366px) {
-    #summary-overlay { transform: translate(-50%, -50%) scale(0.75); }
-}
+.goal-tv-team { font-size: 14px; font-weight: 600; color: #a0a5b5; text-transform: uppercase; letter-spacing: 1px; }
