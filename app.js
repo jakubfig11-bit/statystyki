@@ -153,7 +153,6 @@ function updatePlayerStatsUI() {
     if(accent) { accent.style.backgroundColor = currentMatchState.stat_player_team === 'home' ? currentMatchState.home_color : currentMatchState.away_color; }
 }
 
-// PRZEROBIONA FUNKCJA GENEROWANIA PODSUMOWANIA ZE STRZELCAMI (UEFA STYLE)
 function updateSummaryUI() {
     const titleBox = document.getElementById('summary-txt-title');
     if (titleBox) titleBox.innerText = currentMatchState.summary_name === "FULLTIME" ? "FULLTIME MATCH SUMMARY" : "HALFTIME MATCH SUMMARY";
@@ -179,7 +178,6 @@ function updateSummaryUI() {
         const history = currentMatchState.goals_history || [];
         
         history.forEach(goal => {
-            // Jeśli wybrano tryb HALFTIME, filtrujemy tylko bramki do 45 minuty włącznie
             if (currentMatchState.summary_name === "HALFTIME" && goal.minute > 45) {
                 return;
             }
@@ -299,6 +297,7 @@ function toggleGSAPPlayerStats(show) {
     }
 }
 
+// WYWOŁANIE ANIMACJI PLANSZY ZBIORCZEJ MECZU (SUMMARY BOARDS)
 function toggleGSAPSummary(show) {
     const container = document.getElementById('summary-overlay'); if (!container) return;
     if (show) {
