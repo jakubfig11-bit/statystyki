@@ -16,7 +16,9 @@ let currentMatchState = {
     stat_player_name: "ZAWODNIK", stat_player_team: "home", show_player_stats: false,
     stat_shots: 0, stat_passes: 0, stat_goals: 0, stat_assists: 0,
     sub_out: "", sub_in: "", sub_team: "home", show_sub_trigger: false,
-    summary_name: "HALFTIME", show_summary: false, goals_history: []
+    summary_name: "HALFTIME", show_summary: false, goals_history: [],
+    subs_history: [],       // NOWE: tablica na historię zmian zawodników
+    first_half_ended: false // NOWE: flaga oznaczająca koniec pierwszej połowy
 };
 
 let timerInterval = null; let realtimeChannel = null; let isAnimationPlaying = false; let isSubAnimationPlaying = false;
@@ -100,6 +102,9 @@ function resetTimer() {
     clearInterval(timerInterval);
     currentMatchState.is_running = false; 
     currentMatchState.match_time = 0; 
+    currentMatchState.first_half_ended = false; // Reset flagi połowy
+    currentMatchState.goals_history = [];       // Czyszczenie historii bramek
+    currentMatchState.subs_history = [];        // Czyszczenie historii zmian
     if(document.getElementById('ctrl-timer')) document.getElementById('ctrl-timer').innerText = "00:00"; 
     if(document.getElementById('hud-timer')) document.getElementById('hud-timer').innerText = "00:00"; 
     saveStateToSupabase(); 
@@ -153,6 +158,7 @@ function updatePlayerStatsUI() {
     if(accent) { accent.style.backgroundColor = currentMatchState.stat_player_team === 'home' ? currentMatchState.home_color : currentMatchState.away_color; }
 }
 
+// ZAAWANSOWANA FUNKCJA GENEROWANIA PODSUMOWANIA (BRAMKI + ZMIANY + PODZIAŁ POŁÓW)
 function updateSummaryUI() {
     const titleBox = document.getElementById('summary-txt-title');
     if (titleBox) titleBox.innerText = currentMatchState.summary_name === "FULLTIME" ? "FULLTIME MATCH SUMMARY" : "HALFTIME MATCH SUMMARY";
@@ -175,24 +181,73 @@ function updateSummaryUI() {
         homeList.innerHTML = "";
         awayList.innerHTML = "";
         
-        const history = currentMatchState.goals_history || [];
-        
-        history.forEach(goal => {
-            if (currentMatchState.summary_name === "HALFTIME" && goal.minute > 45) {
-                return;
-            }
+        // 1. Mapowanie bramek do wspólnego formatu osi czasu
+        const goals = (currentMatchState.goals_history || []).map(g => ({
+            type: 'goal',
+            minute: g.minute,
+            team: g.team,
+            half: g.half || (g.minute > 45 ? 2 : 1),
+            text: `<span>${g.name.toUpperCase()}</span>`
+        }));
 
+        // 2. Mapowanie zmian zawodników do wspólnego formatu osi czasu
+        const subs = (currentMatchState.subs_history || []).map(s => ({
+            type: 'sub',
+            minute: s.minute,
+            team: s.team,
+            half: s.half || (s.minute > 45 ? 2 : 1),
+            text: `<span style="color: #48bb78; font-weight: 900;">▲</span> ${s.in.toUpperCase()} <span style="color: #838996; font-size: 11px; font-weight: 500;"><span style="color: #ff4444; font-weight: 900;">▼</span> ${s.out.toUpperCase()}</span>`
+        }));
+
+        // 3. Połączenie i chronologiczne posortowanie wszystkich wydarzeń meczowych
+        const allEvents = [...goals, ...subs].sort((a, b) => a.minute - b.minute);
+
+        // Funkcja pomocnicza generująca pojedynczy wiersz w zestawieniu
+        const renderEventRow = (event, container) => {
             const row = document.createElement('div');
             row.className = "summary-scorer-row";
-            
-            if (goal.team === 'home') {
-                row.innerHTML = `<span>${goal.name}</span> <span class="minute">${goal.minute}'</span>`;
-                homeList.appendChild(row);
+            if (event.type === 'sub') row.style.opacity = "0.85"; // Lekkie stonowanie koloru dla zmian
+
+            if (event.team === 'home') {
+                row.innerHTML = `<span>${event.text} ${event.type === 'goal' ? '⚽' : ''}</span> <span class="minute">${event.minute}'</span>`;
+                container.appendChild(row);
             } else {
-                row.innerHTML = `<span class="minute">${goal.minute}'</span> <span>${goal.name}</span>`;
-                awayList.appendChild(row);
+                row.innerHTML = `<span class="minute">${event.minute}'</span> <span>${event.type === 'goal' ? '⚽ ' : ''}${event.text}</span>`;
+                container.appendChild(row);
             }
+        };
+
+        // Funkcja pomocnicza budująca przerywaną linię rozdziałki połowy
+        const createHalfDivider = (alignment) => {
+            const div = document.createElement('div');
+            div.style.width = "100%";
+            div.style.borderTop = "1px dashed rgba(255, 255, 255, 0.15)";
+            div.style.margin = "14px 0";
+            div.style.paddingTop = "6px";
+            div.style.textAlign = alignment;
+            div.innerHTML = `<span style="color: #f5b041; font-size: 11px; font-weight: 800; letter-spacing: 2px;">2. POŁOWA</span>`;
+            return div;
+        };
+
+        // 4. RENDEROWANIE PIERWSZEJ POŁOWY (zawsze widoczna)
+        allEvents.filter(e => e.half === 1).forEach(e => {
+            if (e.team === 'home') renderEventRow(e, homeList); else renderEventRow(e, awayList);
         });
+
+        // 5. RENDEROWANIE DRUGIEJ POŁOWY (tylko w trybie FULLTIME)
+        if (currentMatchState.summary_name === "FULLTIME") {
+            const secondHalfEvents = allEvents.filter(e => e.half === 2);
+            
+            // Jeśli zadeklarowano koniec 1. połowy lub są już wydarzenia z 2. połowy, dodajemy kreski podziału
+            if (currentMatchState.first_half_ended || secondHalfEvents.length > 0) {
+                homeList.appendChild(createHalfDivider('right'));
+                awayList.appendChild(createHalfDivider('left'));
+            }
+
+            secondHalfEvents.forEach(e => {
+                if (e.team === 'home') renderEventRow(e, homeList); else renderEventRow(e, awayList);
+            });
+        }
     }
 }
 
@@ -214,6 +269,46 @@ async function fetchInitialState() {
 
 async function saveStateToSupabase() {
     if (!supabaseClient) return;
+
+    // A. Automatyczna deklaracja końca pierwszej połowy przy wyświetleniu planszy HALFTIME
+    if (currentMatchState.show_summary && currentMatchState.summary_name === "HALFTIME") {
+        currentMatchState.first_half_ended = true;
+    }
+
+    // B. Automatyczne dopisywanie zmiany zawodnika do bazy danych przy jej wyzwoleniu
+    if (currentMatchState.show_sub_trigger && currentMatchState.sub_out && currentMatchState.sub_in) {
+        if (!currentMatchState.subs_history) currentMatchState.subs_history = [];
+        
+        const currentMin = Math.floor(currentMatchState.match_time / 60) + 1;
+        
+        // Zabezpieczenie przed wielokrotnym dodaniem tej samej zmiany przy odświeżaniu stanu
+        const isDuplicate = currentMatchState.subs_history.some(s => 
+            s.out === currentMatchState.sub_out && 
+            s.in === currentMatchState.sub_in && 
+            s.minute === currentMin && 
+            s.team === currentMatchState.sub_team
+        );
+
+        if (!isDuplicate) {
+            currentMatchState.subs_history.push({
+                out: currentMatchState.sub_out,
+                in: currentMatchState.sub_in,
+                team: currentMatchState.sub_team,
+                minute: currentMin,
+                half: currentMatchState.first_half_ended ? 2 : 1
+            });
+        }
+    }
+
+    // C. Nadawanie połowy dla bramek (na wypadek, gdyby skrypt dodający bramkę tego nie zrobił)
+    if (currentMatchState.goals_history) {
+        currentMatchState.goals_history.forEach(goal => {
+            if (!goal.half) {
+                goal.half = currentMatchState.first_half_ended ? 2 : 1;
+            }
+        });
+    }
+
     await supabaseClient.from('broadcast_state').upsert({ id: 1, state_json: currentMatchState, updated_at: new Date() });
     if (realtimeChannel) { await realtimeChannel.send({ type: 'broadcast', event: 'state-change', payload: currentMatchState }); }
 }
@@ -297,7 +392,6 @@ function toggleGSAPPlayerStats(show) {
     }
 }
 
-// WYWOŁANIE ANIMACJI PLANSZY ZBIORCZEJ MECZU (SUMMARY BOARDS)
 function toggleGSAPSummary(show) {
     const container = document.getElementById('summary-overlay'); if (!container) return;
     if (show) {
