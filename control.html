@@ -31,6 +31,10 @@
         .score-btn { width: 40px; height: 40px; background: #2d3446; border: none; color: white; border-radius: 6px; font-size: 20px; font-weight: 700; cursor: pointer; }
         .score-btn:hover { background: #3e4861; }
         .timer-display { font-size: 48px; font-weight: 800; text-align: center; color: #f5b041; margin: 10px 0; }
+        
+        /* Styl indykatora statusu Summary Panelu */
+        .summary-status-text { font-size: 14px; font-weight: 700; color: #ff4444; text-transform: uppercase; margin-bottom: 10px; display: inline-block; padding: 4px 10px; border-radius: 4px; background: rgba(255,68,68,0.1); }
+        .summary-status-text.active { color: #00c851; background: rgba(0,200,81,0.1); }
     </style>
 </head>
 <body>
@@ -161,7 +165,7 @@
             </div>
 
             <button class="btn btn-warning" onclick="updatePlayerStatsData()">ZAKTUALIZUJ DANE ZAWODNIKA</button>
-            <button class="btn btn-purple" style="background: #20b2aa;" onclick="togglePlayerStatsOverlay()">WŁĄCZ / WYŁĄCZ STATYSTYKI NA OBS</button>
+            <button id="btn-ctrl-stats-toggle" class="btn btn-purple" style="background: #20b2aa;" onclick="togglePlayerStatsOverlay()">WŁĄCZ / WYŁĄCZ STATYSTYKI NA OBS</button>
         </div>
     </div>
 
@@ -213,10 +217,13 @@
     <div class="card" style="margin-top: 20px; background: linear-gradient(135deg, #121620 0%, #152238 100%); border: 1px solid #1a365d;">
         <h3>⚽ MATCH SUMMARY OVERLAY MANAGER</h3>
         <p style="font-size: 13px; color: #b2babb; margin-top: -5px;">Zarządzaj profesjonalną, telewizyjną planszą podsumowania meczu, pobierającą automatycznie strzelców bramkowych.</p>
-        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px;">
-            <button class="btn btn-success" style="background: #2e7d32;" onclick="setSummaryMode('HALFTIME')">🟢 SHOW HALFTIME</button>
-            <button class="btn btn-success" style="background: #1565c0;" onclick="setSummaryMode('FULLTIME')">🔵 SHOW FULLTIME</button>
-            <button class="btn btn-danger" style="background: #c62828;" onclick="hideSummaryOverlay()">🔴 HIDE SUMMARY</button>
+        <div style="margin-bottom: 10px;">
+            <span>STATUS PLANSZY: </span><span id="ctrl-summary-status" class="summary-status-text">UKRYTA</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 5px;">
+            <button id="btn-summary-half" class="btn btn-success" style="background: #2e7d32;" onclick="setSummaryMode('HALFTIME')">🟢 SHOW HALFTIME</button>
+            <button id="btn-summary-full" class="btn btn-success" style="background: #1565c0;" onclick="setSummaryMode('FULLTIME')">🔵 SHOW FULLTIME</button>
+            <button id="btn-summary-hide" class="btn btn-danger" style="background: #c62828;" onclick="hideSummaryOverlay()">🔴 HIDE SUMMARY</button>
             <button class="btn btn-warning" style="background: #d35400; color: #fff;" onclick="clearMatchSummaryData()">🗑️ CLEAR MATCH DATA</button>
         </div>
     </div>
@@ -365,35 +372,6 @@
             currentMatchState.goals_history = [];
             await saveStateToSupabase();
             alert("Dane podsumowania meczu zostały wyczyszczone!");
-        }
-    }
-
-    function updateControlPanelUI() {
-        document.getElementById('ctrl-home-score').innerText = currentMatchState.home_score;
-        document.getElementById('ctrl-away-score').innerText = currentMatchState.away_score;
-        document.getElementById('ctrl-timer').innerText = formatTime(currentMatchState.match_time);
-        
-        if (!document.activeElement || document.activeElement.tagName !== 'INPUT') {
-            document.getElementById('ctrl-home-name').value = currentMatchState.home_name;
-            document.getElementById('ctrl-away-name').value = currentMatchState.away_name;
-            document.getElementById('ctrl-home-logo').value = currentMatchState.home_logo || "";
-            document.getElementById('ctrl-away-logo').value = currentMatchState.away_logo || "";
-            document.getElementById('ctrl-home-color').value = currentMatchState.home_color || "#0052cc";
-            document.getElementById('ctrl-away-color').value = currentMatchState.away_color || "#ff0044";
-            document.getElementById('ctrl-sub-out').value = currentMatchState.sub_out || "";
-            document.getElementById('ctrl-sub-in').value = currentMatchState.sub_in || "";
-            document.getElementById('ctrl-sub-team').value = currentMatchState.sub_team || "home";
-        }
-        
-        const btnToggle = document.getElementById('btn-ctrl-lineups-toggle');
-        if (btnToggle) {
-            if (currentMatchState.show_lineups) {
-                btnToggle.innerText = "UKRYJ NA OBS";
-                btnToggle.style.background = "#ff4444";
-            } else {
-                btnToggle.innerText = "POKAŻ NA OBS";
-                btnToggle.style.background = "#aa00ff";
-            }
         }
     }
 </script>
