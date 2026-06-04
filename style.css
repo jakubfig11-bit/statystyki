@@ -18,10 +18,126 @@ body, html {
 .overlay-body { background: transparent !important; overflow: hidden; }
 .control-body { background-color: var(--bg-dark); color: var(--text-main); overflow-y: auto; padding-bottom: 20px; }
 
-/* Zachowanie stylów dla innych elementów overlayowych */
-.goal-card-tv {
+/* ==========================================================================
+   SCOREBOARD HUD
+   ========================================================================== */
+.scoreboard-wrapper.left-corner {
+    position: absolute;
+    top: 30px;
+    left: 40px;
+    z-index: 10;
+}
+
+.scoreboard-tv {
+    display: flex;
+    align-items: center;
     background: var(--glass-bg);
-    backdrop-filter: blur(20px);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    border-radius: 14px;
+    height: 58px;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45);
+    overflow: hidden;
+}
+
+.tv-team {
+    display: flex;
+    align-items: center;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: #ffffff !important;
+    padding: 0 24px;
+    text-transform: uppercase;
+    height: 100%;
+}
+
+.crest-container {
+    width: 38px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.tv-team.home .crest-container { margin-right: 12px; }
+.tv-team.away .crest-container { margin-left: 12px; }
+
+.club-crest {
+    max-width: 34px;
+    max-height: 34px;
+    object-fit: contain;
+}
+.club-crest.hidden { display: none !important; }
+
+.color-accent {
+    width: 5px;
+    height: 100%;
+    position: absolute;
+    top: 0;
+}
+.tv-team.home .color-accent { left: 0; }
+.tv-team.away .color-accent { right: 0; }
+
+.tv-center-core {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+    height: 100%;
+    padding: 0 24px;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    min-width: 90px;
+}
+
+.tv-score-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 26px;
+    font-weight: 900;
+    line-height: 1;
+    color: #ffffff !important;
+}
+.tv-divider { width: 2px; height: 16px; background: rgba(255,255,255,0.3); }
+
+.tv-timer {
+    font-size: 13px;
+    font-weight: 700;
+    color: #ffffff !important;
+    margin-top: 4px;
+    letter-spacing: 0.5px;
+}
+
+/* ==========================================================================
+   ANIMACJA GOL
+   ========================================================================== */
+.goal-overlay-container.bottom-position {
+    position: fixed;
+    top: auto;
+    bottom: 60px;
+    left: 0;
+    width: 100%;
+    height: auto;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    z-index: 100;
+    opacity: 0;
+    visibility: hidden;
+}
+
+.goal-bg-flash {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(circle at bottom, rgba(255,255,255,0.12) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: -1;
+}
+
+.goal-tv-card {
+    background: #090a0e;
     border: 1px solid rgba(255,255,255,0.15);
     border-radius: 14px;
     padding: 18px 45px;
@@ -31,9 +147,36 @@ body, html {
     position: relative;
     overflow: hidden;
 }
+
+.goal-card-bg-crest {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-height: 130%;
+    width: auto;
+    object-fit: contain;
+    opacity: 0.3 !important;
+    z-index: 1;
+    pointer-events: none;
+}
+.goal-card-bg-crest.hidden { display: none !important; }
+
 .goal-card-content { position: relative; z-index: 2; }
 .goal-tv-title { font-size: 34px; font-weight: 900; margin: 0; letter-spacing: 3px; color: #ffffff; text-transform: uppercase; }
 .goal-tv-details { margin-top: 6px; display: flex; align-items: center; justify-content: center; gap: 12px; }
 .goal-tv-player { font-size: 19px; font-weight: 800; color: #ffffff; }
-.goal-tv-team { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.6); text-transform: uppercase; }
-.goal-tv-bullet { color: #ffbb33; font-size: 16px; }
+.goal-tv-team { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.6); text-transform: uppercase; }
+
+/* ==========================================================================
+   SUMMARY SCREEN RESPONSIVENESS
+   ========================================================================== */
+@media (max-width: 1920px) {
+    #summary-overlay { transform: translate(-50%, -50%) scale(1); }
+}
+@media (max-width: 1600px) {
+    #summary-overlay { transform: translate(-50%, -50%) scale(0.85); }
+}
+@media (max-width: 1366px) {
+    #summary-overlay { transform: translate(-50%, -50%) scale(0.75); }
+}
