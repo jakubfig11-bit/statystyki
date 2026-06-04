@@ -18,125 +18,7 @@ body, html {
 .overlay-body { background: transparent !important; overflow: hidden; }
 .control-body { background-color: var(--bg-dark); color: var(--text-main); overflow-y: auto; padding-bottom: 20px; }
 
-/* ==========================================================================\n   SCOREBOARD HUD\n   ========================================================================== */
-.scoreboard-wrapper.left-corner {
-    position: absolute;
-    top: 30px;
-    left: 40px;
-    z-index: 10;
-}
-
-.scoreboard-tv {
-    display: flex;
-    align-items: center;
-    background: var(--glass-bg);
-    backdrop-filter: blur(16px);
-    border: 1px solid var(--glass-border);
-    border-radius: 14px;
-    height: 58px;
-    box-shadow: 0 16px 36px rgba(0,0,0,0.5);
-    overflow: hidden;
-    padding: 0 4px;
-    min-width: 580px;
-}
-
-.tv-accent-line {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    height: 3px;
-    width: 100%;
-    display: flex;
-}
-.tv-accent-half { flex: 1; height: 100%; }
-
-.tv-crest-container {
-    width: 48px;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 6px;
-}
-.tv-crest-container img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-}
-.tv-crest-container img.hidden { display: none !important; }
-
-.tv-team-name {
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 21px;
-    font-weight: 700;
-    color: var(--text-main);
-    letter-spacing: 1px;
-    padding: 0 14px;
-    text-transform: uppercase;
-    flex: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.tv-team-name.home-side { text-align: right; }
-.tv-team-name.away-side { text-align: left; }
-
-.tv-score-block {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(255, 255, 255, 0.05);
-    height: 42px;
-    padding: 0 22px;
-    border-radius: 10px;
-    border: 1px solid rgba(255,255,255,0.08);
-    gap: 10px;
-}
-.tv-score-num {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 26px;
-    font-weight: 700;
-    color: var(--text-main);
-    min-width: 24px;
-    text-align: center;
-}
-.tv-score-colon {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 18px;
-    font-weight: 700;
-    color: rgba(255,255,255,0.4);
-    animation: pulseColon 2s infinite;
-}
-
-@keyframes pulseColon {
-    0%, 100% { opacity: 0.3; }
-    50% { opacity: 1; }
-}
-
-.tv-timer-container {
-    padding: 0 16px;
-    min-width: 85px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.tv-timer-text {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 18px;
-    font-weight: 700;
-    color: #ffbb33;
-    letter-spacing: 0.5px;
-}
-
-/* ==========================================================================\n   GOAL BROADCAST CARD\n   ========================================================================== */
-.goal-card-wrapper-tv {
-    position: absolute;
-    top: 105px;
-    left: 40px;
-    z-index: 9;
-    visibility: hidden;
-}
-
+/* Zachowanie stylów dla innych elementów overlayowych */
 .goal-card-tv {
     background: var(--glass-bg);
     backdrop-filter: blur(20px);
@@ -149,21 +31,6 @@ body, html {
     position: relative;
     overflow: hidden;
 }
-
-.goal-card-bg-crest {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    max-height: 130%;
-    width: auto;
-    object-fit: contain;
-    opacity: 0.3 !important;
-    z-index: 1;
-    pointer-events: none;
-}
-.goal-card-bg-crest.hidden { display: none !important; }
-
 .goal-card-content { position: relative; z-index: 2; }
 .goal-tv-title { font-size: 34px; font-weight: 900; margin: 0; letter-spacing: 3px; color: #ffffff; text-transform: uppercase; }
 .goal-tv-details { margin-top: 6px; display: flex; align-items: center; justify-content: center; gap: 12px; }
