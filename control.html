@@ -256,62 +256,57 @@
     }
 
     async function swapSides() {
-        if (!confirm("Czy na pewno chcesz zamienić strony (Gospodarze 🔄 Goście)?")) return;
-
-        // Zamiana wyników
-        const tempScore = currentMatchState.home_score;
-        currentMatchState.home_score = currentMatchState.away_score;
-        currentMatchState.away_score = tempScore;
-
-        // Zamiana nazw drużyn
+        // Klonowanie danych gospodarzy do zmiennych tymczasowych
         const tempName = currentMatchState.home_name;
-        currentMatchState.home_name = currentMatchState.away_name;
-        currentMatchState.away_name = tempName;
-
-        // Zamiana logotypów
         const tempLogo = currentMatchState.home_logo;
-        currentMatchState.home_logo = currentMatchState.away_logo;
-        currentMatchState.away_logo = tempLogo;
-
-        // Zamiana kolorów głównych
         const tempColor = currentMatchState.home_color;
-        currentMatchState.home_color = currentMatchState.away_color;
-        currentMatchState.away_color = tempColor;
-
-        // Zamiana trenerów
+        const tempScore = currentMatchState.home_score;
         const tempCoach = currentMatchState.home_coach;
-        currentMatchState.home_coach = currentMatchState.away_coach;
-        currentMatchState.away_coach = tempCoach;
-
-        // Zamiana zawodników rezerwowych
         const tempSubs = currentMatchState.home_subs;
+        const tempP1 = currentMatchState.home_p1;
+        const tempP2 = currentMatchState.home_p2;
+        const tempP3 = currentMatchState.home_p3;
+        const tempP4 = currentMatchState.home_p4;
+        const tempP5 = currentMatchState.home_p5;
+
+        // Przepisanie danych gości na miejsce gospodarzy
+        currentMatchState.home_name = currentMatchState.away_name;
+        currentMatchState.home_logo = currentMatchState.away_logo;
+        currentMatchState.home_color = currentMatchState.away_color;
+        currentMatchState.home_score = currentMatchState.away_score;
+        currentMatchState.home_coach = currentMatchState.away_coach;
         currentMatchState.home_subs = currentMatchState.away_subs;
+        currentMatchState.home_p1 = currentMatchState.away_p1;
+        currentMatchState.home_p2 = currentMatchState.away_p2;
+        currentMatchState.home_p3 = currentMatchState.away_p3;
+        currentMatchState.home_p4 = currentMatchState.away_p4;
+        currentMatchState.home_p5 = currentMatchState.away_p5;
+
+        // Przepisanie danych tymczasowych gospodarzy na miejsce gości
+        currentMatchState.away_name = tempName;
+        currentMatchState.away_logo = tempLogo;
+        currentMatchState.away_color = tempColor;
+        currentMatchState.away_score = tempScore;
+        currentMatchState.away_coach = tempCoach;
         currentMatchState.away_subs = tempSubs;
+        currentMatchState.away_p1 = tempP1;
+        currentMatchState.away_p2 = tempP2;
+        currentMatchState.away_p3 = tempP3;
+        currentMatchState.away_p4 = tempP4;
+        currentMatchState.away_p5 = tempP5;
 
-        // Zamiana zawodników z pierwszego składu (p1 do p5)
-        for (let i = 1; i <= 5; i++) {
-            const tempPlayer = currentMatchState[`home_p${i}`];
-            currentMatchState[`home_p${i}`] = currentMatchState[`away_p${i}`];
-            currentMatchState[`away_p${i}`] = tempPlayer;
-        }
-
-        // Zamiana przynależności drużynowej w historii goli (aby strzelcy poprawnie wyświetlali się na planszy podsumowania)
-        if (currentMatchState.goals_history && Array.isArray(currentMatchState.goals_history)) {
-            currentMatchState.goals_history = currentMatchState.goals_history.map(goal => {
-                if (goal.team === 'home') goal.team = 'away';
-                else if (goal.team === 'away') goal.team = 'home';
-                return goal;
+        // Zamiana stron dla strzelonych wcześniej bramek w historii goli
+        if (currentMatchState.goals_history) {
+            currentMatchState.goals_history.forEach(goal => {
+                goal.team = (goal.team === 'home') ? 'away' : 'home';
             });
         }
 
-        // Zapis zaktualizowanego stanu w Supabase
+        // Zapisanie nowego stanu i aktualizacja interfejsu panelu
         await saveStateToSupabase();
-
-        // Aktualizacja UI na panelu kontrolnym
         updateControlPanelUI();
-        await switchLineupsControlTeam();
-
-        alert("Strony zostały pomyślnie zamienione lokalnie i w chmurze!");
+        switchLineupsControlTeam(); // Odświeża formularze wprowadzania składów
+        alert("Strony (nazwy, loga, kolory, wyniki, składy i strzelcy) zostały pomyślnie zamienione!");
     }
 
     async function switchLineupsControlTeam() {
