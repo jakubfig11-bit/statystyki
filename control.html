@@ -223,6 +223,19 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="app.js"></script>
     <script>
+        // WYWOŁANIE DOPIERO PO PEŁNYM ZAŁADOWANIU STRONY I FUNKCJI
+        document.addEventListener("DOMContentLoaded", () => {
+            initLiveSync((state) => {
+                // Gdy funkcja pobierze pierwsze dane, zmień status na połączony
+                const statusBadge = document.getElementById('connection-status');
+                if (statusBadge) {
+                    statusBadge.innerText = "POŁĄCZONY";
+                    statusBadge.className = "status-badge connected";
+                }
+                updateControlPanelUI();
+            });
+        });
+
         function updateControlPanelUI() {
             if (!currentMatchState) return;
             
