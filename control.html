@@ -97,6 +97,10 @@
             </div>
         </div>
         <button class="btn btn-success" onclick="updateTeamsSettings()">ZAPISZ I ZAKTUALIZUJ USTAWIENIA</button>
+
+<button class="btn btn-warning" onclick="swapSides()">
+    🔄 SWAP SIDES (ZMIANA POŁÓW)
+</button>
     </div>
 
     <div class="grid-2">
@@ -250,7 +254,9 @@
         await saveStateToSupabase();
         alert("Ustawienia drużyn zsynchronizowane z bazą!");
     }
-
+async function swapSides() {
+    // cały kod funkcji swapSides()
+}
     async function switchLineupsControlTeam() {
         const activeTeam = document.getElementById('ctrl-lineups-team').value;
         const prefix = activeTeam === 'home' ? 'home' : 'away';
