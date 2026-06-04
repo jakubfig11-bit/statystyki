@@ -58,6 +58,7 @@
            ========================================== */
         #tactical-lineups-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; z-index: 90; }
         .tactical-card { width: 780px; background: #0d0f14; border: 2px solid #232731; border-radius: 20px; padding: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
+        .tactical-card { width: 780px; background: #0d0f14; border: 2px solid #232731; border-radius: 20px; padding: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
         .tactical-header { display: flex; align-items: center; gap: 20px; margin-bottom: 25px; }
         #tactical-top-logo { width: 60px; height: 60px; object-fit: contain; }
         #tactical-top-logo.hidden { display: none; }
@@ -275,6 +276,26 @@
         </div>
     </div>
 
+    <div id="sub-overlay" style="visibility: hidden;">
+        <div class="sub-tv-card">
+            <div id="sub-card-accent"></div>
+            <div class="sub-team-header">
+                <span class="sub-team-title" id="sub-team-name">DRUŻYNA</span>
+                <span class="sub-label-badge">ZMIANA</span>
+            </div>
+            <div class="sub-body">
+                <div class="sub-row">
+                    <span class="sub-icon out">🔴</span>
+                    <span class="sub-player-text" id="sub-txt-out">ZAWODNIK SCHODZĄCY</span>
+                </div>
+                <div class="sub-row">
+                    <span class="sub-icon in">🟢</span>
+                    <span class="sub-player-text" id="sub-txt-in">ZAWODNIK WCHODZĄCY</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="summary-overlay">
         <div class="summary-tv-board">
             <div class="summary-board-header" id="summary-txt-title">HALFTIME SUMMARY</div>
@@ -298,10 +319,8 @@
             </div>
             
             <div class="summary-board-scorers-area">
-                <div class="summary-scorers-column home-side" id="summary-scorers-list-home">
-                    </div>
-                <div class="summary-scorers-column away-side" id="summary-scorers-list-away">
-                    </div>
+                <div class="summary-scorers-column home-side" id="summary-scorers-list-home"></div>
+                <div class="summary-scorers-column away-side" id="summary-scorers-list-away"></div>
             </div>
 
             <div class="summary-board-footer-accent">
