@@ -10,7 +10,7 @@
         body { margin: 0; padding: 0; width: 1920px; height: 1080px; overflow: hidden; background: transparent; font-family: 'Montserrat', sans-serif; position: relative; }
 
         /* ==========================================
-           1. SCOREBOARD
+           1. STARY, ORYGINALNY SCOREBOARD
            ========================================== */
         .hud-wrapper {
             position: absolute; top: 30px; left: 50%; transform: translateX(-50%);
@@ -37,7 +37,7 @@
         .hud-accent-half { flex: 1; }
 
         /* ==========================================
-           2. GOAL TRIGGER CARD
+           2. LIVE GOAL TRIGGER CARD
            ========================================== */
         .goal-card-anchor { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 50; visibility: hidden; }
         .goal-card-body { background: linear-gradient(135deg, #0d0f14 0%, #161b26 100%); border: 3px solid #232731; border-radius: 16px; padding: 25px 50px; text-align: center; box-shadow: 0 24px 48px rgba(0,0,0,0.8); min-width: 450px; position: relative; overflow: hidden; }
@@ -50,7 +50,7 @@
         .goal-team-txt { font-size: 16px; font-weight: 700; color: #a6acaf; background: rgba(255,255,255,0.05); padding: 4px 12px; border-radius: 6px; text-transform: uppercase; }
 
         /* ==========================================
-           3. SUBSTITUTION CARD
+           3. LIVE SUBSTITUTION CARD
            ========================================== */
         .sub-card-anchor { position: absolute; bottom: 80px; right: 50px; z-index: 45; visibility: hidden; }
         .sub-card-body { background: #0d0f14; border: 2px solid #232731; border-radius: 14px; padding: 18px 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.7); min-width: 380px; overflow: hidden; }
@@ -63,7 +63,7 @@
         .sub-strip-accent { height: 4px; width: 100%; margin-top: 12px; border-radius: 2px; }
 
         /* ==========================================
-           4. TACTICAL LINEUPS (TV PANEL)
+           4. TACTICAL LINEUPS
            ========================================== */
         .lineups-panel-anchor { position: absolute; top: 140px; left: 50%; transform: translateX(-50%); z-index: 30; visibility: hidden; }
         .lineups-card { background: linear-gradient(180deg, #0d0f14 0%, #121620 100%); border: 3px solid #232731; border-radius: 20px; width: 550px; padding: 30px; box-shadow: 0 30px 60px rgba(0,0,0,0.8); position: relative; overflow: hidden; }
@@ -96,13 +96,13 @@
         .stats-metric-value { font-size: 18px; font-weight: 900; color: #ffffff; }
 
         /* ==========================================
-           6. MATCH SUMMARY BOARD (CENTRAL OVERLAY)
+           6. CENTRAL SUMMARY BOARD (IDEALNY ŚRODEK)
            ========================================== */
         .summary-overlay-anchor { 
             position: absolute; 
             top: 50%; 
             left: 50%; 
-            transform: translate(-50%, 150%); 
+            transform: translate(-50%, -50%); /* Startuje z idealnego środka */
             z-index: 100; 
             visibility: hidden; 
             display: none; 
