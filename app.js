@@ -29,24 +29,34 @@ async function initLiveSync(onUpdateFn) {
     }
 
     // Pobranie stanu początkowego
-    const { data, error } = await supabaseClient.from('match_state').select('*').eq('id', 1).single();
-    if (!error && data) {
-        currentMatchState = data;
-        if (updateCallback) updateCallback(currentMatchState);
-        handleTimerInterval();
-    } else if (error) {
-        console.error("Błąd pobierania stanu początkowego:", error);
-    }
-
-    // Subskrypcja zmian w czasie rzeczywistym
-    supabaseClient.channel('public:match_state')
-        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'match_state', filter: 'id=eq.1' }, payload => {
-            currentMatchState = payload.new;
+    try {
+        const { data, error } = await supabaseClient.from('match_state').select('*').eq('id', 1).single();
+        if (!error && data) {
+            currentMatchState = data;
             if (updateCallback) updateCallback(currentMatchState);
             handleTimerInterval();
+        } else if (error) {
+            console.error("Błąd pobierania stanu początkowego:", error);
+        }
+    } catch (err) {
+        console.error("Wyjątek podczas pobierania stanu:", err);
+    }
+
+    // Subskrypcja zmian w czasie rzeczywistym z obsługą statusu połączenia sieciowego
+    supabaseClient.channel('public:match_state')
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'match_state', filter: 'id=eq.1' }, payload => {
+            if (payload && payload.new) {
+                currentMatchState = payload.new;
+                if (updateCallback) updateCallback(currentMatchState);
+                handleTimerInterval();
+            }
         })
         .subscribe((status) => {
             console.log("Status subskrypcji kanału:", status);
+            // Jeśli połączono prawidłowo z kanałem realtime, wymuś odświeżenie UI jako POŁĄCZONY
+            if (status === 'SUBSCRIBED') {
+                if (updateCallback) updateCallback(currentMatchState);
+            }
         });
 }
 
@@ -68,7 +78,11 @@ function handleTimerInterval() {
 
 async function saveState() {
     if (!supabaseClient) return;
-    await supabaseClient.from('match_state').update(currentMatchState).eq('id', 1);
+    try {
+        await supabaseClient.from('match_state').update(currentMatchState).eq('id', 1);
+    } catch (err) {
+        console.error("Błąd podczas zapisywania stanu do Supabase:", err);
+    }
 }
 
 function updateField(field, value) {
@@ -137,10 +151,14 @@ function triggerGoalAnimation() {
     nameInput.value = "";
 
     setTimeout(async () => {
-        const { data } = await supabaseClient.from('match_state').select('show_goal_trigger').eq('id', 1).single();
-        if (data && data.show_goal_trigger) {
-            currentMatchState.show_goal_trigger = false;
-            saveState();
+        try {
+            const { data } = await supabaseClient.from('match_state').select('show_goal_trigger').eq('id', 1).single();
+            if (data && data.show_goal_trigger) {
+                currentMatchState.show_goal_trigger = false;
+                saveState();
+            }
+        } catch (e) {
+            console.error(e);
         }
     }, 7000);
 }
@@ -150,10 +168,14 @@ function triggerSubstitutionAnimation() {
     saveState();
 
     setTimeout(async () => {
-        const { data } = await supabaseClient.from('match_state').select('show_sub_trigger').eq('id', 1).single();
-        if (data && data.show_sub_trigger) {
-            currentMatchState.show_sub_trigger = false;
-            saveState();
+        try {
+            const { data } = await supabaseClient.from('match_state').select('show_sub_trigger').eq('id', 1).single();
+            if (data && data.show_sub_trigger) {
+                currentMatchState.show_sub_trigger = false;
+                saveState();
+            }
+        } catch (e) {
+            console.error(e);
         }
     }, 7000);
 }
